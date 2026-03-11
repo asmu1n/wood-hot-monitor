@@ -4,7 +4,7 @@ import Skeleton from './components/Skeleton';
 import Toaster from './components/Sonner';
 
 // svg
-import Spotlight from './svg/spotlight';
+import Spotlight from './svg/Spotlight';
 
 // util
 import { cn } from './utils';
