@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/utils/common';
+import { cn } from '@repo/ui';
 
 interface HotSpotPaginationProps {
     currentPage: number;

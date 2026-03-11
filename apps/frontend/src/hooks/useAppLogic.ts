@@ -85,10 +85,10 @@ export function useAppLogic() {
 
             setKeywords(keywordsRes.data);
             setHotSpots(hotSpotsRes.data);
-            setTotalPages(hotSpotsRes.total);
+            setTotalPages(hotSpotsRes.total || 0);
             setStatus(statusRes.data);
             setNotifications(notificationRes.data);
-            setUnreadCount(notificationRes.total);
+            setUnreadCount(notificationRes.total || 0);
 
             // 订阅关键词
             const activeKeywords = keywordsRes.data.filter(k => k.isActive).map(k => k.text);

@@ -1,7 +1,7 @@
 import { scan } from 'react-scan';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Button } from '@/components/ui/button';
+import Button from 'components/Button';
 import './index.css';
 
 scan({ enabled: true, log: false });

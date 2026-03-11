@@ -1,7 +1,7 @@
 'use client';
 
+import { cn } from '@repo/ui';
 import { useEffect, useState } from 'react';
-import { cn } from '@/utils/common';
 
 export const Meteors = ({ number = 12, className }: { number?: number; className?: string }) => {
     const [meteorStyles, setMeteorStyles] = useState<{ left: string; animationDelay: string; animationDuration: string }[]>([]);
