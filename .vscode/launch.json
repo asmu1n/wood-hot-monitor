@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "name": "Launch Mac for webapp",
+            "request": "launch",
+            "runtimeArgs": [
+                "--remote-debugging-port=9222"
+            ],
+            "url": "http://localhost:5173",
+            "webRoot": "${workspaceFolder}/apps/frontend",
+            "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-profile",
+            "presentation": {
+                "hidden": false
+            }
+        }
+    ]
+}

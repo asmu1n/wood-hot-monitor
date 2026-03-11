@@ -14,12 +14,20 @@
         "editor.defaultFormatter": "dbaeumer.vscode-eslint"
     },
     "tailwindCSS.experimental.classRegex": [
-        ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
-        ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+        [
+            "cva\\(([^)]*)\\)",
+            "[\"'`]([^\"'`]*).*?[\"'`]"
+        ],
+        [
+            "cx\\(([^)]*)\\)",
+            "(?:'|\"|`)([^']*)(?:'|\"|`)"
+        ]
     ],
     "typescript.tsdk": "node_modules/typescript/lib",
     "[typescriptreact]": {
         "editor.defaultFormatter": "dbaeumer.vscode-eslint"
     },
-    "cSpell.words": ["hotspot"]
+    "cSpell.words": [
+        "hotspot"
+    ]
 }
