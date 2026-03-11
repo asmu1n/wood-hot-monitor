@@ -10,10 +10,10 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { runHotspotCheck } from '@/tasks/hotspotCheck';
 import cron from 'node-cron';
-import './tasks/keywordCleanup';
 import responseBody from '@/config/response';
 import RequestHandler from '@/config/requestHandler';
 import { clearKeywordExpansions } from '@/tasks/keywordCleanup';
+import './src/tasks/keywordCleanup';
 
 //服务配置
 const app: express.Application = express();

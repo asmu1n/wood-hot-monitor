@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 
-dotenv.config({ path: '.env' });
+dotenv.config({ path: '.env.local' });
 
 const BASE_URL = process.env.BASE_URL;
 const PORT = process.env.PORT;
