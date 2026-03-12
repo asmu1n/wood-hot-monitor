@@ -3479,6 +3479,7 @@ __metadata:
     "@aws-sdk/s3-request-presigner": "npm:^3.758.0"
     "@eslint/js": "npm:^9.17.0"
     "@google/generative-ai": "npm:^0.24.1"
+    "@repo/types": "npm:*"
     "@types/bcrypt": "npm:^5.0.2"
     "@types/bcryptjs": "npm:^2.4.6"
     "@types/better-sqlite3": "npm:^7.6.13"
@@ -3529,6 +3530,7 @@ __metadata:
   dependencies:
     "@eslint/js": "npm:^9.39.2"
     "@radix-ui/react-slot": "npm:^1.2.4"
+    "@repo/types": "npm:*"
     "@repo/ui": "npm:*"
     "@swc/react-compiler": "npm:^1.15.11"
     "@tailwindcss/vite": "npm:^4.1.18"
@@ -3580,7 +3582,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@repo/types@workspace:packages/types":
+"@repo/types@npm:*, @repo/types@workspace:packages/types":
   version: 0.0.0-use.local
   resolution: "@repo/types@workspace:packages/types"
   languageName: unknown

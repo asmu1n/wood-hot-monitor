@@ -39,8 +39,8 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@repo/types": "*",
     "@eslint/js": "^9.17.0",
+    "@repo/types": "*",
     "@types/bcrypt": "^5.0.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.13",

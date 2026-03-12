@@ -34,8 +34,8 @@
     "zod-i18n-map": "^2.27.0"
   },
   "devDependencies": {
-    "@repo/types": "*",
     "@eslint/js": "^9.39.2",
+    "@repo/types": "*",
     "@swc/react-compiler": "^1.15.11",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/eslint-plugin-query": "^5.91.4",
