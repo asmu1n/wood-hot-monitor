@@ -7,6 +7,6 @@ import Toaster from './components/Sonner';
 import Spotlight from './svg/Spotlight';
 
 // util
-import { cn } from './utils';
+import { cn, cva } from './utils';
 
-export { Button, Skeleton, Toaster, Spotlight, cn };
+export { Button, Skeleton, Toaster, Spotlight, cn, cva };
