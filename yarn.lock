@@ -1731,7 +1731,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:9.39.4, @eslint/js@npm:^9.17.0, @eslint/js@npm:^9.39.2":
+"@eslint/js@npm:9.39.4, @eslint/js@npm:^9.39.2":
   version: 9.39.4
   resolution: "@eslint/js@npm:9.39.4"
   checksum: 10c0/5aa7dea2cbc5decf7f5e3b0c6f86a084ccee0f792d288ca8e839f8bc1b64e03e227068968e49b26096e6f71fd857ab6e42691d1b993826b9a3883f1bdd7a0e46
@@ -3477,9 +3477,9 @@ __metadata:
     "@aws-sdk/client-s3": "npm:^3.688.0"
     "@aws-sdk/lib-storage": "npm:^3.758.0"
     "@aws-sdk/s3-request-presigner": "npm:^3.758.0"
-    "@eslint/js": "npm:^9.17.0"
+    "@eslint/js": "npm:^9.39.2"
     "@google/generative-ai": "npm:^0.24.1"
-    "@repo/types": "npm:*"
+    "@repo/types": "npm:1.0.0"
     "@types/bcrypt": "npm:^5.0.2"
     "@types/bcryptjs": "npm:^2.4.6"
     "@types/better-sqlite3": "npm:^7.6.13"
@@ -3488,7 +3488,7 @@ __metadata:
     "@types/express": "npm:^5.0.0"
     "@types/jsonwebtoken": "npm:^9.0.7"
     "@types/multer": "npm:^1.4.12"
-    "@types/node": "npm:^22.8.5"
+    "@types/node": "npm:^25.2.3"
     "@types/node-cron": "npm:^3.0.11"
     "@types/nodemailer": "npm:^7.0.11"
     "@types/validator": "npm:^13.12.2"
@@ -3503,10 +3503,10 @@ __metadata:
     drizzle-kit: "npm:^0.31.9"
     drizzle-orm: "npm:^0.40.0"
     drizzle-zod: "npm:^0.7.0"
-    eslint: "npm:^9.17.0"
-    eslint-plugin-prettier: "npm:^5.2.1"
+    eslint: "npm:^9.39.2"
+    eslint-plugin-prettier: "npm:^5.5.5"
     express: "npm:^4.21.1"
-    globals: "npm:^15.14.0"
+    globals: "npm:^17.3.0"
     jiti: "npm:^2.6.1"
     jsonwebtoken: "npm:^9.0.2"
     multer: "npm:^1.4.5-lts.1"
@@ -3518,9 +3518,9 @@ __metadata:
     tsup: "npm:^8.5.1"
     tsx: "npm:^4.21.0"
     typescript: "npm:^5.9.3"
-    typescript-eslint: "npm:^8.19.0"
+    typescript-eslint: "npm:^8.55.0"
     validator: "npm:^13.12.0"
-    zod: "npm:^3.24.2"
+    zod: "npm:^4.3.6"
   languageName: unknown
   linkType: soft
 
@@ -3530,8 +3530,8 @@ __metadata:
   dependencies:
     "@eslint/js": "npm:^9.39.2"
     "@radix-ui/react-slot": "npm:^1.2.4"
-    "@repo/types": "npm:*"
-    "@repo/ui": "npm:*"
+    "@repo/types": "npm:1.0.0"
+    "@repo/ui": "npm:0.0.0"
     "@swc/react-compiler": "npm:^1.15.11"
     "@tailwindcss/vite": "npm:^4.1.18"
     "@tanstack/eslint-plugin-query": "npm:^5.91.4"
@@ -3545,7 +3545,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     "@types/spark-md5": "npm:^3.0.5"
     "@vitejs/plugin-react": "npm:^5.1.4"
-    axios: "npm:^1.13.5"
+    axios: "npm:^1.13.6"
     babel-plugin-react-compiler: "npm:^1.0.0"
     cheerio: "npm:^1.2.0"
     eslint: "npm:^9.39.2"
@@ -3579,13 +3579,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@repo/types@npm:*, @repo/types@workspace:packages/types":
+"@repo/types@npm:1.0.0, @repo/types@workspace:packages/types":
   version: 0.0.0-use.local
   resolution: "@repo/types@workspace:packages/types"
   languageName: unknown
   linkType: soft
 
-"@repo/ui@npm:*, @repo/ui@workspace:packages/ui":
+"@repo/ui@npm:0.0.0, @repo/ui@workspace:packages/ui":
   version: 0.0.0-use.local
   resolution: "@repo/ui@workspace:packages/ui"
   dependencies:
@@ -5200,15 +5200,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^22.8.5":
-  version: 22.19.15
-  resolution: "@types/node@npm:22.19.15"
-  dependencies:
-    undici-types: "npm:~6.21.0"
-  checksum: 10c0/f17eaf3d0d1da5e93ad9e287efb78201f8a5282973c004c5f70d91675c5c6b926a23acaa7b158a42b3d7e27e36b349d65a531710c91c308fca53dd7fa280ef98
-  languageName: node
-  linkType: hard
-
 "@types/nodemailer@npm:^7.0.11":
   version: 7.0.11
   resolution: "@types/nodemailer@npm:7.0.11"
@@ -5773,7 +5764,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.13.5, axios@npm:^1.13.6":
+"axios@npm:^1.13.6":
   version: 1.13.6
   resolution: "axios@npm:1.13.6"
   dependencies:
@@ -7532,7 +7523,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-prettier@npm:^5.2.1, eslint-plugin-prettier@npm:^5.5.5":
+"eslint-plugin-prettier@npm:^5.5.5":
   version: 5.5.5
   resolution: "eslint-plugin-prettier@npm:5.5.5"
   dependencies:
@@ -7635,7 +7626,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^9.17.0, eslint@npm:^9.39.2":
+"eslint@npm:^9.39.2":
   version: 9.39.4
   resolution: "eslint@npm:9.39.4"
   dependencies:
@@ -8462,13 +8453,6 @@ __metadata:
   version: 14.0.0
   resolution: "globals@npm:14.0.0"
   checksum: 10c0/b96ff42620c9231ad468d4c58ff42afee7777ee1c963013ff8aabe095a451d0ceeb8dcd8ef4cbd64d2538cef45f787a78ba3a9574f4a634438963e334471302d
-  languageName: node
-  linkType: hard
-
-"globals@npm:^15.14.0":
-  version: 15.15.0
-  resolution: "globals@npm:15.15.0"
-  checksum: 10c0/f9ae80996392ca71316495a39bec88ac43ae3525a438b5626cd9d5ce9d5500d0a98a266409605f8cd7241c7acf57c354a48111ea02a767ba4f374b806d6861fe
   languageName: node
   linkType: hard
 
@@ -13097,7 +13081,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript-eslint@npm:^8.19.0, typescript-eslint@npm:^8.55.0":
+"typescript-eslint@npm:^8.55.0":
   version: 8.57.0
   resolution: "typescript-eslint@npm:8.57.0"
   dependencies:
