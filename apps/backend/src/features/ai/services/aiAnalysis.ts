@@ -53,8 +53,8 @@ export async function expandKeyword(keyword: string): Promise<string[]> {
 
     try {
         const expanded = await aiLimiter.run(async () => {
-            const prompt = buildExpandKeywordPrompt(keyword);
-            const responseText = await fetchSiliconFlow(prompt);
+            const { user, system } = buildExpandKeywordPrompt(keyword);
+            const responseText = await fetchSiliconFlow(user, system);
             const jsonMatch = responseText.match(/\[[\s\S]*\]/);
 
             if (jsonMatch) {
@@ -152,10 +152,9 @@ export async function analyzeContent(
 
     try {
         return await aiLimiter.run(async () => {
-            const systemPrompt = buildAnalysisPrompt(keyword, matchResult);
+            const { system, user } = buildAnalysisPrompt(keyword, matchResult, content);
 
-            const promptContent = `System Instruction: ${systemPrompt}\n\nContent to analyze:\n${content.slice(0, 5000)}`;
-            const responseText = await fetchSiliconFlow(promptContent);
+            const responseText = await fetchSiliconFlow(user, system);
 
             // 尝试解析 JSON
             const jsonMatch = responseText.match(/\{[\s\S]*\}/);
