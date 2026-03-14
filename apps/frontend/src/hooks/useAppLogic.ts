@@ -3,7 +3,7 @@ import { onNewHotSpot } from '@/features/hotspot/utils';
 import { createKeyword, deleteKeyword, getAllKeywords, toggleKeyword } from '@/features/keyword/api';
 import { checkHotSpot, getAllHotSpots, getHotSpotStatus, searchHotSpots } from '@/features/hotspot/api';
 import { getAllNotifications, markAllAsRead } from '@/features/notifications/api';
-import { subscribeToKeywords } from '@/features/keyword/utils';
+import { subscribeToKeywords, unsubscribeFromKeywords } from '@/features/keyword/utils';
 import { onNotification } from '@/features/notifications/utils';
 import { attempt } from '@/utils/common';
 import { defaultFilterState, type FilterState } from '@/components/FilterSortBar';
@@ -151,8 +151,8 @@ export function useAppLogic() {
     };
 
     // 删除关键词
-    const handleDeleteKeyword = async (id: string) => {
-        const [err] = await attempt(() => deleteKeyword.request({ id }));
+    const handleDeleteKeyword = async (keyword: Keyword) => {
+        const [err] = await attempt(() => deleteKeyword.request({ id: keyword.id }));
 
         if (err) {
             showToast('删除失败', 'error');
@@ -160,13 +160,14 @@ export function useAppLogic() {
             return;
         }
 
-        setKeywords(prev => prev.filter(k => k.id !== id));
+        unsubscribeFromKeywords([keyword.text]);
+        setKeywords(prev => prev.filter(k => k.id !== keyword.id));
         showToast('关键词已删除', 'success');
     };
 
     // 切换关键词状态
-    const handleToggleKeyword = async (id: string) => {
-        const [err, result] = await attempt(() => toggleKeyword.request({ id }));
+    const handleToggleKeyword = async (keyword: Keyword) => {
+        const [err, result] = await attempt(() => toggleKeyword.request({ id: keyword.id }));
 
         if (err) {
             showToast('操作失败', 'error');
@@ -174,7 +175,15 @@ export function useAppLogic() {
             return;
         }
 
-        setKeywords(prev => prev.map(k => (k.id === id ? result.data : k)));
+        const updatedKeyword = result.data;
+
+        if (updatedKeyword.isActive) {
+            subscribeToKeywords([updatedKeyword.text]);
+        } else {
+            unsubscribeFromKeywords([updatedKeyword.text]);
+        }
+
+        setKeywords(prev => prev.map(k => (k.id === keyword.id ? updatedKeyword : k)));
     };
 
     // 手动搜索

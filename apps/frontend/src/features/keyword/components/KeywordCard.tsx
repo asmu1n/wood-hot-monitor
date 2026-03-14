@@ -6,8 +6,8 @@ import { cn } from '@repo/ui';
 interface KeywordCardProps {
     keyword: Keyword;
     index: number;
-    onToggle: (id: string) => void;
-    onDelete: (id: string) => void;
+    onToggle: (keyword: Keyword) => void;
+    onDelete: (keyword: Keyword) => void;
 }
 
 const KeywordCard: React.FC<KeywordCardProps> = ({ keyword, index, onToggle, onDelete }) => {
@@ -26,7 +26,7 @@ const KeywordCard: React.FC<KeywordCardProps> = ({ keyword, index, onToggle, onD
                 <div className="flex items-center gap-3">
                     {/* Toggle */}
                     <button
-                        onClick={() => onToggle(keyword.id)}
+                        onClick={() => onToggle(keyword)}
                         className={cn('relative h-6 w-11 rounded-full transition-all', keyword.isActive ? 'bg-primary' : 'bg-muted-foreground/30')}>
                         <span
                             className={cn(
@@ -45,7 +45,7 @@ const KeywordCard: React.FC<KeywordCardProps> = ({ keyword, index, onToggle, onD
                 </div>
 
                 <button
-                    onClick={() => onDelete(keyword.id)}
+                    onClick={() => onDelete(keyword)}
                     className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg p-2 opacity-0 transition-all group-hover:opacity-100">
                     <Trash2 className="h-4 w-4" />
                 </button>

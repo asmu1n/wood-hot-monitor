@@ -1,3 +1,5 @@
+import { getSocket } from '@/lib/socket';
+
 /** 计算热度综合指标（归一化 0-100） */
 function calcHeatScore(h: Hotspot): number {
     const likes = h.likeCount ?? 0;
@@ -128,8 +130,6 @@ function sortHotSpots<T extends SortableHotSpot>(items: T[], sortBy: string, sor
 
     return sorted;
 }
-
-import { getSocket } from '@/lib/socket';
 
 interface HotSpotEvent {
     id: string;
