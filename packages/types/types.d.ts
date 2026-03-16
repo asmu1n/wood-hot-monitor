@@ -54,7 +54,7 @@ interface IResponse<T = unknown, IsQueryData extends boolean = false> {
         title: string;
         content: string;
         isRead: boolean;
-        hotspotId: string | null;
+        hotSpotId: string | null;
         createdAt: string;
     }
 

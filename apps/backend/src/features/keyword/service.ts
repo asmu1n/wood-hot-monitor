@@ -3,13 +3,14 @@ import { keywords as keywordsTable } from '@/models/keywords';
 import { hotspots as hotspotsTable } from '@/models/hotspots';
 import { eq, sql, desc } from 'drizzle-orm';
 import { NotFoundError, ConflictError } from '@/config/error';
+import type { Keyword } from '@repo/types';
 
 export class KeywordService {
     /**
      * 获取所有关键词及热点计数
      */
-    static async getAll() {
-        return await db
+    static async getAll(): Promise<Keyword[]> {
+        const result = await db
             .select({
                 id: keywordsTable.id,
                 text: keywordsTable.text,
@@ -23,12 +24,18 @@ export class KeywordService {
             .leftJoin(hotspotsTable, eq(keywordsTable.id, hotspotsTable.keywordId))
             .groupBy(keywordsTable.id)
             .orderBy(desc(keywordsTable.createdAt));
+
+        return result.map(item => ({
+            ...item,
+            createdAt: item.createdAt.toISOString() || '',
+            updatedAt: item.updatedAt.toISOString() || ''
+        }));
     }
 
     /**
      * 获取单个关键词及其关联的热点 (前20个)
      */
-    static async getById(id: string) {
+    static async getById(id: string): Promise<Keyword> {
         const keyword = await db.query.keywords.findFirst({
             where: eq(keywordsTable.id, id),
             with: {
@@ -43,7 +50,11 @@ export class KeywordService {
             throw new NotFoundError('关键词未找到');
         }
 
-        return keyword;
+        return {
+            ...keyword,
+            createdAt: keyword.createdAt.toISOString() || '',
+            updatedAt: keyword.updatedAt.toISOString() || ''
+        };
     }
 
     /**
@@ -76,7 +87,7 @@ export class KeywordService {
     /**
      * 更新关键词
      */
-    static async update(id: string, data: any) {
+    static async update(id: string, data: any): Promise<Keyword> {
         const updateData: any = {};
 
         if (data.text !== undefined) {
@@ -100,7 +111,13 @@ export class KeywordService {
                 throw new NotFoundError('关键词未找到');
             }
 
-            return result[0];
+            const data = result[0];
+
+            return {
+                ...data,
+                createdAt: data.createdAt.toISOString() || '',
+                updatedAt: data.updatedAt.toISOString() || ''
+            };
         } catch (error: any) {
             if (error.message?.includes('UNIQUE constraint failed')) {
                 throw new ConflictError('关键词已存在');
@@ -126,7 +143,7 @@ export class KeywordService {
     /**
      * 切换关键词启用状态
      */
-    static async toggle(id: string) {
+    static async toggle(id: string): Promise<Keyword> {
         const keyword = await this.getById(id); // will throw NotFoundError if not found
 
         const result = await db
@@ -138,6 +155,12 @@ export class KeywordService {
             .where(eq(keywordsTable.id, id))
             .returning();
 
-        return result[0];
+        const data = result[0];
+
+        return {
+            ...data,
+            createdAt: data.createdAt.toISOString() || '',
+            updatedAt: data.updatedAt.toISOString() || ''
+        };
     }
 }

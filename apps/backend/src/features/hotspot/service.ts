@@ -7,6 +7,7 @@ import { searchBing } from '@/features/ai/services/search';
 import { batchAnalyze } from '@/features/ai/services/aiAnalysis';
 import { NotFoundError } from '@/config/error';
 import { queryFilter, getPagination, getTimeRangeFilter } from '@/db/utils/query';
+import type { Hotspot } from '@repo/types';
 
 export class HotspotService {
     /**
@@ -36,7 +37,12 @@ export class HotspotService {
         timeTo?: string;
         sortBy?: string;
         sortOrder?: 'desc' | 'asc';
-    }) {
+    }): Promise<{
+        data: Hotspot[];
+        page: number;
+        limit: number;
+        total: number;
+    }> {
         const { pageNum, limitNum, offset } = getPagination(page, limit);
 
         const { finalTimeFrom, finalTimeTo } = getTimeRangeFilter({ timeRange, timeFrom, timeTo });
@@ -44,7 +50,7 @@ export class HotspotService {
         const filters = queryFilter(
             {
                 source: (val: string) => eq(hotspotsTable.source, val),
-                importance: (val: string) => eq(hotspotsTable.importance, val),
+                importance: (val: 'low' | 'medium' | 'high' | 'urgent') => eq(hotspotsTable.importance, val),
                 keywordId: (val: string) => eq(hotspotsTable.keywordId, val),
                 isReal: (val: string) => eq(hotspotsTable.isReal, String(val) === 'true'),
                 finalTimeFrom: (val: Date) => gte(hotspotsTable.createdAt, val),
@@ -104,8 +110,16 @@ export class HotspotService {
             hotspots = sorted.slice(offset, offset + limitNum);
         }
 
+        const finalData = hotspots.map(item => {
+            return {
+                ...item,
+                createdAt: item.createdAt.toISOString() || '',
+                publishedAt: item.publishedAt?.toISOString() || ''
+            };
+        });
+
         return {
-            data: hotspots,
+            data: finalData,
             page: pageNum,
             limit: limitNum,
             total: total
@@ -154,7 +168,7 @@ export class HotspotService {
     /**
      * 获取单个热点
      */
-    static async getById(id: string) {
+    static async getById(id: string): Promise<Hotspot> {
         const hotspot = await db.query.hotspots.findFirst({
             where: eq(hotspotsTable.id, id),
             with: { keyword: true }
@@ -164,7 +178,11 @@ export class HotspotService {
             throw new NotFoundError('热点未找到');
         }
 
-        return hotspot;
+        return {
+            ...hotspot,
+            createdAt: hotspot.createdAt.toISOString() || '',
+            publishedAt: hotspot.publishedAt?.toISOString() || ''
+        };
     }
 
     /**

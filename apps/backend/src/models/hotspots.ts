@@ -17,7 +17,9 @@ export const hotspots = sqliteTable(
         relevance: integer('relevance').notNull().default(0),
         relevanceReason: text('relevance_reason'), // AI 分析相关性的理由
         keywordMentioned: integer('keyword_mentioned', { mode: 'boolean' }), // 内容中是否直接提及了关键词
-        importance: text('importance').notNull().default('low'),
+        importance: text('importance', { enum: ['low', 'medium', 'high', 'urgent'] })
+            .notNull()
+            .default('low'),
         summary: text('summary'),
         viewCount: integer('view_count'),
         likeCount: integer('like_count'),

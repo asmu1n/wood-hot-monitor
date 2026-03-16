@@ -3,12 +3,18 @@ import { notifications as notificationsTable } from '@/models/notifications';
 import { eq, and, sql, desc, type SQL } from 'drizzle-orm';
 import { NotFoundError } from '@/config/error';
 import { getPagination } from '@/db/utils/query';
+import type { Notification } from '@repo/types';
 
 export class NotificationService {
     /**
      * 获取通知列表
      */
-    static async getNotifications({ page, limit, unreadOnly = 'false' }: { page?: number; limit?: number; unreadOnly?: string }) {
+    static async getNotifications({ page, limit, unreadOnly = 'false' }: { page?: number; limit?: number; unreadOnly?: string }): Promise<{
+        data: Notification[];
+        page: number;
+        limit: number;
+        total: number;
+    }> {
         const filters: SQL[] = [];
 
         const { pageNum, limitNum, offset } = getPagination(page, limit);
@@ -30,14 +36,15 @@ export class NotificationService {
                 .select({ count: sql<number>`count(*)` })
                 .from(notificationsTable)
                 .where(where)
-            // db
-            //     .select({ count: sql<number>`count(*)` })
-            //     .from(notificationsTable)
-            //     .where(eq(notificationsTable.isRead, false))
         ]);
 
+        const data = notifications.map(item => ({
+            ...item,
+            createdAt: item.createdAt.toISOString() || ''
+        }));
+
         return {
-            data: notifications,
+            data,
             page: pageNum,
             limit: limitNum,
             total: total[0]?.count || 0
@@ -60,8 +67,13 @@ export class NotificationService {
     /**
      * 全部标记为已读
      */
-    static async markAllAsRead() {
-        return await db.update(notificationsTable).set({ isRead: true }).where(eq(notificationsTable.isRead, false)).returning();
+    static async markAllAsRead(): Promise<Notification[]> {
+        const result = await db.update(notificationsTable).set({ isRead: true }).where(eq(notificationsTable.isRead, false)).returning();
+
+        return result.map(item => ({
+            ...item,
+            createdAt: item.createdAt.toISOString() || ''
+        }));
     }
 
     /**
@@ -80,7 +92,12 @@ export class NotificationService {
     /**
      * 清空所有通知
      */
-    static async clearAll() {
-        return await db.delete(notificationsTable).returning();
+    static async clearAll(): Promise<Notification[]> {
+        const result = await db.delete(notificationsTable).returning();
+
+        return result.map(item => ({
+            ...item,
+            createdAt: item.createdAt.toISOString() || ''
+        }));
     }
 }

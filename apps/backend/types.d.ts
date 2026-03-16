@@ -27,15 +27,6 @@ declare global {
         (req: Request, res: Response, next: NextFunction): void;
     }
 
-    // interface IResponse<T = unknown> {
-    //     success: boolean;
-    //     message: string;
-    //     data?: T;
-    //     total?: number;
-    //     page?: number;
-    //     limit?: number;
-    // }
-
     interface QueryParams<P = unknown> extends P {
         page: number;
         limit: number;
