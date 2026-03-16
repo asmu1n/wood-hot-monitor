@@ -27,6 +27,7 @@ import {
 import { relativeTime, formatDateTime } from '@/utils/relativeTime';
 import { calcHeatScore, getHeatLevel } from '../utils';
 import { cn } from '@repo/ui';
+import type { Hotspot } from '@repo/types';
 
 interface HotSpotCardProps {
     hotspot: Hotspot;

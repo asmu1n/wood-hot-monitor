@@ -1,7 +1,7 @@
 import { analyzeContent, expandKeyword, preMatchKeyword } from '@/features/ai/services/aiAnalysis';
 import { detectAndFetchAccount, searchBilibili, searchSogou, searchWeibo } from '@/features/ai/services/chinaSearch';
 import { sendHotspotEmail } from '../features/notification/email.service';
-import { deduplicateResults, searchBing, searchHackerNews } from '@/features/ai/services/search';
+import { deduplicateResults, searchBing, searchDuckDuckGo, searchHackerNews } from '@/features/ai/services/search';
 import { searchTwitter } from '@/features/ai/services/twitter';
 import { Server } from 'socket.io';
 import db from '@/config/database';
@@ -87,14 +87,16 @@ export async function runHotspotCheck(io: Server): Promise<void> {
             );
 
             // 第二步：从多个来源获取数据（国际 + 国内并行请求）
-            const [twitterResults, bingResults, hackernewsResults, sogouResults, bilibiliResults, weiboResults] = await Promise.allSettled([
-                searchTwitter(keyword.text),
-                searchBing(keyword.text),
-                searchHackerNews(keyword.text),
-                searchSogou(keyword.text),
-                searchBilibili(keyword.text),
-                searchWeibo(keyword.text)
-            ]);
+            const [twitterResults, bingResults, hackernewsResults, duckduckgoResults, sogouResults, bilibiliResults, weiboResults] =
+                await Promise.allSettled([
+                    searchTwitter(keyword.text),
+                    searchBing(keyword.text),
+                    searchHackerNews(keyword.text),
+                    searchDuckDuckGo(keyword.text),
+                    searchSogou(keyword.text),
+                    searchBilibili(keyword.text),
+                    searchWeibo(keyword.text)
+                ]);
 
             const allResults: SearchResult[] = [];
 
@@ -110,7 +112,8 @@ export async function runHotspotCheck(io: Server): Promise<void> {
                 { name: 'HackerNews', result: hackernewsResults },
                 { name: 'Sogou', result: sogouResults },
                 { name: 'Bilibili', result: bilibiliResults },
-                { name: 'Weibo', result: weiboResults }
+                { name: 'Weibo', result: weiboResults },
+                { name: 'DuckDuckGo', result: duckduckgoResults }
             ];
 
             for (const source of sources) {

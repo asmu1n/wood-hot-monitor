@@ -4,7 +4,7 @@ import * as keywords from '@/models/keywords';
 import * as hotspots from '@/models/hotspots';
 import * as notifications from '@/models/notifications';
 import * as settings from '@/models/settings';
-import { DATABASE_CONFIG } from '@env';
+import { DATABASE_CONFIG } from 'env.config';
 
 const sqlite = new Database(DATABASE_CONFIG.connectUrl);
 const db = drizzle(sqlite, {

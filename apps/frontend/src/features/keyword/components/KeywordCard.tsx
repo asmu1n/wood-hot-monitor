@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 import { cn } from '@repo/ui';
+import type { Keyword } from '@repo/types';
 
 interface KeywordCardProps {
     keyword: Keyword;

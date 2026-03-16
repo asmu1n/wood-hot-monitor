@@ -1,7 +1,7 @@
-import { SILICONFLOW_API_KEY } from '@env';
+import { SILICONFLOW_API_KEY } from 'env.config';
 
 const SILICONFLOW_API_URL = 'https://api.siliconflow.cn/v1/chat/completions';
-const MODEL_NAME = 'Pro/deepseek-ai/DeepSeek-V3';
+const MODEL_NAME = 'Pro/deepseek-ai/DeepSeek-V3.2';
 
 export async function fetchSiliconFlow(prompt: string, systemPrompt?: string): Promise<string> {
     const messages = [];

@@ -1,4 +1,5 @@
 import { BaseRequest } from '@/lib/request';
+import type { Notification } from '@repo/types';
 
 export const BASE_URL = '/notifications';
 

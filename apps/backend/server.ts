@@ -5,7 +5,7 @@ import keywordRouter from '@/features/keyword/route';
 import notificationRouter from '@/features/notification/route';
 import settingRouter from '@/features/setting/route';
 import errorHandler from '@/middleware/errorHandler';
-import { BASE_URL, CLIENT_URL, PORT } from '@env';
+import { BASE_URL, CLIENT_URL, PORT } from 'env.config';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { runHotspotCheck } from '@/tasks/hotspotCheck';

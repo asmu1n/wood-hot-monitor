@@ -1,4 +1,5 @@
 import { BaseRequest } from '@/lib/request';
+import type { Keyword } from '@repo/types';
 
 const BASE_URL = '/keywords';
 

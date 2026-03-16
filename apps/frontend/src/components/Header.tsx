@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Flame, RefreshCw, Bell } from 'lucide-react';
 import { cn } from '@repo/ui';
+import { type Notification } from '@repo/types';
 
 interface HeaderProps {
     isChecking: boolean;

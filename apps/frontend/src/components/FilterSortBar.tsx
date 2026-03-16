@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpDown, Filter, X, Clock, Flame, TrendingUp, Target, ChevronDown, Check, RotateCcw } from 'lucide-react';
 import { cn } from '@repo/ui';
+import type { Keyword } from '@repo/types';
 
 export interface FilterState {
     source: string;

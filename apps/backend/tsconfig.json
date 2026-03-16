@@ -14,7 +14,7 @@
         "baseUrl": "./",
         "paths": {
             "@/*": ["src/*"],
-            "@env": ["envConfig.ts"]
+            "@env": ["env.config.ts"]
         }
     },
     "include": ["**/*.ts", "**/*.tsx", "types.d.ts", "eslint.config.ts"],

@@ -1,4 +1,5 @@
 import { getSocket } from '@/lib/socket';
+import type { Hotspot } from '@repo/types';
 
 /** 计算热度综合指标（归一化 0-100） */
 function calcHeatScore(h: Hotspot): number {

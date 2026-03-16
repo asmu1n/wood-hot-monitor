@@ -1,5 +1,5 @@
 import { Upload } from '@aws-sdk/lib-storage';
-import { CLOUD_CONFIG } from '../../envConfig';
+import { CLOUD_CONFIG } from '../../env.config';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 

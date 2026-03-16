@@ -1,10 +1,11 @@
-import { SILICONFLOW_API_KEY } from '@env';
+import { SILICONFLOW_API_KEY } from 'env.config';
 import { ConcurrencyLimiter } from '../utils/limiter';
 import { fetchSiliconFlow } from '../utils/llm';
 import { buildAnalysisPrompt, buildExpandKeywordPrompt } from '../utils/prompt';
 import db from '@/config/database';
 import { keywordExpansions } from '@/models/keywordExpansions';
 import { eq } from 'drizzle-orm';
+import type { Hotspot } from '@repo/types';
 
 interface AIAnalysis {
     isReal: boolean;
@@ -160,7 +161,7 @@ export async function analyzeContent(
             const jsonMatch = responseText.match(/\{[\s\S]*\}/);
 
             if (jsonMatch) {
-                const parsed = JSON.parse(jsonMatch[0]);
+                const parsed = JSON.parse(jsonMatch[0]) as Hotspot;
 
                 return {
                     isReal: Boolean(parsed.isReal),

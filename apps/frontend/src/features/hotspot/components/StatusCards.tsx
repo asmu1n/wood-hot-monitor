@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Activity, Clock, AlertTriangle, Target } from 'lucide-react';
 import { Meteors } from './Meteors';
+import type { Status } from '@repo/types';
 
 interface StatsCardsProps {
     stats: Status | null;

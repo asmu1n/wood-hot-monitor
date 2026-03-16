@@ -8,7 +8,7 @@ const googleLimiter = new RateLimiter(10000);
 const duckduckgoLimiter = new RateLimiter(3000);
 const hackernewsLimiter = new RateLimiter(1000); // HN API 更宽松
 
-export async function searchBing(query: string): Promise<SearchResult[]> {
+async function searchBing(query: string): Promise<SearchResult[]> {
     await bingLimiter.wait();
 
     try {
@@ -55,7 +55,7 @@ export async function searchBing(query: string): Promise<SearchResult[]> {
     }
 }
 
-export async function searchGoogle(query: string): Promise<SearchResult[]> {
+async function searchGoogle(query: string): Promise<SearchResult[]> {
     await googleLimiter.wait();
 
     try {
@@ -104,7 +104,7 @@ export async function searchGoogle(query: string): Promise<SearchResult[]> {
 }
 
 // DuckDuckGo 搜索（使用 HTML 版本）
-export async function searchDuckDuckGo(query: string): Promise<SearchResult[]> {
+async function searchDuckDuckGo(query: string): Promise<SearchResult[]> {
     await duckduckgoLimiter.wait();
 
     try {
@@ -176,7 +176,7 @@ interface HNSearchResult {
     }>;
 }
 
-export async function searchHackerNews(query: string): Promise<SearchResult[]> {
+async function searchHackerNews(query: string): Promise<SearchResult[]> {
     await hackernewsLimiter.wait();
 
     try {
@@ -219,8 +219,30 @@ export async function searchHackerNews(query: string): Promise<SearchResult[]> {
     }
 }
 
+// 聚合搜索（国际搜索引擎，仅保留可用的）
+async function searchAll(query: string): Promise<SearchResult[]> {
+    const results = await Promise.allSettled([searchBing(query), searchHackerNews(query), searchDuckDuckGo(query), searchGoogle(query)]);
+
+    const allResults: SearchResult[] = [];
+    const sourceNames = ['Bing', 'HackerNews', 'DuckDuckGo', 'Google'];
+
+    results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+            allResults.push(...result.value);
+        } else {
+            console.warn(`${sourceNames[index]} search failed:`, result.reason);
+        }
+    });
+
+    const uniqueResults = deduplicateResults(allResults);
+
+    console.log(`Search aggregation for "${query}": ${allResults.length} total, ${uniqueResults.length} unique`);
+
+    return uniqueResults;
+}
+
 // 去重工具函数
-export function deduplicateResults(allResults: SearchResult[]): SearchResult[] {
+function deduplicateResults(allResults: SearchResult[]): SearchResult[] {
     const uniqueUrls = new Set<string>();
 
     return allResults.filter(item => {
@@ -237,24 +259,4 @@ export function deduplicateResults(allResults: SearchResult[]): SearchResult[] {
     });
 }
 
-// 聚合搜索（国际搜索引擎，仅保留可用的）
-export async function searchAll(query: string): Promise<SearchResult[]> {
-    const results = await Promise.allSettled([searchBing(query), searchHackerNews(query)]);
-
-    const allResults: SearchResult[] = [];
-    const sourceNames = ['Bing', 'HackerNews'];
-
-    results.forEach((result, index) => {
-        if (result.status === 'fulfilled') {
-            allResults.push(...result.value);
-        } else {
-            console.warn(`${sourceNames[index]} search failed:`, result.reason);
-        }
-    });
-
-    const uniqueResults = deduplicateResults(allResults);
-
-    console.log(`Search aggregation for "${query}": ${allResults.length} total, ${uniqueResults.length} unique`);
-
-    return uniqueResults;
-}
+export { searchBing, searchGoogle, searchDuckDuckGo, searchHackerNews, searchAll, deduplicateResults };

@@ -11,7 +11,7 @@ const weiboLimiter = new RateLimiter(3000);
 // ============================================================
 // 搜狗搜索（替代百度，反爬更宽松，无需 API Key）
 // ============================================================
-export async function searchSogou(query: string): Promise<SearchResult[]> {
+async function searchSogou(query: string): Promise<SearchResult[]> {
     await sogouLimiter.wait();
 
     try {
@@ -141,7 +141,7 @@ interface BilibiliSpaceVideo {
 }
 
 // 搜索 Bilibili 视频
-export async function searchBilibili(query: string): Promise<SearchResult[]> {
+async function searchBilibili(query: string): Promise<SearchResult[]> {
     await bilibiliLimiter.wait();
 
     try {
@@ -199,7 +199,7 @@ export async function searchBilibili(query: string): Promise<SearchResult[]> {
 }
 
 // 搜索 Bilibili 用户（用于账号检测）
-export async function searchBilibiliUser(keyword: string): Promise<BilibiliUserResult | null> {
+async function searchBilibiliUser(keyword: string): Promise<BilibiliUserResult | null> {
     await bilibiliLimiter.wait();
 
     try {
@@ -245,7 +245,7 @@ export async function searchBilibiliUser(keyword: string): Promise<BilibiliUserR
 }
 
 // 获取 B 站用户最新视频
-export async function getBilibiliUserVideos(mid: number): Promise<SearchResult[]> {
+async function getBilibiliUserVideos(mid: number): Promise<SearchResult[]> {
     await bilibiliLimiter.wait();
 
     try {
@@ -308,7 +308,7 @@ interface WeiboHotItem {
     raw_hot?: number;
 }
 
-export async function searchWeibo(query: string): Promise<SearchResult[]> {
+async function searchWeibo(query: string): Promise<SearchResult[]> {
     await weiboLimiter.wait();
 
     try {
@@ -372,7 +372,7 @@ export async function searchWeibo(query: string): Promise<SearchResult[]> {
 // 账号检测与信息获取
 // ============================================================
 
-export interface AccountInfo {
+interface AccountInfo {
     platform: 'bilibili' | 'weibo';
     name: string;
     id: string;
@@ -383,7 +383,7 @@ export interface AccountInfo {
 }
 
 // 检测关键词是否为某平台账号，并获取该账号最新内容
-export async function detectAndFetchAccount(keyword: string): Promise<{
+async function detectAndFetchAccount(keyword: string): Promise<{
     accounts: AccountInfo[];
     results: SearchResult[];
 }> {
@@ -422,7 +422,7 @@ export async function detectAndFetchAccount(keyword: string): Promise<{
 // ============================================================
 // 国内聚合搜索
 // ============================================================
-export async function searchAllChina(query: string): Promise<SearchResult[]> {
+async function searchAllChina(query: string): Promise<SearchResult[]> {
     const results = await Promise.allSettled([searchSogou(query), searchBilibili(query), searchWeibo(query)]);
 
     const allResults: SearchResult[] = [];
@@ -439,3 +439,5 @@ export async function searchAllChina(query: string): Promise<SearchResult[]> {
 
     return allResults;
 }
+
+export { searchSogou, searchBilibili, searchWeibo, detectAndFetchAccount, searchAllChina };

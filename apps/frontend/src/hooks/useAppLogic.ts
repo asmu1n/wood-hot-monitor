@@ -7,6 +7,7 @@ import { subscribeToKeywords, unsubscribeFromKeywords } from '@/features/keyword
 import { onNotification } from '@/features/notifications/utils';
 import { attempt } from '@/utils/common';
 import { defaultFilterState, type FilterState } from '@/components/FilterSortBar';
+import type { Keyword, Hotspot, Status, Notification } from '@repo/types';
 
 export function useAppLogic() {
     const [keywords, setKeywords] = useState<Keyword[]>([]);

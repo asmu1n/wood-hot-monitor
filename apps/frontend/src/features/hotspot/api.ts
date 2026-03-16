@@ -1,4 +1,5 @@
 import { BaseRequest } from '@/lib/request';
+import type { Hotspot, Status } from '@repo/types';
 
 const BASE_URL = '/hotspots';
 
