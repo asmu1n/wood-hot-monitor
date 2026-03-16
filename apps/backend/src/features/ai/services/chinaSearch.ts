@@ -3,6 +3,7 @@ import * as cheerio from 'cheerio';
 import crypto from 'crypto';
 import { RateLimiter } from '../utils/limiter';
 import { getRandomUserAgent } from '../utils/http';
+import type { Search } from 'types';
 
 const sogouLimiter = new RateLimiter(3000);
 const bilibiliLimiter = new RateLimiter(2000);
@@ -141,7 +142,7 @@ interface BilibiliSpaceVideo {
 }
 
 // 搜索 Bilibili 视频
-async function searchBilibili(query: string): Promise<SearchResult[]> {
+const searchBilibili: Search = async query => {
     await bilibiliLimiter.wait();
 
     try {
@@ -196,7 +197,7 @@ async function searchBilibili(query: string): Promise<SearchResult[]> {
 
         return [];
     }
-}
+};
 
 // 搜索 Bilibili 用户（用于账号检测）
 async function searchBilibiliUser(keyword: string): Promise<BilibiliUserResult | null> {
@@ -245,7 +246,7 @@ async function searchBilibiliUser(keyword: string): Promise<BilibiliUserResult |
 }
 
 // 获取 B 站用户最新视频
-async function getBilibiliUserVideos(mid: number): Promise<SearchResult[]> {
+const getBilibiliUserVideos: Search = async mid => {
     await bilibiliLimiter.wait();
 
     try {
@@ -292,7 +293,7 @@ async function getBilibiliUserVideos(mid: number): Promise<SearchResult[]> {
 
         return [];
     }
-}
+};
 
 // ============================================================
 // 微博热搜（公开API，无需登录，无需API Key）
@@ -308,7 +309,7 @@ interface WeiboHotItem {
     raw_hot?: number;
 }
 
-async function searchWeibo(query: string): Promise<SearchResult[]> {
+const searchWeibo: Search = async query => {
     await weiboLimiter.wait();
 
     try {
@@ -366,7 +367,7 @@ async function searchWeibo(query: string): Promise<SearchResult[]> {
 
         return [];
     }
-}
+};
 
 // ============================================================
 // 账号检测与信息获取
@@ -408,7 +409,7 @@ async function detectAndFetchAccount(keyword: string): Promise<{
             console.log(`🎯 Detected Bilibili account: ${biliUser.uname} (${biliUser.fans} fans)`);
 
             // 获取该用户最新视频
-            const userVideos = await getBilibiliUserVideos(biliUser.mid);
+            const userVideos = await getBilibiliUserVideos(biliUser.mid.toString());
 
             results.push(...userVideos);
         }
@@ -422,7 +423,7 @@ async function detectAndFetchAccount(keyword: string): Promise<{
 // ============================================================
 // 国内聚合搜索
 // ============================================================
-async function searchAllChina(query: string): Promise<SearchResult[]> {
+const searchAllChina: Search = async query => {
     const results = await Promise.allSettled([searchSogou(query), searchBilibili(query), searchWeibo(query)]);
 
     const allResults: SearchResult[] = [];
@@ -438,6 +439,6 @@ async function searchAllChina(query: string): Promise<SearchResult[]> {
     });
 
     return allResults;
-}
+};
 
 export { searchSogou, searchBilibili, searchWeibo, detectAndFetchAccount, searchAllChina };

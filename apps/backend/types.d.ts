@@ -58,4 +58,8 @@ declare global {
     }
 }
 
-export {};
+interface Search {
+    (query: string): Promise<SearchResult[]>;
+}
+
+export { Search };

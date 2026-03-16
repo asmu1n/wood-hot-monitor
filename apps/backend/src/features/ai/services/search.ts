@@ -2,13 +2,14 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { RateLimiter } from '../utils/limiter';
 import { getRandomUserAgent } from '../utils/http';
+import type { Search } from 'types';
 
 const bingLimiter = new RateLimiter(5000);
 const googleLimiter = new RateLimiter(10000);
 const duckduckgoLimiter = new RateLimiter(3000);
 const hackernewsLimiter = new RateLimiter(1000); // HN API 更宽松
 
-async function searchBing(query: string): Promise<SearchResult[]> {
+const searchBing: Search = async query => {
     await bingLimiter.wait();
 
     try {
@@ -53,9 +54,9 @@ async function searchBing(query: string): Promise<SearchResult[]> {
 
         return [];
     }
-}
+};
 
-async function searchGoogle(query: string): Promise<SearchResult[]> {
+const searchGoogle: Search = async query => {
     await googleLimiter.wait();
 
     try {
@@ -101,10 +102,10 @@ async function searchGoogle(query: string): Promise<SearchResult[]> {
 
         return [];
     }
-}
+};
 
 // DuckDuckGo 搜索（使用 HTML 版本）
-async function searchDuckDuckGo(query: string): Promise<SearchResult[]> {
+const searchDuckDuckGo: Search = async query => {
     await duckduckgoLimiter.wait();
 
     try {
@@ -160,7 +161,7 @@ async function searchDuckDuckGo(query: string): Promise<SearchResult[]> {
 
         return [];
     }
-}
+};
 
 // Hacker News API（官方免费 API）
 interface HNSearchResult {
@@ -176,7 +177,7 @@ interface HNSearchResult {
     }>;
 }
 
-async function searchHackerNews(query: string): Promise<SearchResult[]> {
+const searchHackerNews: Search = async query => {
     await hackernewsLimiter.wait();
 
     try {
@@ -217,10 +218,10 @@ async function searchHackerNews(query: string): Promise<SearchResult[]> {
 
         return [];
     }
-}
+};
 
 // 聚合搜索（国际搜索引擎，仅保留可用的）
-async function searchAll(query: string): Promise<SearchResult[]> {
+const searchAll: Search = async query => {
     const results = await Promise.allSettled([searchBing(query), searchHackerNews(query), searchDuckDuckGo(query), searchGoogle(query)]);
 
     const allResults: SearchResult[] = [];
@@ -239,7 +240,7 @@ async function searchAll(query: string): Promise<SearchResult[]> {
     console.log(`Search aggregation for "${query}": ${allResults.length} total, ${uniqueResults.length} unique`);
 
     return uniqueResults;
-}
+};
 
 // 去重工具函数
 function deduplicateResults(allResults: SearchResult[]): SearchResult[] {
