@@ -13,7 +13,6 @@ import cron from 'node-cron';
 import responseBody from '@/config/response';
 import RequestHandler from '@/config/requestHandler';
 import { clearKeywordExpansions } from '@/tasks/keywordCleanup';
-import './src/tasks/keywordCleanup';
 
 //服务配置
 const app: express.Application = express();
