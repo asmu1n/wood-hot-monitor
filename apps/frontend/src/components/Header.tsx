@@ -36,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({
                             <div className="border-background absolute -right-1 -bottom-1 h-3 w-3 animate-pulse rounded-full border-2 bg-emerald-400" />
                         </div>
                         <div>
-                            <h1 className="text-foreground text-lg font-semibold tracking-tight">HotPulse</h1>
+                            <h1 className="text-foreground text-lg font-semibold tracking-tight">HotMonitor</h1>
                             <p className="text-muted-foreground text-xs">AI 热点雷达</p>
                         </div>
                     </div>
