@@ -27,8 +27,8 @@ export class KeywordService {
 
         return result.map(item => ({
             ...item,
-            createdAt: item.createdAt.toISOString() || '',
-            updatedAt: item.updatedAt.toISOString() || ''
+            createdAt: item.createdAt.toISOString(),
+            updatedAt: item.updatedAt.toISOString()
         }));
     }
 
@@ -52,8 +52,8 @@ export class KeywordService {
 
         return {
             ...keyword,
-            createdAt: keyword.createdAt.toISOString() || '',
-            updatedAt: keyword.updatedAt.toISOString() || ''
+            createdAt: keyword.createdAt instanceof Date && !isNaN(keyword.createdAt.getTime()) ? keyword.createdAt.toISOString() : '',
+            updatedAt: keyword.updatedAt instanceof Date && !isNaN(keyword.updatedAt.getTime()) ? keyword.updatedAt.toISOString() : ''
         };
     }
 
@@ -115,8 +115,8 @@ export class KeywordService {
 
             return {
                 ...data,
-                createdAt: data.createdAt.toISOString() || '',
-                updatedAt: data.updatedAt.toISOString() || ''
+                createdAt: data.createdAt instanceof Date && !isNaN(data.createdAt.getTime()) ? data.createdAt.toISOString() : '',
+                updatedAt: data.updatedAt instanceof Date && !isNaN(data.updatedAt.getTime()) ? data.updatedAt.toISOString() : ''
             };
         } catch (error: any) {
             if (error.message?.includes('UNIQUE constraint failed')) {
@@ -159,8 +159,8 @@ export class KeywordService {
 
         return {
             ...data,
-            createdAt: data.createdAt.toISOString() || '',
-            updatedAt: data.updatedAt.toISOString() || ''
+            createdAt: data.createdAt instanceof Date && !isNaN(data.createdAt.getTime()) ? data.createdAt.toISOString() : '',
+            updatedAt: data.updatedAt instanceof Date && !isNaN(data.updatedAt.getTime()) ? data.updatedAt.toISOString() : ''
         };
     }
 }

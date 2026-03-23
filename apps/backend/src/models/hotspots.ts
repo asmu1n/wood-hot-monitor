@@ -36,7 +36,7 @@ export const hotspots = sqliteTable(
         publishedAt: integer('published_at', { mode: 'timestamp' }),
         createdAt: integer('created_at', { mode: 'timestamp' })
             .notNull()
-            .default(sql`CURRENT_TIMESTAMP`),
+            .default(sql`(strftime('%s', 'now'))`),
         keywordId: text('keyword_id').references(() => keywords.id, { onDelete: 'set null' })
     },
     table => [uniqueIndex('url_source_idx').on(table.url, table.source)]

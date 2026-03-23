@@ -12,5 +12,5 @@ export const notifications = sqliteTable('notifications', {
     hotSpotId: text('hotspot_id'),
     createdAt: integer('created_at', { mode: 'timestamp' })
         .notNull()
-        .default(sql`CURRENT_TIMESTAMP`)
+        .default(sql`(strftime('%s', 'now'))`)
 });

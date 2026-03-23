@@ -11,10 +11,10 @@ export const keywords = sqliteTable('keywords', {
     isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
     createdAt: integer('created_at', { mode: 'timestamp' })
         .notNull()
-        .default(sql`CURRENT_TIMESTAMP`),
+        .default(sql`(strftime('%s', 'now'))`),
     updatedAt: integer('updated_at', { mode: 'timestamp' })
         .notNull()
-        .default(sql`CURRENT_TIMESTAMP`)
+        .default(sql`(strftime('%s', 'now'))`)
 });
 
 export const keywordsRelations = relations(keywords, ({ many }) => ({
