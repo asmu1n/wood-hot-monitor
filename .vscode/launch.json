@@ -10,7 +10,7 @@
             ],
             "url": "http://localhost:5173",
             "webRoot": "${workspaceFolder}/apps/frontend",
-            "userDataDir": "${workspaceFolder}/.vscode/chrome-debug-profile",
+            "userDataDir": "/Users/muinas/code_space/chrome-debug-profile",
             "presentation": {
                 "hidden": false
             }
