@@ -20,11 +20,9 @@ const CLOUD_CONFIG = {
 };
 
 const EMAIL_CONFIG = {
-    host: process.env.EMAIL_HOST!,
-    port: process.env.EMAIL_PORT!,
-    user: process.env.EMAIL_USER!,
-    pass: process.env.EMAIL_PASS!,
-    noReplyEmail: process.env.NO_REPLY_EMAIL!
+    notifyEmail: process.env.NOTIFY_EMAIL!,
+    fromDomain: process.env.FROM_DOMAIN!,
+    resendApiKey: process.env.RESEND_API_KEY!
 };
 
 const SILICONFLOW_API_KEY = process.env.SILICONFLOW_API_KEY || process.env.GEMINI_API_KEY || '';

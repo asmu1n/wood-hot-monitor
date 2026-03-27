@@ -1,4 +1,5 @@
-import nodemailer from 'nodemailer';
+import { EMAIL_CONFIG } from '@env';
+import { Resend } from 'resend';
 
 interface Hotspot {
     id: string;
@@ -12,34 +13,26 @@ interface Hotspot {
     createdAt: Date;
 }
 
-let transporter: any = null;
+let resend: Resend | null = null;
 
-function getTransporter() {
-    if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.warn('Email configuration incomplete, notifications disabled');
+function getResendClient() {
+    if (!EMAIL_CONFIG.resendApiKey) {
+        console.warn('Resend API configuration missing, notifications disabled');
 
         return null;
     }
 
-    if (!transporter) {
-        transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT || '587'),
-            secure: process.env.SMTP_SECURE === 'true',
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS
-            }
-        });
+    if (!resend) {
+        resend = new Resend(EMAIL_CONFIG.resendApiKey);
     }
 
-    return transporter;
+    return resend;
 }
 
 export async function sendHotspotEmail(hotspot: Hotspot & { keyword?: { text: string } | null }): Promise<boolean> {
-    const mailer = getTransporter();
+    const client = getResendClient();
 
-    if (!mailer || !process.env.NOTIFY_EMAIL) {
+    if (!client || !EMAIL_CONFIG.notifyEmail) {
         return false;
     }
 
@@ -53,9 +46,9 @@ export async function sendHotspotEmail(hotspot: Hotspot & { keyword?: { text: st
     const emoji = importanceEmoji[hotspot.importance] || '📌';
 
     try {
-        await mailer.sendMail({
-            from: process.env.SMTP_USER,
-            to: process.env.NOTIFY_EMAIL,
+        await client.emails.send({
+            from: EMAIL_CONFIG.fromDomain,
+            to: EMAIL_CONFIG.notifyEmail,
             subject: `${emoji} 热点监控: ${hotspot.title.slice(0, 50)}`,
             html: `
         <!DOCTYPE html>
@@ -104,20 +97,20 @@ export async function sendHotspotEmail(hotspot: Hotspot & { keyword?: { text: st
       `
         });
 
-        console.log(`Email sent for hotspot: ${hotspot.id}`);
+        console.log(`Email sent for hotspot via Resend: ${hotspot.id}`);
 
         return true;
     } catch (error) {
-        console.error('Failed to send email:', error);
+        console.error('Failed to send email via Resend:', error);
 
         return false;
     }
 }
 
 export async function sendDigestEmail(hotspots: Hotspot[]): Promise<boolean> {
-    const mailer = getTransporter();
+    const client = getResendClient();
 
-    if (!mailer || !process.env.NOTIFY_EMAIL || hotspots.length === 0) {
+    if (!client || !EMAIL_CONFIG.notifyEmail || hotspots.length === 0) {
         return false;
     }
 
@@ -136,9 +129,9 @@ export async function sendDigestEmail(hotspots: Hotspot[]): Promise<boolean> {
             )
             .join('');
 
-        await mailer.sendMail({
-            from: process.env.SMTP_USER,
-            to: process.env.NOTIFY_EMAIL,
+        await client.emails.send({
+            from: EMAIL_CONFIG.fromDomain,
+            to: EMAIL_CONFIG.notifyEmail,
             subject: `📊 热点监控日报 - ${hotspots.length} 条新热点`,
             html: `
         <!DOCTYPE html>
@@ -166,7 +159,7 @@ export async function sendDigestEmail(hotspots: Hotspot[]): Promise<boolean> {
 
         return true;
     } catch (error) {
-        console.error('Failed to send digest email:', error);
+        console.error('Failed to send digest email via Resend:', error);
 
         return false;
     }
