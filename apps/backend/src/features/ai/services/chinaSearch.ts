@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { RateLimiter } from '../utils/limiter';
 import { getRandomUserAgent } from '../utils/http';
 import type { Search } from 'types';
+import { QualityManager } from '../../../features/hotspot/quality/manager';
 
 const sogouLimiter = new RateLimiter(3000);
 const bilibiliLimiter = new RateLimiter(2000);
@@ -172,24 +173,43 @@ const searchBilibili: Search = async query => {
             return [];
         }
 
-        const results: SearchResult[] = response.data.data.result.map(video => ({
-            title: video.title.replace(/<\/?em[^>]*>/g, ''), // 去掉高亮标签
-            content: video.description || video.title.replace(/<\/?em[^>]*>/g, ''),
-            url: `https://www.bilibili.com/video/${video.bvid}`,
-            source: 'bilibili' as const,
-            sourceId: video.bvid,
+        const metricInputs = response.data.data.result.map(video => ({
+            platform: 'bilibili',
+            likes: video.like,
+            shares: video.favorites || 0, // Bili 收藏数常作为高质量传播的指标
+            comments: video.review + (video.danmaku || 0),
+            views: video.play,
+            followers: 0,
+            isVerified: false,
             publishedAt: new Date(video.pubdate * 1000),
-            viewCount: video.play,
-            likeCount: video.like,
-            commentCount: video.review,
-            danmakuCount: video.danmaku,
-            author: {
-                name: video.author,
-                username: String(video.mid)
-            }
+            _original: video
         }));
 
-        console.log(`Bilibili search for "${query}": found ${results.length} results`);
+        const ranked = QualityManager.process(metricInputs);
+
+        const results: SearchResult[] = ranked.map(item => {
+            const video = item._original;
+
+            return {
+                title: video.title.replace(/<\/?em[^>]*>/g, ''), // 去掉高亮标签
+                content: video.description || video.title.replace(/<\/?em[^>]*>/g, ''),
+                url: `https://www.bilibili.com/video/${video.bvid}`,
+                source: 'bilibili' as const,
+                sourceId: video.bvid,
+                publishedAt: new Date(video.pubdate * 1000),
+                viewCount: video.play,
+                likeCount: video.like,
+                commentCount: video.review,
+                danmakuCount: video.danmaku,
+                score: item.finalScore,
+                author: {
+                    name: video.author,
+                    username: String(video.mid)
+                }
+            };
+        });
+
+        console.log(`Bilibili: ${response.data.data.result.length} → ${results.length} after quality filter (using unified QualityManager)`);
 
         return results;
     } catch (error) {

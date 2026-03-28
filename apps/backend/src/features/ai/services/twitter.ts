@@ -1,10 +1,5 @@
-interface TwitterFilterConfig {
-    minLikes: number;
-    minRetweets: number;
-    minViews: number;
-    minFollowers: number;
-    onlyOriginalTweets: boolean; // 过滤回复和引用
-}
+import { TWITTER_CONFIG } from '@env';
+import { QualityManager } from '../../../features/hotspot/quality/manager';
 
 interface Tweet {
     type: string;
@@ -27,34 +22,16 @@ interface Tweet {
     };
 }
 
-interface TwitterSearchResponse {
-    tweets: Tweet[];
-    has_next_page: boolean;
-    next_cursor: string;
-}
-
 const TWITTER_API_BASE = 'https://api.twitterapi.io';
-
-// 质量过滤阈值（按用户方案设定）
-export const TWITTER_FILTER_CONFIG: TwitterFilterConfig = {
-    minLikes: 10,
-    minRetweets: 5,
-    minViews: 500,
-    minFollowers: 100,
-    onlyOriginalTweets: true
-};
 
 // ============================================================
 // 质量过滤 & 排序
 //   1. 排除回复推文（type 包含 reply 或以 @ 开头）
-//   2. 最低指标过滤（蓝V 用户阈值减半）
-//   3. 按质量评分排序
+//   2. 调用通用质量分析引擎进行多维过滤与评分
 // ============================================================
-function filterAndRankTweets(tweets: Tweet[]): Tweet[] {
-    const { minLikes, minRetweets, minViews, minFollowers } = TWITTER_FILTER_CONFIG;
-
-    const filtered = tweets.filter(tweet => {
-        // 排除回复推文：检查 type 字段 + 文本是否以 @用户名 开头
+function filterAndRankTweets(tweets: Tweet[]) {
+    // 基础过滤：排除回复推文
+    const baseFiltered = tweets.filter(tweet => {
         if (tweet.type && tweet.type.toLowerCase().includes('reply')) {
             return false;
         }
@@ -63,43 +40,57 @@ function filterAndRankTweets(tweets: Tweet[]): Tweet[] {
             return false;
         }
 
-        // 蓝V 用户阈值减半
-        const factor = tweet.author.isBlueVerified ? 0.5 : 1;
-
-        if (tweet.likeCount < minLikes * factor) {
-            return false;
-        }
-
-        if (tweet.retweetCount < minRetweets * factor) {
-            return false;
-        }
-
-        if (tweet.viewCount < minViews * factor) {
-            return false;
-        }
-
-        if (tweet.author.followers < minFollowers * factor) {
-            return false;
-        }
-
         return true;
     });
 
-    // 质量评分排序：likes*2 + retweets*3 + views/100 + 蓝V加权
-    filtered.sort((a, b) => {
-        const scoreA = a.likeCount * 2 + a.retweetCount * 3 + a.viewCount / 100 + (a.author.isBlueVerified ? 50 : 0);
-        const scoreB = b.likeCount * 2 + b.retweetCount * 3 + b.viewCount / 100 + (b.author.isBlueVerified ? 50 : 0);
+    // 转换为通用指标输入
+    const metricInputs = baseFiltered.map(tweet => ({
+        platform: 'twitter',
+        likes: tweet.likeCount,
+        shares: tweet.retweetCount + (tweet.quoteCount || 0),
+        comments: tweet.replyCount,
+        views: tweet.viewCount,
+        followers: tweet.author.followers,
+        isVerified: tweet.author.isBlueVerified, // 将蓝V视为已认证
+        publishedAt: tweet.createdAt,
+        _original: tweet
+    }));
 
-        return scoreB - scoreA;
+    // 调用通用质量管理器进行多维评分和过滤
+    const ranked = QualityManager.process(metricInputs);
+
+    // 映射回搜索结果格式
+    return ranked.map(item => {
+        const tweet = item._original;
+
+        return {
+            title: tweet.text.slice(0, 100),
+            content: tweet.text,
+            url: tweet.url,
+            source: 'twitter' as const,
+            sourceId: tweet.id,
+            publishedAt: new Date(tweet.createdAt),
+            viewCount: tweet.viewCount,
+            likeCount: tweet.likeCount,
+            retweetCount: tweet.retweetCount,
+            replyCount: tweet.replyCount,
+            quoteCount: tweet.quoteCount,
+            score: item.finalScore, // 暴露质量分
+            author: {
+                name: tweet.author.name,
+                username: tweet.author.userName,
+                avatar: tweet.author.profilePicture,
+                followers: tweet.author.followers,
+                verified: tweet.author.isBlueVerified
+            }
+        };
     });
-
-    return filtered;
 }
 
 // ============================================================
 // 日期工具
 // ============================================================
-function formatSinceDate(daysAgo: number): string {
+function formatSinceDate(daysAgo: number) {
     const d = new Date(Date.now() - daysAgo * 86400000);
 
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
@@ -111,7 +102,7 @@ function formatSinceDate(daysAgo: number): string {
 //   - Latest 搜索：近 3 天，排除 RT 和纯回复
 // 参考语法：https://github.com/igorbrigadir/twitter-advanced-search
 // ============================================================
-function buildAdvancedQuery(keyword: string, type: 'Top' | 'Latest'): string {
+function buildAdvancedQuery(keyword: string, type: 'Top' | 'Latest') {
     const parts: string[] = [keyword];
 
     // 排除 RT 和纯回复
@@ -134,8 +125,8 @@ function buildAdvancedQuery(keyword: string, type: 'Top' | 'Latest'): string {
 // ============================================================
 // HTTP 请求
 // ============================================================
-async function makeTwitterRequest(endpoint: string, params: Record<string, string> = {}): Promise<any> {
-    const apiKey = process.env.TWITTER_API_KEY;
+async function makeTwitterRequest(endpoint: string, params: Record<string, string> = {}) {
+    const apiKey = TWITTER_CONFIG.apiKey;
 
     if (!apiKey) {
         console.warn('Twitter API key not configured');
@@ -167,11 +158,11 @@ async function makeTwitterRequest(endpoint: string, params: Record<string, strin
 // 获取单页推文（支持分页）
 // ============================================================
 async function fetchTweetPage(query: string, queryType: 'Top' | 'Latest', cursor?: string): Promise<{ tweets: Tweet[]; nextCursor?: string }> {
-    const data = (await makeTwitterRequest('/twitter/tweet/advanced_search', {
+    const data = await makeTwitterRequest('/twitter/tweet/advanced_search', {
         query,
         queryType,
         ...(cursor ? { cursor } : {})
-    })) as TwitterSearchResponse;
+    });
 
     return {
         tweets: data.tweets && Array.isArray(data.tweets) ? data.tweets : [],
@@ -184,7 +175,7 @@ async function fetchTweetPage(query: string, queryType: 'Top' | 'Latest', cursor
 //   Top: 拉取 2 页（≤40 条高质量热门推文）
 //   Latest: 拉取 1 页（≤20 条最新推文）
 // ============================================================
-export async function searchTwitter(query: string): Promise<SearchResult[]> {
+export async function searchTwitter(query: string) {
     try {
         const topQuery = buildAdvancedQuery(query, 'Top');
         const latestQuery = buildAdvancedQuery(query, 'Latest');
@@ -231,32 +222,11 @@ export async function searchTwitter(query: string): Promise<SearchResult[]> {
         console.log(`Twitter: ${allTweets.length} unique tweets fetched (Top 2 pages + Latest 1 page)`);
 
         // 本地质量过滤 & 排序
-        const qualityTweets = filterAndRankTweets(allTweets);
+        const qualityResults: SearchResult[] = filterAndRankTweets(allTweets);
 
-        console.log(
-            `Twitter: ${allTweets.length} → ${qualityTweets.length} after quality filter (likes≥${TWITTER_FILTER_CONFIG.minLikes}, RT≥${TWITTER_FILTER_CONFIG.minRetweets}, views≥${TWITTER_FILTER_CONFIG.minViews}, followers≥${TWITTER_FILTER_CONFIG.minFollowers}, no replies)`
-        );
+        console.log(`Twitter: ${allTweets.length} → ${qualityResults.length} after quality filter (using unified QualityManager)`);
 
-        return qualityTweets.map((tweet: Tweet) => ({
-            title: tweet.text.slice(0, 100),
-            content: tweet.text,
-            url: tweet.url,
-            source: 'twitter' as const,
-            sourceId: tweet.id,
-            publishedAt: new Date(tweet.createdAt),
-            viewCount: tweet.viewCount,
-            likeCount: tweet.likeCount,
-            retweetCount: tweet.retweetCount,
-            replyCount: tweet.replyCount,
-            quoteCount: tweet.quoteCount,
-            author: {
-                name: tweet.author.name,
-                username: tweet.author.userName,
-                avatar: tweet.author.profilePicture,
-                followers: tweet.author.followers,
-                verified: tweet.author.isBlueVerified
-            }
-        }));
+        return qualityResults;
     } catch (error) {
         console.error('Twitter search error:', error);
 

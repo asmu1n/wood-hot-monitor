@@ -3,6 +3,7 @@ import * as cheerio from 'cheerio';
 import { RateLimiter } from '../utils/limiter';
 import { getRandomUserAgent } from '../utils/http';
 import type { Search } from 'types';
+import { QualityManager } from '../../../features/hotspot/quality/manager';
 
 const bingLimiter = new RateLimiter(5000);
 const googleLimiter = new RateLimiter(10000);
@@ -193,24 +194,42 @@ const searchHackerNews: Search = async query => {
             timeout: 15000
         });
 
-        const results: SearchResult[] = response.data.hits
-            .filter(hit => hit.url || hit.story_text) // 确保有内容
+        const metricInputs = response.data.hits
+            .filter(hit => hit.url || hit.story_text)
             .map(hit => ({
+                platform: 'hackernews',
+                likes: hit.points,
+                shares: 0,
+                comments: hit.num_comments,
+                views: 0,
+                followers: 0,
+                isVerified: false,
+                publishedAt: new Date(hit.created_at),
+                _original: hit
+            }));
+
+        const ranked = QualityManager.process(metricInputs);
+
+        const results: SearchResult[] = ranked.map(item => {
+            const hit = item._original;
+
+            return {
                 title: hit.title,
                 content: hit.story_text || hit.title,
                 url: hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`,
                 source: 'hackernews' as const,
                 sourceId: hit.objectID,
                 publishedAt: new Date(hit.created_at),
-                score: hit.points,
+                score: item.finalScore,
                 commentCount: hit.num_comments,
                 author: {
                     name: hit.author,
                     username: hit.author
                 }
-            }));
+            };
+        });
 
-        console.log(`Hacker News search for "${query}": found ${results.length} results`);
+        console.log(`Hacker News: ${response.data.hits.length} → ${results.length} after quality filter (using unified QualityManager)`);
 
         return results;
     } catch (error) {

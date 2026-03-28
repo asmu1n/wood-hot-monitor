@@ -45,8 +45,8 @@ declare global {
         retweetCount?: number;
         replyCount?: number; // Twitter 回复数
         quoteCount?: number; // Twitter 引用数
-        score?: number; // Hacker News score
-        commentCount?: number; // Hacker News / Bilibili comments
+        score?: number; // bilibili & hackernews & twitter
+        commentCount?: number; // hackernews & Bilibili & twitter
         danmakuCount?: number; // Bilibili 弹幕数
         author?: {
             name: string;
