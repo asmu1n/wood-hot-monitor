@@ -32,11 +32,11 @@ io.emit('notification', {
 ```typescript
 useEffect(() => {
     const unSubNotification = onNotification(() => {
-        // 收到全局广播后，本地未读计数加一
-        setUnreadCount(prev => prev + 1);
+        // 收到全局广播后，利用 TanStack Query 自动使通知列表与未读数失效，触发重新拉取
+        void queryClient.invalidateQueries({ queryKey: ['notifications'] });
     });
     return () => unSubNotification();
-}, []);
+}, [queryClient]);
 ```
 
 * **前端工具实现 (`notifications/utils.ts`)**:

@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { onNewHotSpot } from '@/features/hotspot/utils';
 import { createKeyword, deleteKeyword, getAllKeywords, toggleKeyword } from '@/features/keyword/api';
 import { checkHotSpot, getAllHotSpots, getHotSpotStatus, searchHotSpots } from '@/features/hotspot/api';
@@ -7,25 +8,19 @@ import { subscribeToKeywords, unsubscribeFromKeywords } from '@/features/keyword
 import { onNotification } from '@/features/notifications/utils';
 import { attempt } from '@/utils/common';
 import { defaultFilterState, type FilterState } from '@/components/FilterSortBar';
-import type { Keyword, Hotspot, Status, Notification } from '@repo/types';
+import type { Keyword, Hotspot } from '@repo/types';
 
 export function useAppLogic() {
-    const [keywords, setKeywords] = useState<Keyword[]>([]);
-    const [hotSpots, setHotSpots] = useState<Hotspot[]>([]);
-    const [status, setStatus] = useState<Status | null>(null);
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [unreadCount, setUnreadCount] = useState(0);
+    const queryClient = useQueryClient();
 
+    // UI Local State
     const [newKeyword, setNewKeyword] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [isChecking, setIsChecking] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [dashboardFilters, setDashboardFilters] = useState<FilterState>({ ...defaultFilterState });
     const [searchFilters, setSearchFilters] = useState<FilterState>({ ...defaultFilterState });
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
     const [searchResults, setSearchResults] = useState<Hotspot[]>([]);
 
     // 展开/折叠状态
@@ -38,100 +33,72 @@ export function useAppLogic() {
         setTimeout(() => setToast(null), 3000);
     }, []);
 
-    // 加载数据
-    const loadData = useCallback(async () => {
-        setIsLoading(true);
+    // --- Queries ---
 
-        try {
-            const filterParams: Record<string, string | number> = {
-                limit: 20,
-                page: currentPage
-            };
+    // Keywords Query
+    const { data: keywordsRes } = useQuery({
+        queryKey: ['keywords'],
+        queryFn: getAllKeywords.getQueryFn
+    });
 
-            // Apply dashboard filters
-            if (dashboardFilters.source) {
-                filterParams.source = dashboardFilters.source;
-            }
+    const keywords: Keyword[] = useMemo(() => keywordsRes?.data || [], [keywordsRes]);
 
-            if (dashboardFilters.importance) {
-                filterParams.importance = dashboardFilters.importance;
-            }
+    // Hotspots Query
+    const hotspotParams = useMemo(
+        () => ({
+            limit: 20,
+            page: currentPage,
+            ...Object.fromEntries(Object.entries(dashboardFilters).filter(([, v]) => v != null && v !== ''))
+        }),
+        [dashboardFilters, currentPage]
+    );
 
-            if (dashboardFilters.keywordId) {
-                filterParams.keywordId = dashboardFilters.keywordId;
-            }
+    const { data: hotspotsRes, isLoading: isHotspotsLoading } = useQuery({
+        queryKey: ['hotspots', hotspotParams],
+        queryFn: getAllHotSpots.getQueryFn
+    });
 
-            if (dashboardFilters.timeRange) {
-                filterParams.timeRange = dashboardFilters.timeRange;
-            }
+    const hotSpots = useMemo(() => hotspotsRes?.data || [], [hotspotsRes]);
+    const totalPages = useMemo(() => hotspotsRes?.total || 1, [hotspotsRes]);
 
-            if (dashboardFilters.isReal) {
-                filterParams.isReal = dashboardFilters.isReal;
-            }
+    // Status Query
+    const { data: statusRes } = useQuery({
+        queryKey: ['status'],
+        queryFn: getHotSpotStatus.getQueryFn
+    });
 
-            if (dashboardFilters.sortBy) {
-                filterParams.sortBy = dashboardFilters.sortBy;
-            }
+    const status = useMemo(() => statusRes?.data || null, [statusRes]);
 
-            if (dashboardFilters.sortOrder) {
-                filterParams.sortOrder = dashboardFilters.sortOrder;
-            }
+    // Notifications Query
+    const notificationParams = useMemo(() => ({ limit: 20 }), []);
 
-            const [keywordsRes, hotSpotsRes, statusRes, notificationRes] = await Promise.all([
-                getAllKeywords.request(),
-                getAllHotSpots.request(filterParams),
-                getHotSpotStatus.request(),
-                getAllNotifications.request({ limit: 20 })
-            ]);
+    const { data: notificationRes } = useQuery({
+        queryKey: ['notifications', notificationParams],
+        queryFn: getAllNotifications.getQueryFn
+    });
 
-            setKeywords(keywordsRes.data);
-            setHotSpots(hotSpotsRes.data);
-            setTotalPages(hotSpotsRes.total || 0);
-            setStatus(statusRes.data);
-            setNotifications(notificationRes.data);
-            setUnreadCount(notificationRes.total || 0);
+    const notifications = useMemo(() => notificationRes?.data || [], [notificationRes]);
+    const unreadCount = useMemo(() => notificationRes?.total || 0, [notificationRes]);
 
-            // 订阅关键词
-            const activeKeywords = keywordsRes.data.filter(k => k.isActive).map(k => k.text);
+    // Combined Loading state
+    const isLoading = isHotspotsLoading;
 
-            if (activeKeywords.length > 0) {
-                subscribeToKeywords(activeKeywords);
-            }
-        } catch (error) {
-            console.error('Failed to load data:', error);
-        } finally {
-            setIsLoading(false);
+    // --- Mutations ---
+
+    // 1. Add Keyword
+    const addKeywordMutation = useMutation({
+        mutationFn: (text: string) => createKeyword.request({ text }),
+        onSuccess: async ({ data: keyword }) => {
+            await queryClient.invalidateQueries({ queryKey: ['keywords'] });
+            setNewKeyword('');
+            showToast('关键词添加成功', 'success');
+            subscribeToKeywords([keyword.text]);
+        },
+        onError: (error: any) => {
+            showToast(error.message || '添加失败', 'error');
         }
-    }, [dashboardFilters, currentPage]);
+    });
 
-    // 当筛选条件变化时重置页码
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [dashboardFilters]);
-
-    useEffect(() => {
-        void loadData();
-    }, [loadData]);
-
-    // WebSocket 事件
-    useEffect(() => {
-        const unSubHotSpot = onNewHotSpot(async hotspot => {
-            setHotSpots(prev => [hotspot as Hotspot, ...prev.slice(0, 19)]);
-            showToast('发现新热点: ' + (hotspot as Hotspot).title.slice(0, 30), 'success');
-            await loadData();
-        });
-
-        const unSubNotification = onNotification(() => {
-            setUnreadCount(prev => prev + 1);
-        });
-
-        return () => {
-            unSubHotSpot();
-            unSubNotification();
-        };
-    }, [loadData, showToast]);
-
-    // 添加关键词
     const handleAddKeyword = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -139,55 +106,81 @@ export function useAppLogic() {
             return;
         }
 
-        try {
-            const { data: keyword } = await createKeyword.request({ text: newKeyword.trim() });
-
-            setKeywords(prev => [keyword, ...prev]);
-            setNewKeyword('');
-            showToast('关键词添加成功', 'success');
-            subscribeToKeywords([keyword.text]);
-        } catch (error: any) {
-            showToast(error.message || '添加失败', 'error');
-        }
+        addKeywordMutation.mutate(newKeyword.trim());
     };
 
-    // 删除关键词
-    const handleDeleteKeyword = async (keyword: Keyword) => {
-        const [err] = await attempt(() => deleteKeyword.request({ id: keyword.id }));
-
-        if (err) {
+    // 2. Delete Keyword
+    const deleteKeywordMutation = useMutation({
+        mutationFn: (keyword: Keyword) => deleteKeyword.request({ id: keyword.id }),
+        onSuccess: async (_, keyword) => {
+            unsubscribeFromKeywords([keyword.text]);
+            await queryClient.invalidateQueries({ queryKey: ['keywords'] });
+            showToast('关键词已删除', 'success');
+        },
+        onError: () => {
             showToast('删除失败', 'error');
-
-            return;
         }
+    });
 
-        unsubscribeFromKeywords([keyword.text]);
-        setKeywords(prev => prev.filter(k => k.id !== keyword.id));
-        showToast('关键词已删除', 'success');
+    const handleDeleteKeyword = (keyword: Keyword) => {
+        deleteKeywordMutation.mutate(keyword);
     };
 
-    // 切换关键词状态
-    const handleToggleKeyword = async (keyword: Keyword) => {
-        const [err, result] = await attempt(() => toggleKeyword.request({ id: keyword.id }));
+    // 3. Toggle Keyword
+    const toggleKeywordMutation = useMutation({
+        mutationFn: (keyword: Keyword) => toggleKeyword.request({ id: keyword.id }),
+        onSuccess: async ({ data: updatedKeyword }) => {
+            if (updatedKeyword.isActive) {
+                subscribeToKeywords([updatedKeyword.text]);
+            } else {
+                unsubscribeFromKeywords([updatedKeyword.text]);
+            }
 
-        if (err) {
+            await queryClient.invalidateQueries({ queryKey: ['keywords'] });
+        },
+        onError: () => {
             showToast('操作失败', 'error');
-
-            return;
         }
+    });
 
-        const updatedKeyword = result.data;
-
-        if (updatedKeyword.isActive) {
-            subscribeToKeywords([updatedKeyword.text]);
-        } else {
-            unsubscribeFromKeywords([updatedKeyword.text]);
-        }
-
-        setKeywords(prev => prev.map(k => (k.id === keyword.id ? updatedKeyword : k)));
+    const handleToggleKeyword = (keyword: Keyword) => {
+        toggleKeywordMutation.mutate(keyword);
     };
 
-    // 手动搜索
+    // 4. Mark All Read
+    const markAllReadMutation = useMutation({
+        mutationFn: () => markAllAsRead.request(),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        },
+        onError: error => {
+            console.error('Failed to mark as read:', error);
+        }
+    });
+
+    const handleMarkAllRead = () => {
+        markAllReadMutation.mutate();
+    };
+
+    // 5. Manual Check
+    const { mutate: manualCheck, isPending: isChecking } = useMutation({
+        mutationFn: () => checkHotSpot.request(),
+        onSuccess: () => {
+            showToast('热点检查已触发', 'success');
+            setTimeout(() => {
+                void queryClient.invalidateQueries({ queryKey: ['hotspots'] });
+            }, 5000);
+        },
+        onError: () => {
+            showToast('触发失败', 'error');
+        }
+    });
+
+    const handleManualCheck = () => {
+        manualCheck();
+    };
+
+    // Manual search (keep it manual as it is typically a "search on click" action)
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -196,12 +189,8 @@ export function useAppLogic() {
         }
 
         const [err, result] = await attempt(() => {
-            setIsLoading(true);
-
             return searchHotSpots.request({ query: searchQuery });
         });
-
-        setIsLoading(false);
 
         if (err) {
             showToast('搜索失败', 'error');
@@ -213,39 +202,40 @@ export function useAppLogic() {
         showToast(`找到 ${result.data.length} 条结果`, 'success');
     };
 
-    // 手动触发检查
-    const handleManualCheck = async () => {
-        const [err] = await attempt(() => {
-            setIsChecking(true);
+    const handleDashboardFilterChange = useCallback((newFilters: FilterState) => {
+        setDashboardFilters(newFilters);
+        setCurrentPage(1);
+    }, []);
 
-            return checkHotSpot.request();
+    // --- Effects ---
+
+    // 关键词订阅状态同步
+    useEffect(() => {
+        if (keywords.length > 0) {
+            const activeKeywords = keywords.filter(k => k.isActive).map(k => k.text);
+
+            if (activeKeywords.length > 0) {
+                subscribeToKeywords(activeKeywords);
+            }
+        }
+    }, [keywords]);
+
+    // WebSocket 事件
+    useEffect(() => {
+        const unSubHotSpot = onNewHotSpot(async hotspot => {
+            await queryClient.invalidateQueries({ queryKey: ['hotspots'] });
+            showToast('发现新热点: ' + hotspot.title.slice(0, 30), 'success');
         });
 
-        setIsChecking(false);
+        const unSubNotification = onNotification(() => {
+            void queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        });
 
-        if (err) {
-            showToast('触发失败', 'error');
-
-            return;
-        }
-
-        showToast('热点检查已触发', 'success');
-        setTimeout(() => void loadData(), 5000);
-    };
-
-    // 标记通知为已读
-    const handleMarkAllRead = async () => {
-        const [err] = await attempt(() => markAllAsRead.request());
-
-        if (err) {
-            console.error('Failed to mark as read:', err);
-
-            return;
-        }
-
-        setUnreadCount(0);
-        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-    };
+        return () => {
+            unSubHotSpot();
+            unSubNotification();
+        };
+    }, [queryClient, showToast]);
 
     // 展开/折叠功能
     const toggleReason = (id: string) => {
@@ -286,6 +276,7 @@ export function useAppLogic() {
         setAllReasonsExpanded(!allReasonsExpanded);
     };
 
+    // Exposed interface (maintaining compatibility)
     return {
         keywords,
         hotSpots,
@@ -302,7 +293,7 @@ export function useAppLogic() {
         setShowNotifications,
         toast,
         dashboardFilters,
-        setDashboardFilters,
+        setDashboardFilters: handleDashboardFilterChange,
         searchFilters,
         setSearchFilters,
         currentPage,
@@ -321,7 +312,7 @@ export function useAppLogic() {
         toggleReason,
         toggleContent,
         toggleAllReasons,
-        loadData
+        loadData: () => void queryClient.invalidateQueries({ queryKey: ['hotspots'] }) // Compatibility with manual reloads
     };
 }
 

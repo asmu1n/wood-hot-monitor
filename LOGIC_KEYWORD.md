@@ -13,20 +13,28 @@
 * **前端实现片段 (`useAppLogic.ts`)**:
 
 ```typescript
-// 切换关键词状态逻辑
-const handleToggleKeyword = async (keyword: Keyword) => {
-    const [err, result] = await attempt(() => toggleKeyword.request({ id: keyword.id }));
-    if (err) return;
+// 切换关键词状态逻辑 (using useMutation)
+const toggleKeywordMutation = useMutation({
+    mutationFn: (keyword: Keyword) => toggleKeyword.request({ id: keyword.id }),
+    onSuccess: async ({ data: updatedKeyword }) => {
+        // 动态同步 WebSocket 订阅状态
+        if (updatedKeyword.isActive) {
+            subscribeToKeywords([updatedKeyword.text]);
+        } else {
+            unsubscribeFromKeywords([updatedKeyword.text]);
+        }
 
-    const updatedKeyword = result.data;
-    // 动态同步 WebSocket 订阅状态
-    if (updatedKeyword.isActive) {
-        subscribeToKeywords([updatedKeyword.text]);
-    } else {
-        unsubscribeFromKeywords([updatedKeyword.text]);
+        // 利用 TanStack Query 自动刷新缓存
+        await queryClient.invalidateQueries({ queryKey: ['keywords'] });
+    },
+    onError: () => {
+        showToast('操作失败', 'error');
     }
-    setKeywords(prev => prev.map(k => (k.id === keyword.id ? updatedKeyword : k)));
-};
+});
+
+const handleToggleKeyword = (keyword: Keyword) => {
+    toggleKeywordMutation.mutate(keyword);
+}
 ```
 
 * **后端实现片段 (`route.ts`)**:

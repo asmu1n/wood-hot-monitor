@@ -231,7 +231,9 @@ export class BaseRequest<Params extends Record<string, any> | undefined, Respons
     }
 
     public getQueryFn({ queryKey, signal }: { queryKey: [string, Params] | [string]; signal: AbortSignal }) {
-        return (this.request as any)(queryKey[1], { signal });
+        const params = queryKey[1]!;
+
+        return this.request(params, { signal });
     }
 }
 

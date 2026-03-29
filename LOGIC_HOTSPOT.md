@@ -14,14 +14,22 @@
 * **前端实现片段 (`useAppLogic.ts`)**:
 
 ```typescript
-// 手动触发检查请求
-const handleManualCheck = async () => {
-    await attempt(() => {
-        setIsChecking(true);
-        return checkHotSpot.request(); // 发送异步任务启动指令
-    });
-    setIsChecking(false);
-    showToast('热点检查已触发', 'success');
+// 手动触发检查请求 (using useMutation)
+const { mutate: manualCheck, isPending: isChecking } = useMutation({
+    mutationFn: () => checkHotSpot.request(),
+    onSuccess: () => {
+        showToast('热点检查已触发', 'success');
+        setTimeout(() => {
+            void queryClient.invalidateQueries({ queryKey: ['hotspots'] });
+        }, 5000);
+    },
+    onError: () => {
+        showToast('触发失败', 'error');
+    }
+});
+
+const handleManualCheck = () => {
+    manualCheck();
 };
 ```
 
@@ -63,13 +71,12 @@ io.to(`keyword:${keyword.text}`).emit('hotspot:new', hotspot);
 useEffect(() => {
     // 注册新热点回调
     const unSubHotSpot = onNewHotSpot(async (hotspot) => {
-        // 将新接收的热点推入列表顶部
-        setHotSpots(prev => [hotspot as Hotspot, ...prev.slice(0, 19)]);
-        showToast('发现新热点: ' + (hotspot as Hotspot).title, 'success');
-        await loadData(); // 重新加载数据以保持统计同步
+        // 利用 TanStack Query 自动刷新缓存
+        await queryClient.invalidateQueries({ queryKey: ['hotspots'] });
+        showToast('发现新热点: ' + hotspot.title.slice(0, 30), 'success');
     });
     return () => unSubHotSpot(); // 卸载时取消监听
-}, []);
+}, [queryClient, showToast]);
 ```
 
 * **实时监听工具 (`hotspot/utils.ts`)**:
