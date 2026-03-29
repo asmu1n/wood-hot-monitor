@@ -1,6 +1,7 @@
 {
     "name": "@repo/frontend",
     "version": "0.1.0",
+    "license": "GPL-3.0",
     "dependencies": {
         "@radix-ui/react-slot": "^1.2.4",
         "@repo/ui": "0.0.0",
