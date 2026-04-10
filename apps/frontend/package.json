@@ -57,9 +57,9 @@
     "private": true,
     "scripts": {
         "build": "run-p lint && vite build",
-        "dev": "vite",
-        "lint": "yarn type-check && eslint .",
-        "preview": "vite preview",
+        "dev": "bun --bun vite",
+        "lint": "bun type-check && eslint .",
+        "preview": "bun vite preview",
         "type-check": "tsc -b"
     },
     "type": "module"

@@ -54,13 +54,13 @@
     "license": "GPL-3.0",
     "main": "server.js",
     "scripts": {
-        "build": "yarn type-check && tsup",
+        "build": "bun type-check && tsup",
         "db:generate": "drizzle-kit generate",
         "db:migrate": "drizzle-kit migrate",
         "db:studio": "drizzle-kit studio",
-        "lint": "yarn type-check && eslint .",
-        "serve": "tsx watch server.ts",
-        "start": "node dist/server.js",
+        "lint": "type-check && eslint .",
+        "serve": "bun --watch server.ts",
+        "start": "bun dist/server.js",
         "type-check": "tsc --noEmit"
     },
     "type": "module"
