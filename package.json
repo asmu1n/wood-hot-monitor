@@ -13,7 +13,8 @@
     "private": true,
     "scripts": {
         "build": "turbo run build",
-        "dev": "turbo @repo/frontend#dev",
+        "dev": "turbo @repo/desktop#dev",
+        "dev:desktop": "cd services/desktop && wails3 dev -config ./build/config.yml -port 9245",
         "lint": "turbo run lint",
         "serve": "turbo @repo/backend#serve",
         "syncpack:fix": "syncpack fix && syncpack format",
@@ -22,6 +23,7 @@
     "type": "module",
     "workspaces": [
         "apps/*",
-        "packages/*"
+        "packages/*",
+        "services/desktop/frontend"
     ]
 }

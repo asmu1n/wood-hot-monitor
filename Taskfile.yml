@@ -1,0 +1,37 @@
+version: "3"
+
+tasks:
+  dev:
+    desc: Start all services in development mode
+    deps: [dev:backend, dev:desktop]
+
+  dev:backend:
+    desc: Start backend in dev mode (legacy Express for now)
+    cmds:
+      - bun turbo run dev --filter=backend
+
+  dev:desktop:
+    desc: Start Wails desktop app in dev mode
+    dir: services/desktop
+    cmds:
+      - wails3 dev -config ./build/config.yml -port 9245
+
+  build:
+    desc: Build all services
+    deps: [build:desktop]
+
+  build:desktop:
+    desc: Build Wails desktop app
+    dir: services/desktop
+    cmds:
+      - task: build
+
+  test:
+    desc: Run all Go tests
+    cmds:
+      - go test ./services/...
+
+  dev:legacy:
+    desc: Start legacy Express + React frontend (browser mode)
+    cmds:
+      - bun turbo run dev

@@ -3,11 +3,11 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
+import wails from '@wailsio/runtime/plugins/vite';
 
 export default defineConfig(({ command, mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
 
-    console.log('env', env);
     const common = {
         plugins: [
             react({
@@ -16,15 +16,19 @@ export default defineConfig(({ command, mode }) => {
                 }
             }),
             tailwindcss(),
-            tanstackRouter()
+            tanstackRouter(),
+            wails('./bindings')
         ],
-        resolve: { alias: { '@': resolve(__dirname, './src'), '@env': resolve(__dirname, './envConfig.ts') } }
+        resolve: { alias: { '@': resolve(__dirname, './src') } }
     };
 
     if (command === 'serve') {
         return {
             ...common,
             server: {
+                host: '127.0.0.1',
+                port: parseInt(env.VITE_PORT || '9245', 10),
+                strictPort: true,
                 proxy: {
                     '/api': {
                         target: 'http://localhost:3001',
@@ -36,17 +40,18 @@ export default defineConfig(({ command, mode }) => {
                     }
                 }
             }
-            // dev 独有配置
-            // server: {
-            //     proxy: { '/api': { target: 'http://192.168.124.67:3222', changeOrigin: true } },
-            //     allowedHosts: ['3txwhfom-c2rj0iv3-6wcz4o8b6wah.vcd4.mcprev.cn']
-            // }
         };
     } else {
-        // command === 'build'
         return {
-            ...common
-            // build 独有配置
+            ...common,
+            server: {
+                host: '127.0.0.1',
+                port: parseInt(env.VITE_PORT || '9245', 10),
+                strictPort: true
+            },
+            build: {
+                outDir: 'dist'
+            }
         };
     }
 });

@@ -8,8 +8,8 @@
             "runtimeArgs": [
                 "--remote-debugging-port=9222"
             ],
-            "url": "http://localhost:5173",
-            "webRoot": "${workspaceFolder}/apps/frontend",
+            "url": "http://localhost:9245",
+            "webRoot": "${workspaceFolder}/services/desktop/frontend",
             "userDataDir": "/Users/muinas/code_space/chrome-debug-profile",
             "presentation": {
                 "hidden": false

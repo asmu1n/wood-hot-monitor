@@ -31,3 +31,20 @@ dist-ssr
 *.sln
 *.sw?
 .env.local
+
+# Go
+bin/
+go.work.sum
+
+# Stale build artifacts (root-level binaries)
+/desktop
+/server
+
+# Wails
+services/desktop/frontend/dist/
+services/desktop/frontend/bindings/
+services/desktop/bin/
+.task/
+
+# Runtime data
+data/

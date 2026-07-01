@@ -4,9 +4,8 @@
         "baseUrl": ".",
         "paths": {
             "@/*": ["./src/*"],
-            "@env": ["./envConfig.ts"],
-            "@repo/ui": ["../../packages/ui/index.ts"],
-            "@repo/ui/*": ["../../packages/ui/*"]
+            "@repo/ui": ["../../../packages/ui/index.ts"],
+            "@repo/ui/*": ["../../../packages/ui/*"]
         }
     },
     "files": [],

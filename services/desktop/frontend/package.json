@@ -1,8 +1,17 @@
 {
-    "name": "@repo/frontend",
-    "version": "0.1.0",
+    "name": "@repo/desktop",
+    "version": "0.0.0",
     "license": "GPL-3.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite --port 9245 --strictPort",
+        "lint": "bun type-check && eslint .",
+        "type-check": "tsc -b"
+    },
     "dependencies": {
+        "@wailsio/runtime": "latest",
         "@radix-ui/react-slot": "^1.2.4",
         "@repo/ui": "0.0.0",
         "@tanstack/react-query": "^5.90.21",
@@ -53,14 +62,5 @@
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.55.0",
         "vite": "^7.3.1"
-    },
-    "private": true,
-    "scripts": {
-        "build": "run-p lint && vite build",
-        "dev": "bun --bun vite",
-        "lint": "bun type-check && eslint .",
-        "preview": "bun vite preview",
-        "type-check": "tsc -b"
-    },
-    "type": "module"
+    }
 }
