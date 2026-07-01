@@ -2,20 +2,7 @@
 logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-.vscode/chrome-debug-profile
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
-#!.yarn/cache
-.pnp.*
 node_modules
 dist
 dist-ssr
@@ -24,7 +11,6 @@ dist-ssr
 # Editor directories and files
 .idea
 .DS_Store
-.turbo
 *.suo
 *.ntvs*
 *.njsproj
@@ -36,14 +22,9 @@ dist-ssr
 bin/
 go.work.sum
 
-# Stale build artifacts (root-level binaries)
-/desktop
-/server
-
 # Wails
-services/desktop/frontend/dist/
-services/desktop/frontend/bindings/
-services/desktop/bin/
+frontend/dist/
+frontend/bindings/
 .task/
 
 # Runtime data

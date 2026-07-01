@@ -1,37 +1,34 @@
-version: "3"
+version: '3'
+
+vars:
+  APP_NAME: "wood-hot-monitor"
+  BIN_DIR: "bin"
+  PACKAGE_MANAGER: "bun"
+  VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
+
+includes:
+  common: ./build/Taskfile.yml
+  darwin: ./build/darwin/Taskfile.yml
+  windows: ./build/windows/Taskfile.yml
+  linux: ./build/linux/Taskfile.yml
 
 tasks:
-  dev:
-    desc: Start all services in development mode
-    deps: [dev:backend, dev:desktop]
-
-  dev:backend:
-    desc: Start backend in dev mode (legacy Express for now)
-    cmds:
-      - bun turbo run dev --filter=backend
-
-  dev:desktop:
-    desc: Start Wails desktop app in dev mode
-    dir: services/desktop
-    cmds:
-      - wails3 dev -config ./build/config.yml -port 9245
-
   build:
-    desc: Build all services
-    deps: [build:desktop]
-
-  build:desktop:
-    desc: Build Wails desktop app
-    dir: services/desktop
+    summary: Builds the application for current OS
     cmds:
-      - task: build
+      - task: "{{OS}}:build"
 
-  test:
-    desc: Run all Go tests
+  package:
+    summary: Packages a production build
     cmds:
-      - go test ./services/...
+      - task: "{{OS}}:package"
 
-  dev:legacy:
-    desc: Start legacy Express + React frontend (browser mode)
+  run:
+    summary: Runs the built application
     cmds:
-      - bun turbo run dev
+      - task: "{{OS}}:run"
+
+  dev:
+    summary: Runs the application in development mode
+    cmds:
+      - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}

@@ -3,27 +3,16 @@
     "version": "1.0.0",
     "license": "GPL-3.0",
     "devDependencies": {
-        "npm-run-all": "^4.1.5",
         "prettier": "^3.8.1",
-        "syncpack": "^14.2.0",
-        "turbo": "^2.8.16",
         "typescript": "^5.9.3"
     },
     "packageManager": "bun@1.3.11",
     "private": true,
     "scripts": {
-        "build": "turbo run build",
-        "dev": "turbo @repo/desktop#dev",
-        "dev:desktop": "cd services/desktop && wails3 dev -config ./build/config.yml -port 9245",
-        "lint": "turbo run lint",
-        "serve": "turbo @repo/backend#serve",
-        "syncpack:fix": "syncpack fix && syncpack format",
-        "syncpack:lint": "syncpack lint"
+        "dev": "wails3 dev -config ./build/config.yml -port 9245",
+        "build": "wails3 task build",
+        "type-check": "bun run --cwd frontend type-check",
+        "lint": "bun run --cwd frontend lint"
     },
-    "type": "module",
-    "workspaces": [
-        "apps/*",
-        "packages/*",
-        "services/desktop/frontend"
-    ]
+    "type": "module"
 }
