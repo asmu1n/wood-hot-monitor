@@ -1,9 +1,7 @@
-import { Get, UpdateSettings } from '@wails/config/service.js';
+import type { AppConfig } from '@/types';
+import { Get, Update } from '@wails/config/service.js';
 
 export const settingsApi = {
-    getAll: async () => {
-        const cfg = await Get();
-        return cfg.settings as Record<string, any>;
-    },
-    update: (settings: Record<string, any>) => UpdateSettings(settings)
+    getConfig: () => Get(),
+    updateConfig: (cfg: AppConfig) => Update(cfg)
 };

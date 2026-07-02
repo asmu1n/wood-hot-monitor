@@ -348,6 +348,48 @@ func (_c *HotspotCreate) SetNillableKeywordID(v *string) *HotspotCreate {
 	return _c
 }
 
+// SetIsNotified sets the "is_notified" field.
+func (_c *HotspotCreate) SetIsNotified(v bool) *HotspotCreate {
+	_c.mutation.SetIsNotified(v)
+	return _c
+}
+
+// SetNillableIsNotified sets the "is_notified" field if the given value is not nil.
+func (_c *HotspotCreate) SetNillableIsNotified(v *bool) *HotspotCreate {
+	if v != nil {
+		_c.SetIsNotified(*v)
+	}
+	return _c
+}
+
+// SetNotifiedAt sets the "notified_at" field.
+func (_c *HotspotCreate) SetNotifiedAt(v time.Time) *HotspotCreate {
+	_c.mutation.SetNotifiedAt(v)
+	return _c
+}
+
+// SetNillableNotifiedAt sets the "notified_at" field if the given value is not nil.
+func (_c *HotspotCreate) SetNillableNotifiedAt(v *time.Time) *HotspotCreate {
+	if v != nil {
+		_c.SetNotifiedAt(*v)
+	}
+	return _c
+}
+
+// SetIsRead sets the "is_read" field.
+func (_c *HotspotCreate) SetIsRead(v bool) *HotspotCreate {
+	_c.mutation.SetIsRead(v)
+	return _c
+}
+
+// SetNillableIsRead sets the "is_read" field if the given value is not nil.
+func (_c *HotspotCreate) SetNillableIsRead(v *bool) *HotspotCreate {
+	if v != nil {
+		_c.SetIsRead(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *HotspotCreate) SetID(v string) *HotspotCreate {
 	_c.mutation.SetID(v)
@@ -414,6 +456,14 @@ func (_c *HotspotCreate) defaults() {
 		v := hotspot.DefaultImportance
 		_c.mutation.SetImportance(v)
 	}
+	if _, ok := _c.mutation.IsNotified(); !ok {
+		v := hotspot.DefaultIsNotified
+		_c.mutation.SetIsNotified(v)
+	}
+	if _, ok := _c.mutation.IsRead(); !ok {
+		v := hotspot.DefaultIsRead
+		_c.mutation.SetIsRead(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := hotspot.DefaultID()
 		_c.mutation.SetID(v)
@@ -445,6 +495,12 @@ func (_c *HotspotCreate) check() error {
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Hotspot.created_at"`)}
+	}
+	if _, ok := _c.mutation.IsNotified(); !ok {
+		return &ValidationError{Name: "is_notified", err: errors.New(`ent: missing required field "Hotspot.is_notified"`)}
+	}
+	if _, ok := _c.mutation.IsRead(); !ok {
+		return &ValidationError{Name: "is_read", err: errors.New(`ent: missing required field "Hotspot.is_read"`)}
 	}
 	return nil
 }
@@ -581,6 +637,18 @@ func (_c *HotspotCreate) createSpec() (*Hotspot, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(hotspot.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
+	}
+	if value, ok := _c.mutation.IsNotified(); ok {
+		_spec.SetField(hotspot.FieldIsNotified, field.TypeBool, value)
+		_node.IsNotified = value
+	}
+	if value, ok := _c.mutation.NotifiedAt(); ok {
+		_spec.SetField(hotspot.FieldNotifiedAt, field.TypeTime, value)
+		_node.NotifiedAt = &value
+	}
+	if value, ok := _c.mutation.IsRead(); ok {
+		_spec.SetField(hotspot.FieldIsRead, field.TypeBool, value)
+		_node.IsRead = value
 	}
 	if nodes := _c.mutation.KeywordIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -1110,6 +1178,48 @@ func (u *HotspotUpsert) UpdateKeywordID() *HotspotUpsert {
 // ClearKeywordID clears the value of the "keyword_id" field.
 func (u *HotspotUpsert) ClearKeywordID() *HotspotUpsert {
 	u.SetNull(hotspot.FieldKeywordID)
+	return u
+}
+
+// SetIsNotified sets the "is_notified" field.
+func (u *HotspotUpsert) SetIsNotified(v bool) *HotspotUpsert {
+	u.Set(hotspot.FieldIsNotified, v)
+	return u
+}
+
+// UpdateIsNotified sets the "is_notified" field to the value that was provided on create.
+func (u *HotspotUpsert) UpdateIsNotified() *HotspotUpsert {
+	u.SetExcluded(hotspot.FieldIsNotified)
+	return u
+}
+
+// SetNotifiedAt sets the "notified_at" field.
+func (u *HotspotUpsert) SetNotifiedAt(v time.Time) *HotspotUpsert {
+	u.Set(hotspot.FieldNotifiedAt, v)
+	return u
+}
+
+// UpdateNotifiedAt sets the "notified_at" field to the value that was provided on create.
+func (u *HotspotUpsert) UpdateNotifiedAt() *HotspotUpsert {
+	u.SetExcluded(hotspot.FieldNotifiedAt)
+	return u
+}
+
+// ClearNotifiedAt clears the value of the "notified_at" field.
+func (u *HotspotUpsert) ClearNotifiedAt() *HotspotUpsert {
+	u.SetNull(hotspot.FieldNotifiedAt)
+	return u
+}
+
+// SetIsRead sets the "is_read" field.
+func (u *HotspotUpsert) SetIsRead(v bool) *HotspotUpsert {
+	u.Set(hotspot.FieldIsRead, v)
+	return u
+}
+
+// UpdateIsRead sets the "is_read" field to the value that was provided on create.
+func (u *HotspotUpsert) UpdateIsRead() *HotspotUpsert {
+	u.SetExcluded(hotspot.FieldIsRead)
 	return u
 }
 
@@ -1700,6 +1810,55 @@ func (u *HotspotUpsertOne) UpdateKeywordID() *HotspotUpsertOne {
 func (u *HotspotUpsertOne) ClearKeywordID() *HotspotUpsertOne {
 	return u.Update(func(s *HotspotUpsert) {
 		s.ClearKeywordID()
+	})
+}
+
+// SetIsNotified sets the "is_notified" field.
+func (u *HotspotUpsertOne) SetIsNotified(v bool) *HotspotUpsertOne {
+	return u.Update(func(s *HotspotUpsert) {
+		s.SetIsNotified(v)
+	})
+}
+
+// UpdateIsNotified sets the "is_notified" field to the value that was provided on create.
+func (u *HotspotUpsertOne) UpdateIsNotified() *HotspotUpsertOne {
+	return u.Update(func(s *HotspotUpsert) {
+		s.UpdateIsNotified()
+	})
+}
+
+// SetNotifiedAt sets the "notified_at" field.
+func (u *HotspotUpsertOne) SetNotifiedAt(v time.Time) *HotspotUpsertOne {
+	return u.Update(func(s *HotspotUpsert) {
+		s.SetNotifiedAt(v)
+	})
+}
+
+// UpdateNotifiedAt sets the "notified_at" field to the value that was provided on create.
+func (u *HotspotUpsertOne) UpdateNotifiedAt() *HotspotUpsertOne {
+	return u.Update(func(s *HotspotUpsert) {
+		s.UpdateNotifiedAt()
+	})
+}
+
+// ClearNotifiedAt clears the value of the "notified_at" field.
+func (u *HotspotUpsertOne) ClearNotifiedAt() *HotspotUpsertOne {
+	return u.Update(func(s *HotspotUpsert) {
+		s.ClearNotifiedAt()
+	})
+}
+
+// SetIsRead sets the "is_read" field.
+func (u *HotspotUpsertOne) SetIsRead(v bool) *HotspotUpsertOne {
+	return u.Update(func(s *HotspotUpsert) {
+		s.SetIsRead(v)
+	})
+}
+
+// UpdateIsRead sets the "is_read" field to the value that was provided on create.
+func (u *HotspotUpsertOne) UpdateIsRead() *HotspotUpsertOne {
+	return u.Update(func(s *HotspotUpsert) {
+		s.UpdateIsRead()
 	})
 }
 
@@ -2457,6 +2616,55 @@ func (u *HotspotUpsertBulk) UpdateKeywordID() *HotspotUpsertBulk {
 func (u *HotspotUpsertBulk) ClearKeywordID() *HotspotUpsertBulk {
 	return u.Update(func(s *HotspotUpsert) {
 		s.ClearKeywordID()
+	})
+}
+
+// SetIsNotified sets the "is_notified" field.
+func (u *HotspotUpsertBulk) SetIsNotified(v bool) *HotspotUpsertBulk {
+	return u.Update(func(s *HotspotUpsert) {
+		s.SetIsNotified(v)
+	})
+}
+
+// UpdateIsNotified sets the "is_notified" field to the value that was provided on create.
+func (u *HotspotUpsertBulk) UpdateIsNotified() *HotspotUpsertBulk {
+	return u.Update(func(s *HotspotUpsert) {
+		s.UpdateIsNotified()
+	})
+}
+
+// SetNotifiedAt sets the "notified_at" field.
+func (u *HotspotUpsertBulk) SetNotifiedAt(v time.Time) *HotspotUpsertBulk {
+	return u.Update(func(s *HotspotUpsert) {
+		s.SetNotifiedAt(v)
+	})
+}
+
+// UpdateNotifiedAt sets the "notified_at" field to the value that was provided on create.
+func (u *HotspotUpsertBulk) UpdateNotifiedAt() *HotspotUpsertBulk {
+	return u.Update(func(s *HotspotUpsert) {
+		s.UpdateNotifiedAt()
+	})
+}
+
+// ClearNotifiedAt clears the value of the "notified_at" field.
+func (u *HotspotUpsertBulk) ClearNotifiedAt() *HotspotUpsertBulk {
+	return u.Update(func(s *HotspotUpsert) {
+		s.ClearNotifiedAt()
+	})
+}
+
+// SetIsRead sets the "is_read" field.
+func (u *HotspotUpsertBulk) SetIsRead(v bool) *HotspotUpsertBulk {
+	return u.Update(func(s *HotspotUpsert) {
+		s.SetIsRead(v)
+	})
+}
+
+// UpdateIsRead sets the "is_read" field to the value that was provided on create.
+func (u *HotspotUpsertBulk) UpdateIsRead() *HotspotUpsertBulk {
+	return u.Update(func(s *HotspotUpsert) {
+		s.UpdateIsRead()
 	})
 }
 

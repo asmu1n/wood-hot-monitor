@@ -3,9 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { onNewHotSpot } from '@/features/hotspot/utils';
 import { keywordApi } from '@/features/keyword/api';
 import { hotspotApi, type HotspotFilters } from '@/features/hotspot/api';
-import { notificationApi } from '@/features/notifications/api';
 import { subscribeToKeywords, unsubscribeFromKeywords } from '@/features/keyword/utils';
-import { onNotification } from '@/features/notifications/utils';
 import { attempt } from '@/utils/common';
 import { defaultFilterState, type FilterState } from '@/components/FilterSortBar';
 import type { Keyword, Hotspot } from '@/types';
@@ -61,15 +59,15 @@ export function useAppLogic() {
         queryFn: hotspotApi.getStatus
     });
 
-    const notificationParams = useMemo(() => ({ limit: 20 }), []);
-
-    const { data: notificationRes } = useQuery({
-        queryKey: ['notifications', notificationParams],
-        queryFn: () => notificationApi.getAll(notificationParams)
+    const { data: unreadCount = 0 } = useQuery({
+        queryKey: ['unreadCount'],
+        queryFn: hotspotApi.unreadCount
     });
 
-    const notifications = useMemo(() => notificationRes?.data ?? [], [notificationRes]);
-    const unreadCount = useMemo(() => notificationRes?.total ?? 0, [notificationRes]);
+    const { data: notifications = [] } = useQuery({
+        queryKey: ['notifications'],
+        queryFn: () => hotspotApi.getNotifications(10)
+    });
 
     const isLoading = isHotspotsLoading;
 
@@ -139,9 +137,10 @@ export function useAppLogic() {
     };
 
     const markAllReadMutation = useMutation({
-        mutationFn: () => notificationApi.markAllAsRead(),
+        mutationFn: () => hotspotApi.markAllRead(),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            void queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
         },
         onError: (error) => {
             console.error('Failed to mark as read:', error);
@@ -210,16 +209,13 @@ export function useAppLogic() {
     useEffect(() => {
         const unSubHotSpot = onNewHotSpot(async (hotspot) => {
             await queryClient.invalidateQueries({ queryKey: ['hotspots'] });
-            showToast('发现新热点: ' + hotspot.title.slice(0, 30), 'success');
-        });
-
-        const unSubNotification = onNotification(() => {
             void queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            void queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
+            showToast('发现新热点: ' + hotspot.title.slice(0, 30), 'success');
         });
 
         return () => {
             unSubHotSpot();
-            unSubNotification();
         };
     }, [queryClient, showToast]);
 
@@ -296,6 +292,7 @@ export function useAppLogic() {
         toggleReason,
         toggleContent,
         toggleAllReasons,
+        showToast,
         loadData: () => void queryClient.invalidateQueries({ queryKey: ['hotspots'] })
     };
 }

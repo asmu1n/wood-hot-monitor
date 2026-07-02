@@ -18,7 +18,6 @@ import (
 	"wood-hot-monitor/internal/hotspot"
 	"wood-hot-monitor/internal/keyword"
 	"wood-hot-monitor/internal/llm"
-	"wood-hot-monitor/internal/notification"
 )
 
 //go:embed all:frontend/dist
@@ -46,7 +45,6 @@ func main() {
 		Services: []application.Service{
 			application.NewService(keyword.NewService(db)),
 			application.NewService(hotspot.NewService(db)),
-			application.NewService(notification.NewService(db)),
 			application.NewService(cfgService),
 		},
 		Assets: application.AssetOptions{
@@ -64,6 +62,7 @@ func main() {
 		})
 	}
 
+	// 后台定时服务
 	checkerService := checker.NewService(db, cfgService, llmService, emitter)
 
 	scheduler, err := startScheduler(cfgService, checkerService)

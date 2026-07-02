@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"wood-hot-monitor/ent"
 	enthot "wood-hot-monitor/ent/hotspot"
 	entkw "wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/internal/config"
@@ -79,7 +80,6 @@ func (s *Service) Run(ctx context.Context) error {
 		allResults = scraper.DeduplicateByURL(allResults)
 		allResults = scraper.FilterByFreshness(allResults, freshnessWindow)
 		scraper.SortByPriority(allResults)
-
 		scored := quality.FilterAndSort(allResults)
 		limited := applySourceQuota(scored, maxResultsPerSource)
 
@@ -96,28 +96,131 @@ func (s *Service) Run(ctx context.Context) error {
 				continue
 			}
 
-			hotspotID := uuid.NewString()
-			if err := s.upsertHotspot(ctx, hotspotID, sr.SearchResult, analysis, &kw.ID); err != nil {
+			hotspotID, isNew, err := s.upsertHotspot(ctx, sr.SearchResult, analysis, &kw.ID)
+			if err != nil {
 				log.Printf("checker: upsert hotspot failed: %v", err)
 				continue
 			}
 
-			s.createNotification(ctx, hotspotID, sr.SearchResult, analysis)
+			if isNew {
+				s.emit("hotspot:new", map[string]string{
+					"id":     hotspotID,
+					"title":  sr.Title,
+					"source": sr.Source,
+				})
 
-			if analysis.Importance == "high" || analysis.Importance == "urgent" {
-				s.sendEmailAlert(cfg, sr.SearchResult, analysis)
+				if analysis.Importance == "high" || analysis.Importance == "urgent" {
+					s.sendEmailAlert(cfg, sr.SearchResult, analysis)
+				}
 			}
-
-			s.emit("hotspot:new", map[string]string{
-				"id":     hotspotID,
-				"title":  sr.Title,
-				"source": sr.Source,
-			})
 		}
 	}
 
 	log.Printf("checker: run complete, %d AI analyses used", aiCount)
 	return nil
+}
+
+func (s *Service) upsertHotspot(ctx context.Context, r scraper.SearchResult, analysis *llm.AnalysisResult, keywordID *string) (string, bool, error) {
+	now := time.Now().UTC()
+
+	existing, err := s.db.Client.Hotspot.Query().
+		Where(enthot.URLEQ(r.URL), enthot.SourceEQ(r.Source)).
+		Only(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return "", false, err
+	}
+
+	if existing != nil {
+		builder := s.db.Client.Hotspot.UpdateOneID(existing.ID).
+			SetTitle(r.Title).
+			SetContent(r.Content).
+			SetNillableSourceID(strPtr(r.SourceID)).
+			SetIsReal(analysis.IsReal).
+			SetRelevance(analysis.Relevance).
+			SetNillableRelevanceReason(strPtr(analysis.RelevanceReason)).
+			SetNillableKeywordMentioned(&analysis.KeywordMentioned).
+			SetImportance(analysis.Importance).
+			SetNillableSummary(strPtr(analysis.Summary)).
+			SetNillableViewCount(r.ViewCount).
+			SetNillableLikeCount(r.LikeCount).
+			SetNillableRetweetCount(r.RetweetCount).
+			SetNillableReplyCount(r.ReplyCount).
+			SetNillableCommentCount(r.CommentCount).
+			SetNillableQuoteCount(r.QuoteCount).
+			SetNillableDanmakuCount(r.DanmakuCount).
+			SetNillablePublishedAt(r.PublishedAt)
+
+		if r.Author != nil {
+			builder = builder.
+				SetNillableAuthorName(strPtr(r.Author.Name)).
+				SetNillableAuthorUsername(strPtr(r.Author.Username)).
+				SetNillableAuthorAvatar(strPtr(r.Author.Avatar))
+			if r.Author.Followers > 0 {
+				builder = builder.SetAuthorFollowers(r.Author.Followers)
+			}
+			if r.Author.Verified {
+				builder = builder.SetAuthorVerified(true)
+			}
+		}
+
+		if keywordID != nil {
+			builder = builder.SetKeywordID(*keywordID)
+		}
+
+		if err := builder.Exec(ctx); err != nil {
+			return "", false, err
+		}
+		return existing.ID, false, nil
+	}
+
+	builder := s.db.Client.Hotspot.Create().
+		SetID(uuid.NewString()).
+		SetTitle(r.Title).
+		SetContent(r.Content).
+		SetURL(r.URL).
+		SetSource(r.Source).
+		SetNillableSourceID(strPtr(r.SourceID)).
+		SetIsReal(analysis.IsReal).
+		SetRelevance(analysis.Relevance).
+		SetNillableRelevanceReason(strPtr(analysis.RelevanceReason)).
+		SetNillableKeywordMentioned(&analysis.KeywordMentioned).
+		SetImportance(analysis.Importance).
+		SetNillableSummary(strPtr(analysis.Summary)).
+		SetNillableViewCount(r.ViewCount).
+		SetNillableLikeCount(r.LikeCount).
+		SetNillableRetweetCount(r.RetweetCount).
+		SetNillableReplyCount(r.ReplyCount).
+		SetNillableCommentCount(r.CommentCount).
+		SetNillableQuoteCount(r.QuoteCount).
+		SetNillableDanmakuCount(r.DanmakuCount).
+		SetNillablePublishedAt(r.PublishedAt).
+		SetIsNotified(true).
+		SetNotifiedAt(now).
+		SetIsRead(false).
+		SetCreatedAt(now)
+
+	if r.Author != nil {
+		builder = builder.
+			SetNillableAuthorName(strPtr(r.Author.Name)).
+			SetNillableAuthorUsername(strPtr(r.Author.Username)).
+			SetNillableAuthorAvatar(strPtr(r.Author.Avatar))
+		if r.Author.Followers > 0 {
+			builder = builder.SetAuthorFollowers(r.Author.Followers)
+		}
+		if r.Author.Verified {
+			builder = builder.SetAuthorVerified(true)
+		}
+	}
+
+	if keywordID != nil {
+		builder = builder.SetKeywordID(*keywordID)
+	}
+
+	h, err := builder.Save(ctx)
+	if err != nil {
+		return "", false, err
+	}
+	return h.ID, true, nil
 }
 
 func (s *Service) searchAllSources(ctx context.Context, query, twitterAPIKey string) []scraper.SearchResult {
@@ -180,89 +283,6 @@ func applySourceQuota(results []quality.ScoredResult, maxPerSource int) []qualit
 		out = append(out, r)
 	}
 	return out
-}
-
-func (s *Service) upsertHotspot(ctx context.Context, id string, r scraper.SearchResult, analysis *llm.AnalysisResult, keywordID *string) error {
-	now := time.Now().UTC()
-
-	builder := s.db.Client.Hotspot.Create().
-		SetID(id).
-		SetTitle(r.Title).
-		SetContent(r.Content).
-		SetURL(r.URL).
-		SetSource(r.Source).
-		SetNillableSourceID(strPtr(r.SourceID)).
-		SetIsReal(analysis.IsReal).
-		SetRelevance(analysis.Relevance).
-		SetNillableRelevanceReason(strPtr(analysis.RelevanceReason)).
-		SetNillableKeywordMentioned(&analysis.KeywordMentioned).
-		SetImportance(analysis.Importance).
-		SetNillableSummary(strPtr(analysis.Summary)).
-		SetNillableViewCount(r.ViewCount).
-		SetNillableLikeCount(r.LikeCount).
-		SetNillableRetweetCount(r.RetweetCount).
-		SetNillableReplyCount(r.ReplyCount).
-		SetNillableCommentCount(r.CommentCount).
-		SetNillableQuoteCount(r.QuoteCount).
-		SetNillableDanmakuCount(r.DanmakuCount).
-		SetNillablePublishedAt(r.PublishedAt).
-		SetCreatedAt(now)
-
-	if r.Author != nil {
-		builder = builder.
-			SetNillableAuthorName(strPtr(r.Author.Name)).
-			SetNillableAuthorUsername(strPtr(r.Author.Username)).
-			SetNillableAuthorAvatar(strPtr(r.Author.Avatar))
-		if r.Author.Followers > 0 {
-			builder = builder.SetAuthorFollowers(r.Author.Followers)
-		}
-		if r.Author.Verified {
-			builder = builder.SetAuthorVerified(true)
-		}
-	}
-
-	if keywordID != nil {
-		builder = builder.SetKeywordID(*keywordID)
-	}
-
-	return builder.
-		OnConflictColumns(enthot.FieldURL, enthot.FieldSource).
-		UpdateNewValues().
-		Exec(ctx)
-}
-
-func (s *Service) createNotification(ctx context.Context, hotspotID string, r scraper.SearchResult, analysis *llm.AnalysisResult) {
-	title := fmt.Sprintf("[%s] %s", r.Source, r.Title)
-	content := analysis.Summary
-	if content == "" {
-		content = r.Content
-		if len([]rune(content)) > 100 {
-			content = string([]rune(content)[:100]) + "..."
-		}
-	}
-
-	notifType := "info"
-	if analysis.Importance == "urgent" {
-		notifType = "urgent"
-	} else if analysis.Importance == "high" {
-		notifType = "warning"
-	}
-
-	nBuilder := s.db.Client.Notification.Create().
-		SetType(notifType).
-		SetTitle(title).
-		SetContent(content).
-		SetIsRead(false).
-		SetCreatedAt(time.Now().UTC()).
-		SetHotspotID(hotspotID)
-
-	row, err := nBuilder.Save(ctx)
-	if err != nil {
-		log.Printf("checker: create notification failed: %v", err)
-		return
-	}
-
-	s.emit("notification:new", map[string]string{"id": row.ID, "type": notifType, "title": title})
 }
 
 func (s *Service) sendEmailAlert(cfg *models.AppConfig, r scraper.SearchResult, analysis *llm.AnalysisResult) {

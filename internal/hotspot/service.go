@@ -188,6 +188,48 @@ func (s *Service) Check() error {
 	return nil
 }
 
+func (s *Service) GetNotifications(limit int) ([]models.Hotspot, error) {
+	ctx := context.Background()
+	if limit <= 0 {
+		limit = 10
+	}
+
+	rows, err := s.db.Client.Hotspot.Query().
+		Where(enthot.IsNotified(true)).
+		Order(ent.Desc(enthot.FieldNotifiedAt)).
+		Limit(limit).
+		WithKeyword().
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]models.Hotspot, len(rows))
+	for i, row := range rows {
+		result[i] = mapHotspot(row)
+	}
+	return result, nil
+}
+
+func (s *Service) UnreadCount() (int, error) {
+	return s.db.Client.Hotspot.Query().
+		Where(enthot.IsNotified(true), enthot.IsRead(false)).
+		Count(context.Background())
+}
+
+func (s *Service) MarkRead(id string) error {
+	return s.db.Client.Hotspot.UpdateOneID(id).
+		SetIsRead(true).
+		Exec(context.Background())
+}
+
+func (s *Service) MarkAllRead() error {
+	return s.db.Client.Hotspot.Update().
+		Where(enthot.IsNotified(true), enthot.IsRead(false)).
+		SetIsRead(true).
+		Exec(context.Background())
+}
+
 func resolveTimeRange(timeRange, timeFrom, timeTo *string) (*time.Time, *time.Time) {
 	if timeFrom != nil && timeTo != nil {
 		from, _ := time.Parse(time.DateTime, *timeFrom)
@@ -243,7 +285,13 @@ func mapHotspot(h *ent.Hotspot) models.Hotspot {
 		AuthorFollowers:  h.AuthorFollowers,
 		AuthorVerified:   h.AuthorVerified,
 		KeywordID:        h.KeywordID,
+		IsNotified:       h.IsNotified,
+		IsRead:           h.IsRead,
 		CreatedAt:        h.CreatedAt.Format(time.DateTime),
+	}
+	if h.NotifiedAt != nil {
+		s := h.NotifiedAt.Format(time.DateTime)
+		m.NotifiedAt = &s
 	}
 	if h.PublishedAt != nil {
 		s := h.PublishedAt.Format(time.DateTime)

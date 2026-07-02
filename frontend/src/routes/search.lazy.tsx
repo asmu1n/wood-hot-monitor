@@ -115,9 +115,9 @@ function SearchPage() {
             {/* Search Results */}
             <div className="space-y-3">
                 {filteredSearchResults.length === 0 && searchResults.length > 0 && (
-                    <div className="rounded-2xl border border-dashed border-white/10 py-12 text-center">
-                        <p className="text-slate-500">当前筛选条件下无结果</p>
-                        <p className="mt-1 text-sm text-slate-600">尝试调整筛选条件</p>
+                    <div className="border-border rounded-2xl border border-dashed py-12 text-center">
+                        <p className="text-muted-foreground">当前筛选条件下无结果</p>
+                        <p className="text-muted-foreground/70 mt-1 text-sm">尝试调整筛选条件</p>
                     </div>
                 )}
                 {filteredSearchResults.map((hotspot, i) => (

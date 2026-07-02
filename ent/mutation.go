@@ -11,7 +11,6 @@ import (
 	"wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/keywordexpansion"
-	"wood-hot-monitor/ent/notification"
 	"wood-hot-monitor/ent/predicate"
 
 	"entgo.io/ent"
@@ -30,7 +29,6 @@ const (
 	TypeHotspot          = "Hotspot"
 	TypeKeyword          = "Keyword"
 	TypeKeywordExpansion = "KeywordExpansion"
-	TypeNotification     = "Notification"
 )
 
 // HotspotMutation represents an operation that mutates the Hotspot nodes in the graph.
@@ -73,6 +71,9 @@ type HotspotMutation struct {
 	author_verified     *bool
 	published_at        *time.Time
 	created_at          *time.Time
+	is_notified         *bool
+	notified_at         *time.Time
+	is_read             *bool
 	clearedFields       map[string]struct{}
 	keyword             *string
 	clearedkeyword      bool
@@ -1543,6 +1544,127 @@ func (m *HotspotMutation) ResetKeywordID() {
 	delete(m.clearedFields, hotspot.FieldKeywordID)
 }
 
+// SetIsNotified sets the "is_notified" field.
+func (m *HotspotMutation) SetIsNotified(b bool) {
+	m.is_notified = &b
+}
+
+// IsNotified returns the value of the "is_notified" field in the mutation.
+func (m *HotspotMutation) IsNotified() (r bool, exists bool) {
+	v := m.is_notified
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsNotified returns the old "is_notified" field's value of the Hotspot entity.
+// If the Hotspot object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HotspotMutation) OldIsNotified(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsNotified is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsNotified requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsNotified: %w", err)
+	}
+	return oldValue.IsNotified, nil
+}
+
+// ResetIsNotified resets all changes to the "is_notified" field.
+func (m *HotspotMutation) ResetIsNotified() {
+	m.is_notified = nil
+}
+
+// SetNotifiedAt sets the "notified_at" field.
+func (m *HotspotMutation) SetNotifiedAt(t time.Time) {
+	m.notified_at = &t
+}
+
+// NotifiedAt returns the value of the "notified_at" field in the mutation.
+func (m *HotspotMutation) NotifiedAt() (r time.Time, exists bool) {
+	v := m.notified_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNotifiedAt returns the old "notified_at" field's value of the Hotspot entity.
+// If the Hotspot object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HotspotMutation) OldNotifiedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNotifiedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNotifiedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNotifiedAt: %w", err)
+	}
+	return oldValue.NotifiedAt, nil
+}
+
+// ClearNotifiedAt clears the value of the "notified_at" field.
+func (m *HotspotMutation) ClearNotifiedAt() {
+	m.notified_at = nil
+	m.clearedFields[hotspot.FieldNotifiedAt] = struct{}{}
+}
+
+// NotifiedAtCleared returns if the "notified_at" field was cleared in this mutation.
+func (m *HotspotMutation) NotifiedAtCleared() bool {
+	_, ok := m.clearedFields[hotspot.FieldNotifiedAt]
+	return ok
+}
+
+// ResetNotifiedAt resets all changes to the "notified_at" field.
+func (m *HotspotMutation) ResetNotifiedAt() {
+	m.notified_at = nil
+	delete(m.clearedFields, hotspot.FieldNotifiedAt)
+}
+
+// SetIsRead sets the "is_read" field.
+func (m *HotspotMutation) SetIsRead(b bool) {
+	m.is_read = &b
+}
+
+// IsRead returns the value of the "is_read" field in the mutation.
+func (m *HotspotMutation) IsRead() (r bool, exists bool) {
+	v := m.is_read
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsRead returns the old "is_read" field's value of the Hotspot entity.
+// If the Hotspot object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HotspotMutation) OldIsRead(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsRead is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsRead requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsRead: %w", err)
+	}
+	return oldValue.IsRead, nil
+}
+
+// ResetIsRead resets all changes to the "is_read" field.
+func (m *HotspotMutation) ResetIsRead() {
+	m.is_read = nil
+}
+
 // ClearKeyword clears the "keyword" edge to the Keyword entity.
 func (m *HotspotMutation) ClearKeyword() {
 	m.clearedkeyword = true
@@ -1604,7 +1726,7 @@ func (m *HotspotMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *HotspotMutation) Fields() []string {
-	fields := make([]string, 0, 26)
+	fields := make([]string, 0, 29)
 	if m.title != nil {
 		fields = append(fields, hotspot.FieldTitle)
 	}
@@ -1683,6 +1805,15 @@ func (m *HotspotMutation) Fields() []string {
 	if m.keyword != nil {
 		fields = append(fields, hotspot.FieldKeywordID)
 	}
+	if m.is_notified != nil {
+		fields = append(fields, hotspot.FieldIsNotified)
+	}
+	if m.notified_at != nil {
+		fields = append(fields, hotspot.FieldNotifiedAt)
+	}
+	if m.is_read != nil {
+		fields = append(fields, hotspot.FieldIsRead)
+	}
 	return fields
 }
 
@@ -1743,6 +1874,12 @@ func (m *HotspotMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case hotspot.FieldKeywordID:
 		return m.KeywordID()
+	case hotspot.FieldIsNotified:
+		return m.IsNotified()
+	case hotspot.FieldNotifiedAt:
+		return m.NotifiedAt()
+	case hotspot.FieldIsRead:
+		return m.IsRead()
 	}
 	return nil, false
 }
@@ -1804,6 +1941,12 @@ func (m *HotspotMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldCreatedAt(ctx)
 	case hotspot.FieldKeywordID:
 		return m.OldKeywordID(ctx)
+	case hotspot.FieldIsNotified:
+		return m.OldIsNotified(ctx)
+	case hotspot.FieldNotifiedAt:
+		return m.OldNotifiedAt(ctx)
+	case hotspot.FieldIsRead:
+		return m.OldIsRead(ctx)
 	}
 	return nil, fmt.Errorf("unknown Hotspot field %s", name)
 }
@@ -1994,6 +2137,27 @@ func (m *HotspotMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetKeywordID(v)
+		return nil
+	case hotspot.FieldIsNotified:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsNotified(v)
+		return nil
+	case hotspot.FieldNotifiedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNotifiedAt(v)
+		return nil
+	case hotspot.FieldIsRead:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsRead(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Hotspot field %s", name)
@@ -2190,6 +2354,9 @@ func (m *HotspotMutation) ClearedFields() []string {
 	if m.FieldCleared(hotspot.FieldKeywordID) {
 		fields = append(fields, hotspot.FieldKeywordID)
 	}
+	if m.FieldCleared(hotspot.FieldNotifiedAt) {
+		fields = append(fields, hotspot.FieldNotifiedAt)
+	}
 	return fields
 }
 
@@ -2257,6 +2424,9 @@ func (m *HotspotMutation) ClearField(name string) error {
 		return nil
 	case hotspot.FieldKeywordID:
 		m.ClearKeywordID()
+		return nil
+	case hotspot.FieldNotifiedAt:
+		m.ClearNotifiedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Hotspot nullable field %s", name)
@@ -2343,6 +2513,15 @@ func (m *HotspotMutation) ResetField(name string) error {
 		return nil
 	case hotspot.FieldKeywordID:
 		m.ResetKeywordID()
+		return nil
+	case hotspot.FieldIsNotified:
+		m.ResetIsNotified()
+		return nil
+	case hotspot.FieldNotifiedAt:
+		m.ResetNotifiedAt()
+		return nil
+	case hotspot.FieldIsRead:
+		m.ResetIsRead()
 		return nil
 	}
 	return fmt.Errorf("unknown Hotspot field %s", name)
@@ -3523,682 +3702,4 @@ func (m *KeywordExpansionMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *KeywordExpansionMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown KeywordExpansion edge %s", name)
-}
-
-// NotificationMutation represents an operation that mutates the Notification nodes in the graph.
-type NotificationMutation struct {
-	config
-	op             Op
-	typ            string
-	id             *string
-	_type          *string
-	title          *string
-	content        *string
-	is_read        *bool
-	created_at     *time.Time
-	clearedFields  map[string]struct{}
-	hotspot        *string
-	clearedhotspot bool
-	done           bool
-	oldValue       func(context.Context) (*Notification, error)
-	predicates     []predicate.Notification
-}
-
-var _ ent.Mutation = (*NotificationMutation)(nil)
-
-// notificationOption allows management of the mutation configuration using functional options.
-type notificationOption func(*NotificationMutation)
-
-// newNotificationMutation creates new mutation for the Notification entity.
-func newNotificationMutation(c config, op Op, opts ...notificationOption) *NotificationMutation {
-	m := &NotificationMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeNotification,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withNotificationID sets the ID field of the mutation.
-func withNotificationID(id string) notificationOption {
-	return func(m *NotificationMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *Notification
-		)
-		m.oldValue = func(ctx context.Context) (*Notification, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().Notification.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withNotification sets the old Notification of the mutation.
-func withNotification(node *Notification) notificationOption {
-	return func(m *NotificationMutation) {
-		m.oldValue = func(context.Context) (*Notification, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m NotificationMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m NotificationMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of Notification entities.
-func (m *NotificationMutation) SetID(id string) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *NotificationMutation) ID() (id string, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *NotificationMutation) IDs(ctx context.Context) ([]string, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []string{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Notification.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetType sets the "type" field.
-func (m *NotificationMutation) SetType(s string) {
-	m._type = &s
-}
-
-// GetType returns the value of the "type" field in the mutation.
-func (m *NotificationMutation) GetType() (r string, exists bool) {
-	v := m._type
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldType returns the old "type" field's value of the Notification entity.
-// If the Notification object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotificationMutation) OldType(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldType is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldType requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldType: %w", err)
-	}
-	return oldValue.Type, nil
-}
-
-// ResetType resets all changes to the "type" field.
-func (m *NotificationMutation) ResetType() {
-	m._type = nil
-}
-
-// SetTitle sets the "title" field.
-func (m *NotificationMutation) SetTitle(s string) {
-	m.title = &s
-}
-
-// Title returns the value of the "title" field in the mutation.
-func (m *NotificationMutation) Title() (r string, exists bool) {
-	v := m.title
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTitle returns the old "title" field's value of the Notification entity.
-// If the Notification object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotificationMutation) OldTitle(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTitle requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
-	}
-	return oldValue.Title, nil
-}
-
-// ResetTitle resets all changes to the "title" field.
-func (m *NotificationMutation) ResetTitle() {
-	m.title = nil
-}
-
-// SetContent sets the "content" field.
-func (m *NotificationMutation) SetContent(s string) {
-	m.content = &s
-}
-
-// Content returns the value of the "content" field in the mutation.
-func (m *NotificationMutation) Content() (r string, exists bool) {
-	v := m.content
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldContent returns the old "content" field's value of the Notification entity.
-// If the Notification object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotificationMutation) OldContent(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldContent is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldContent requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldContent: %w", err)
-	}
-	return oldValue.Content, nil
-}
-
-// ResetContent resets all changes to the "content" field.
-func (m *NotificationMutation) ResetContent() {
-	m.content = nil
-}
-
-// SetIsRead sets the "is_read" field.
-func (m *NotificationMutation) SetIsRead(b bool) {
-	m.is_read = &b
-}
-
-// IsRead returns the value of the "is_read" field in the mutation.
-func (m *NotificationMutation) IsRead() (r bool, exists bool) {
-	v := m.is_read
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsRead returns the old "is_read" field's value of the Notification entity.
-// If the Notification object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotificationMutation) OldIsRead(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsRead is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsRead requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsRead: %w", err)
-	}
-	return oldValue.IsRead, nil
-}
-
-// ResetIsRead resets all changes to the "is_read" field.
-func (m *NotificationMutation) ResetIsRead() {
-	m.is_read = nil
-}
-
-// SetHotspotID sets the "hotspot_id" field.
-func (m *NotificationMutation) SetHotspotID(s string) {
-	m.hotspot = &s
-}
-
-// HotspotID returns the value of the "hotspot_id" field in the mutation.
-func (m *NotificationMutation) HotspotID() (r string, exists bool) {
-	v := m.hotspot
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldHotspotID returns the old "hotspot_id" field's value of the Notification entity.
-// If the Notification object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotificationMutation) OldHotspotID(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldHotspotID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldHotspotID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHotspotID: %w", err)
-	}
-	return oldValue.HotspotID, nil
-}
-
-// ClearHotspotID clears the value of the "hotspot_id" field.
-func (m *NotificationMutation) ClearHotspotID() {
-	m.hotspot = nil
-	m.clearedFields[notification.FieldHotspotID] = struct{}{}
-}
-
-// HotspotIDCleared returns if the "hotspot_id" field was cleared in this mutation.
-func (m *NotificationMutation) HotspotIDCleared() bool {
-	_, ok := m.clearedFields[notification.FieldHotspotID]
-	return ok
-}
-
-// ResetHotspotID resets all changes to the "hotspot_id" field.
-func (m *NotificationMutation) ResetHotspotID() {
-	m.hotspot = nil
-	delete(m.clearedFields, notification.FieldHotspotID)
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (m *NotificationMutation) SetCreatedAt(t time.Time) {
-	m.created_at = &t
-}
-
-// CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *NotificationMutation) CreatedAt() (r time.Time, exists bool) {
-	v := m.created_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreatedAt returns the old "created_at" field's value of the Notification entity.
-// If the Notification object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NotificationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
-	}
-	return oldValue.CreatedAt, nil
-}
-
-// ResetCreatedAt resets all changes to the "created_at" field.
-func (m *NotificationMutation) ResetCreatedAt() {
-	m.created_at = nil
-}
-
-// ClearHotspot clears the "hotspot" edge to the Hotspot entity.
-func (m *NotificationMutation) ClearHotspot() {
-	m.clearedhotspot = true
-	m.clearedFields[notification.FieldHotspotID] = struct{}{}
-}
-
-// HotspotCleared reports if the "hotspot" edge to the Hotspot entity was cleared.
-func (m *NotificationMutation) HotspotCleared() bool {
-	return m.HotspotIDCleared() || m.clearedhotspot
-}
-
-// HotspotIDs returns the "hotspot" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// HotspotID instead. It exists only for internal usage by the builders.
-func (m *NotificationMutation) HotspotIDs() (ids []string) {
-	if id := m.hotspot; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetHotspot resets all changes to the "hotspot" edge.
-func (m *NotificationMutation) ResetHotspot() {
-	m.hotspot = nil
-	m.clearedhotspot = false
-}
-
-// Where appends a list predicates to the NotificationMutation builder.
-func (m *NotificationMutation) Where(ps ...predicate.Notification) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the NotificationMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *NotificationMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Notification, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *NotificationMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *NotificationMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (Notification).
-func (m *NotificationMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *NotificationMutation) Fields() []string {
-	fields := make([]string, 0, 6)
-	if m._type != nil {
-		fields = append(fields, notification.FieldType)
-	}
-	if m.title != nil {
-		fields = append(fields, notification.FieldTitle)
-	}
-	if m.content != nil {
-		fields = append(fields, notification.FieldContent)
-	}
-	if m.is_read != nil {
-		fields = append(fields, notification.FieldIsRead)
-	}
-	if m.hotspot != nil {
-		fields = append(fields, notification.FieldHotspotID)
-	}
-	if m.created_at != nil {
-		fields = append(fields, notification.FieldCreatedAt)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *NotificationMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case notification.FieldType:
-		return m.GetType()
-	case notification.FieldTitle:
-		return m.Title()
-	case notification.FieldContent:
-		return m.Content()
-	case notification.FieldIsRead:
-		return m.IsRead()
-	case notification.FieldHotspotID:
-		return m.HotspotID()
-	case notification.FieldCreatedAt:
-		return m.CreatedAt()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *NotificationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case notification.FieldType:
-		return m.OldType(ctx)
-	case notification.FieldTitle:
-		return m.OldTitle(ctx)
-	case notification.FieldContent:
-		return m.OldContent(ctx)
-	case notification.FieldIsRead:
-		return m.OldIsRead(ctx)
-	case notification.FieldHotspotID:
-		return m.OldHotspotID(ctx)
-	case notification.FieldCreatedAt:
-		return m.OldCreatedAt(ctx)
-	}
-	return nil, fmt.Errorf("unknown Notification field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *NotificationMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case notification.FieldType:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetType(v)
-		return nil
-	case notification.FieldTitle:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTitle(v)
-		return nil
-	case notification.FieldContent:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetContent(v)
-		return nil
-	case notification.FieldIsRead:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsRead(v)
-		return nil
-	case notification.FieldHotspotID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetHotspotID(v)
-		return nil
-	case notification.FieldCreatedAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreatedAt(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Notification field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *NotificationMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *NotificationMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *NotificationMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Notification numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *NotificationMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(notification.FieldHotspotID) {
-		fields = append(fields, notification.FieldHotspotID)
-	}
-	return fields
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *NotificationMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *NotificationMutation) ClearField(name string) error {
-	switch name {
-	case notification.FieldHotspotID:
-		m.ClearHotspotID()
-		return nil
-	}
-	return fmt.Errorf("unknown Notification nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *NotificationMutation) ResetField(name string) error {
-	switch name {
-	case notification.FieldType:
-		m.ResetType()
-		return nil
-	case notification.FieldTitle:
-		m.ResetTitle()
-		return nil
-	case notification.FieldContent:
-		m.ResetContent()
-		return nil
-	case notification.FieldIsRead:
-		m.ResetIsRead()
-		return nil
-	case notification.FieldHotspotID:
-		m.ResetHotspotID()
-		return nil
-	case notification.FieldCreatedAt:
-		m.ResetCreatedAt()
-		return nil
-	}
-	return fmt.Errorf("unknown Notification field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *NotificationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.hotspot != nil {
-		edges = append(edges, notification.EdgeHotspot)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *NotificationMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case notification.EdgeHotspot:
-		if id := m.hotspot; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *NotificationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *NotificationMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *NotificationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedhotspot {
-		edges = append(edges, notification.EdgeHotspot)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *NotificationMutation) EdgeCleared(name string) bool {
-	switch name {
-	case notification.EdgeHotspot:
-		return m.clearedhotspot
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *NotificationMutation) ClearEdge(name string) error {
-	switch name {
-	case notification.EdgeHotspot:
-		m.ClearHotspot()
-		return nil
-	}
-	return fmt.Errorf("unknown Notification unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *NotificationMutation) ResetEdge(name string) error {
-	switch name {
-	case notification.EdgeHotspot:
-		m.ResetHotspot()
-		return nil
-	}
-	return fmt.Errorf("unknown Notification edge %s", name)
 }

@@ -12,10 +12,16 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRouteImport } from './routes/__root'
 
+const SettingsLazyRouteImport = createFileRoute('/settings')()
 const SearchLazyRouteImport = createFileRoute('/search')()
 const KeywordsLazyRouteImport = createFileRoute('/keywords')()
 const IndexLazyRouteImport = createFileRoute('/')()
 
+const SettingsLazyRoute = SettingsLazyRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/settings.lazy').then((d) => d.Route))
 const SearchLazyRoute = SearchLazyRouteImport.update({
   id: '/search',
   path: '/search',
@@ -36,34 +42,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexLazyRoute
   '/keywords': typeof KeywordsLazyRoute
   '/search': typeof SearchLazyRoute
+  '/settings': typeof SettingsLazyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexLazyRoute
   '/keywords': typeof KeywordsLazyRoute
   '/search': typeof SearchLazyRoute
+  '/settings': typeof SettingsLazyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexLazyRoute
   '/keywords': typeof KeywordsLazyRoute
   '/search': typeof SearchLazyRoute
+  '/settings': typeof SettingsLazyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/keywords' | '/search'
+  fullPaths: '/' | '/keywords' | '/search' | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/keywords' | '/search'
-  id: '__root__' | '/' | '/keywords' | '/search'
+  to: '/' | '/keywords' | '/search' | '/settings'
+  id: '__root__' | '/' | '/keywords' | '/search' | '/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexLazyRoute: typeof IndexLazyRoute
   KeywordsLazyRoute: typeof KeywordsLazyRoute
   SearchLazyRoute: typeof SearchLazyRoute
+  SettingsLazyRoute: typeof SettingsLazyRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -92,6 +109,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexLazyRoute: IndexLazyRoute,
   KeywordsLazyRoute: KeywordsLazyRoute,
   SearchLazyRoute: SearchLazyRoute,
+  SettingsLazyRoute: SettingsLazyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

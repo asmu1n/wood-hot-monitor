@@ -6,7 +6,6 @@ import (
 	"wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/keywordexpansion"
-	"wood-hot-monitor/ent/notification"
 	"wood-hot-monitor/ent/schema"
 )
 
@@ -28,6 +27,14 @@ func init() {
 	hotspotDescImportance := hotspotFields[10].Descriptor()
 	// hotspot.DefaultImportance holds the default value on creation for the importance field.
 	hotspot.DefaultImportance = hotspotDescImportance.Default.(string)
+	// hotspotDescIsNotified is the schema descriptor for is_notified field.
+	hotspotDescIsNotified := hotspotFields[27].Descriptor()
+	// hotspot.DefaultIsNotified holds the default value on creation for the is_notified field.
+	hotspot.DefaultIsNotified = hotspotDescIsNotified.Default.(bool)
+	// hotspotDescIsRead is the schema descriptor for is_read field.
+	hotspotDescIsRead := hotspotFields[29].Descriptor()
+	// hotspot.DefaultIsRead holds the default value on creation for the is_read field.
+	hotspot.DefaultIsRead = hotspotDescIsRead.Default.(bool)
 	// hotspotDescID is the schema descriptor for id field.
 	hotspotDescID := hotspotFields[0].Descriptor()
 	// hotspot.DefaultID holds the default value on creation for the id field.
@@ -60,18 +67,4 @@ func init() {
 	keywordexpansionDescID := keywordexpansionFields[0].Descriptor()
 	// keywordexpansion.DefaultID holds the default value on creation for the id field.
 	keywordexpansion.DefaultID = keywordexpansionDescID.Default.(func() string)
-	notificationFields := schema.Notification{}.Fields()
-	_ = notificationFields
-	// notificationDescType is the schema descriptor for type field.
-	notificationDescType := notificationFields[1].Descriptor()
-	// notification.TypeValidator is a validator for the "type" field. It is called by the builders before save.
-	notification.TypeValidator = notificationDescType.Validators[0].(func(string) error)
-	// notificationDescIsRead is the schema descriptor for is_read field.
-	notificationDescIsRead := notificationFields[4].Descriptor()
-	// notification.DefaultIsRead holds the default value on creation for the is_read field.
-	notification.DefaultIsRead = notificationDescIsRead.Default.(bool)
-	// notificationDescID is the schema descriptor for id field.
-	notificationDescID := notificationFields[0].Descriptor()
-	// notification.DefaultID holds the default value on creation for the id field.
-	notification.DefaultID = notificationDescID.Default.(func() string)
 }

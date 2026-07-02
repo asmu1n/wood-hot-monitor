@@ -11,7 +11,6 @@ import (
 	"wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/keywordexpansion"
-	"wood-hot-monitor/ent/notification"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -79,7 +78,6 @@ func checkColumn(t, c string) error {
 			hotspot.Table:          hotspot.ValidColumn,
 			keyword.Table:          keyword.ValidColumn,
 			keywordexpansion.Table: keywordexpansion.ValidColumn,
-			notification.Table:     notification.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

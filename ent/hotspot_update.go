@@ -550,6 +550,54 @@ func (_u *HotspotUpdate) ClearKeywordID() *HotspotUpdate {
 	return _u
 }
 
+// SetIsNotified sets the "is_notified" field.
+func (_u *HotspotUpdate) SetIsNotified(v bool) *HotspotUpdate {
+	_u.mutation.SetIsNotified(v)
+	return _u
+}
+
+// SetNillableIsNotified sets the "is_notified" field if the given value is not nil.
+func (_u *HotspotUpdate) SetNillableIsNotified(v *bool) *HotspotUpdate {
+	if v != nil {
+		_u.SetIsNotified(*v)
+	}
+	return _u
+}
+
+// SetNotifiedAt sets the "notified_at" field.
+func (_u *HotspotUpdate) SetNotifiedAt(v time.Time) *HotspotUpdate {
+	_u.mutation.SetNotifiedAt(v)
+	return _u
+}
+
+// SetNillableNotifiedAt sets the "notified_at" field if the given value is not nil.
+func (_u *HotspotUpdate) SetNillableNotifiedAt(v *time.Time) *HotspotUpdate {
+	if v != nil {
+		_u.SetNotifiedAt(*v)
+	}
+	return _u
+}
+
+// ClearNotifiedAt clears the value of the "notified_at" field.
+func (_u *HotspotUpdate) ClearNotifiedAt() *HotspotUpdate {
+	_u.mutation.ClearNotifiedAt()
+	return _u
+}
+
+// SetIsRead sets the "is_read" field.
+func (_u *HotspotUpdate) SetIsRead(v bool) *HotspotUpdate {
+	_u.mutation.SetIsRead(v)
+	return _u
+}
+
+// SetNillableIsRead sets the "is_read" field if the given value is not nil.
+func (_u *HotspotUpdate) SetNillableIsRead(v *bool) *HotspotUpdate {
+	if v != nil {
+		_u.SetIsRead(*v)
+	}
+	return _u
+}
+
 // SetKeyword sets the "keyword" edge to the Keyword entity.
 func (_u *HotspotUpdate) SetKeyword(v *Keyword) *HotspotUpdate {
 	return _u.SetKeywordID(v.ID)
@@ -751,6 +799,18 @@ func (_u *HotspotUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.PublishedAtCleared() {
 		_spec.ClearField(hotspot.FieldPublishedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.IsNotified(); ok {
+		_spec.SetField(hotspot.FieldIsNotified, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.NotifiedAt(); ok {
+		_spec.SetField(hotspot.FieldNotifiedAt, field.TypeTime, value)
+	}
+	if _u.mutation.NotifiedAtCleared() {
+		_spec.ClearField(hotspot.FieldNotifiedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.IsRead(); ok {
+		_spec.SetField(hotspot.FieldIsRead, field.TypeBool, value)
 	}
 	if _u.mutation.KeywordCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1322,6 +1382,54 @@ func (_u *HotspotUpdateOne) ClearKeywordID() *HotspotUpdateOne {
 	return _u
 }
 
+// SetIsNotified sets the "is_notified" field.
+func (_u *HotspotUpdateOne) SetIsNotified(v bool) *HotspotUpdateOne {
+	_u.mutation.SetIsNotified(v)
+	return _u
+}
+
+// SetNillableIsNotified sets the "is_notified" field if the given value is not nil.
+func (_u *HotspotUpdateOne) SetNillableIsNotified(v *bool) *HotspotUpdateOne {
+	if v != nil {
+		_u.SetIsNotified(*v)
+	}
+	return _u
+}
+
+// SetNotifiedAt sets the "notified_at" field.
+func (_u *HotspotUpdateOne) SetNotifiedAt(v time.Time) *HotspotUpdateOne {
+	_u.mutation.SetNotifiedAt(v)
+	return _u
+}
+
+// SetNillableNotifiedAt sets the "notified_at" field if the given value is not nil.
+func (_u *HotspotUpdateOne) SetNillableNotifiedAt(v *time.Time) *HotspotUpdateOne {
+	if v != nil {
+		_u.SetNotifiedAt(*v)
+	}
+	return _u
+}
+
+// ClearNotifiedAt clears the value of the "notified_at" field.
+func (_u *HotspotUpdateOne) ClearNotifiedAt() *HotspotUpdateOne {
+	_u.mutation.ClearNotifiedAt()
+	return _u
+}
+
+// SetIsRead sets the "is_read" field.
+func (_u *HotspotUpdateOne) SetIsRead(v bool) *HotspotUpdateOne {
+	_u.mutation.SetIsRead(v)
+	return _u
+}
+
+// SetNillableIsRead sets the "is_read" field if the given value is not nil.
+func (_u *HotspotUpdateOne) SetNillableIsRead(v *bool) *HotspotUpdateOne {
+	if v != nil {
+		_u.SetIsRead(*v)
+	}
+	return _u
+}
+
 // SetKeyword sets the "keyword" edge to the Keyword entity.
 func (_u *HotspotUpdateOne) SetKeyword(v *Keyword) *HotspotUpdateOne {
 	return _u.SetKeywordID(v.ID)
@@ -1553,6 +1661,18 @@ func (_u *HotspotUpdateOne) sqlSave(ctx context.Context) (_node *Hotspot, err er
 	}
 	if _u.mutation.PublishedAtCleared() {
 		_spec.ClearField(hotspot.FieldPublishedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.IsNotified(); ok {
+		_spec.SetField(hotspot.FieldIsNotified, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.NotifiedAt(); ok {
+		_spec.SetField(hotspot.FieldNotifiedAt, field.TypeTime, value)
+	}
+	if _u.mutation.NotifiedAtCleared() {
+		_spec.ClearField(hotspot.FieldNotifiedAt, field.TypeTime)
+	}
+	if value, ok := _u.mutation.IsRead(); ok {
+		_spec.SetField(hotspot.FieldIsRead, field.TypeBool, value)
 	}
 	if _u.mutation.KeywordCleared() {
 		edge := &sqlgraph.EdgeSpec{

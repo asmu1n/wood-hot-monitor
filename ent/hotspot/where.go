@@ -195,6 +195,21 @@ func KeywordID(v string) predicate.Hotspot {
 	return predicate.Hotspot(sql.FieldEQ(FieldKeywordID, v))
 }
 
+// IsNotified applies equality check predicate on the "is_notified" field. It's identical to IsNotifiedEQ.
+func IsNotified(v bool) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldEQ(FieldIsNotified, v))
+}
+
+// NotifiedAt applies equality check predicate on the "notified_at" field. It's identical to NotifiedAtEQ.
+func NotifiedAt(v time.Time) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldEQ(FieldNotifiedAt, v))
+}
+
+// IsRead applies equality check predicate on the "is_read" field. It's identical to IsReadEQ.
+func IsRead(v bool) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldEQ(FieldIsRead, v))
+}
+
 // TitleEQ applies the EQ predicate on the "title" field.
 func TitleEQ(v string) predicate.Hotspot {
 	return predicate.Hotspot(sql.FieldEQ(FieldTitle, v))
@@ -1623,6 +1638,76 @@ func KeywordIDEqualFold(v string) predicate.Hotspot {
 // KeywordIDContainsFold applies the ContainsFold predicate on the "keyword_id" field.
 func KeywordIDContainsFold(v string) predicate.Hotspot {
 	return predicate.Hotspot(sql.FieldContainsFold(FieldKeywordID, v))
+}
+
+// IsNotifiedEQ applies the EQ predicate on the "is_notified" field.
+func IsNotifiedEQ(v bool) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldEQ(FieldIsNotified, v))
+}
+
+// IsNotifiedNEQ applies the NEQ predicate on the "is_notified" field.
+func IsNotifiedNEQ(v bool) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldNEQ(FieldIsNotified, v))
+}
+
+// NotifiedAtEQ applies the EQ predicate on the "notified_at" field.
+func NotifiedAtEQ(v time.Time) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldEQ(FieldNotifiedAt, v))
+}
+
+// NotifiedAtNEQ applies the NEQ predicate on the "notified_at" field.
+func NotifiedAtNEQ(v time.Time) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldNEQ(FieldNotifiedAt, v))
+}
+
+// NotifiedAtIn applies the In predicate on the "notified_at" field.
+func NotifiedAtIn(vs ...time.Time) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldIn(FieldNotifiedAt, vs...))
+}
+
+// NotifiedAtNotIn applies the NotIn predicate on the "notified_at" field.
+func NotifiedAtNotIn(vs ...time.Time) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldNotIn(FieldNotifiedAt, vs...))
+}
+
+// NotifiedAtGT applies the GT predicate on the "notified_at" field.
+func NotifiedAtGT(v time.Time) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldGT(FieldNotifiedAt, v))
+}
+
+// NotifiedAtGTE applies the GTE predicate on the "notified_at" field.
+func NotifiedAtGTE(v time.Time) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldGTE(FieldNotifiedAt, v))
+}
+
+// NotifiedAtLT applies the LT predicate on the "notified_at" field.
+func NotifiedAtLT(v time.Time) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldLT(FieldNotifiedAt, v))
+}
+
+// NotifiedAtLTE applies the LTE predicate on the "notified_at" field.
+func NotifiedAtLTE(v time.Time) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldLTE(FieldNotifiedAt, v))
+}
+
+// NotifiedAtIsNil applies the IsNil predicate on the "notified_at" field.
+func NotifiedAtIsNil() predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldIsNull(FieldNotifiedAt))
+}
+
+// NotifiedAtNotNil applies the NotNil predicate on the "notified_at" field.
+func NotifiedAtNotNil() predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldNotNull(FieldNotifiedAt))
+}
+
+// IsReadEQ applies the EQ predicate on the "is_read" field.
+func IsReadEQ(v bool) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldEQ(FieldIsRead, v))
+}
+
+// IsReadNEQ applies the NEQ predicate on the "is_read" field.
+func IsReadNEQ(v bool) predicate.Hotspot {
+	return predicate.Hotspot(sql.FieldNEQ(FieldIsRead, v))
 }
 
 // HasKeyword applies the HasEdge predicate on the "keyword" edge.

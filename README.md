@@ -1,118 +1,81 @@
-# 🌲 Wood Hot Monitor
+# Wood Hot Monitor
 
-<p align="center">
-  <strong>基于 AI 驱动的多源热点实时监控与分析引擎</strong>
-</p>
+## 项目简介
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Frontend-React_19-61DAFB?style=for-the-badge&logo=react" alt="React" />
-  <img src="https://img.shields.io/badge/Backend-Node.js-339933?style=for-the-badge&logo=nodedotjs" alt="Node.js" />
-  <img src="https://img.shields.io/badge/Database-SQLite-003B57?style=for-the-badge&logo=sqlite" alt="SQLite" />
-  <img src="https://img.shields.io/badge/Styles-Tailwind_CSS_4-06B6D4?style=for-the-badge&logo=tailwindcss" alt="Tailwind" />
-  <img src="https://img.shields.io/badge/Tools-Turborepo-EF4444?style=for-the-badge&logo=turborepo" alt="Turborepo" />
-</p>
+Wood Hot Monitor 是基于 Wails v3 构建的桌面热点监控应用。该程序能够自动抓取多平台的热点信息，并使用大语言模型对内容质量进行评估。
 
----
+## 技术栈
 
-## 📖 项目简介
+后端：
+- Go 1.26
+- Wails v3 (alpha2.110)
+- Ent ORM v0.14
+- SQLite (使用 modernc.org/sqlite，纯 Go 实现，无 CGO 依赖)
+- gocron v2
+- go-openai (支持 OpenAI 兼容接口)
 
-**Wood Hot Monitor** 是一款高效的实时热点监控工具。它通过爬虫和 AI 技术，从多个社交平台（如 Twitter、Bilibili 等）自动抓取、分析并过滤高价值内容，并利用 WebSocket 技术实现数据的实时推送到客户端。
+前端：
+- React 19
+- TanStack Router, TanStack Query
+- Tailwind CSS v4
+- shadcn/ui
+- Framer Motion
+- bun 包管理器
 
-本项目采用了现代化的微服务（Monorepo）架构，旨在提供极低延迟的热点感知能力，并通过自研的质量评分算法（Quality Scoring）确保信息的准确性与时效性。
+## 项目结构
 
-## ✨ 核心特性
-
-- 🚀 **实时监控**：利用 Socket.IO 实现全双工通信，热点更新秒级触达。
-- 🤖 **AI 驱动分析**：集成 AI 引擎进行多维度内容过滤与分类。
-- 📊 **质量评分机制**：基于时间衰减、互动率等指标的动态评分系统。
-- 🔍 **关键词定制**：支持用户自定义监控关键词，并提供精确的 Room 级消息路由。
-- 🔔 **全方位通知**：结合全局感知系统，通过 Toast 与导航提醒确保不遗漏重要信息。
-
-## 🛠️ 技术栈
-
-### 前端 (apps/frontend)
-
-- **框架**: [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
-- **路由**: [TanStack Router](https://tanstack.com/router)
-- **状态管理**: [TanStack Query](https://tanstack.com/query)
-- **动画**: [Framer Motion](https://www.framer.com/motion/)
-- **UI 组件**: [Radix UI](https://www.radix-ui.com/) + [Lucide Icons](https://lucide.dev/)
-- **通信**: [Socket.IO Client](https://socket.io/docs/v4/client-api/)
-
-### 后端 (apps/backend)
-
-- **运行时**: [Node.js](https://nodejs.org/) + [Express](https://expressjs.com/)
-- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
-- **数据库**: [Better-SQLite3](https://github.com/WiseLibs/better-sqlite3)
-- **任务调度**: [Node-cron](https://github.com/node-cron/node-cron)
-- **通信**: [Socket.IO](https://socket.io/)
-
-### 工程化
-
-- **管理**: [Turborepo](https://turbo.build/) + [Yarn v4 (Berry)](https://yarnpkg.com/)
-- **类型**: TypeScript (Full-stack Safety)
-- **代码规范**: Prettier + ESLint
-
-## 📂 项目结构
-
-```text
-.
-├── apps/
-│   ├── frontend/          # React 前端应用
-│   └── backend/           # Express 后端应用
-├── packages/
-│   ├── types/             # 跨项目共享的 TypeScript 类型定义
-│   └── ui/                # 共享 UI 组件库
-├── ARCHITECTURE_COMMUNICATION.md  # 详细架构与通信协议说明
-├── HOTSPOT_QUALITY_ALGORITHM.md   # 热点质量评分算法说明
-└── turbo.json             # Turborepo 配置文件
+```
+├── main.go              # Wails 应用入口
+├── ent/schema/          # Ent ORM schema (keyword, hotspot, keyword_expansion)
+├── internal/
+│   ├── checker/         # 定时检查调度，处理热点抓取、LLM 评估与入库
+│   ├── config/          # 本地 JSON 配置管理，路径为 ~/.wood-hot-monitor/config.json
+│   ├── database/        # SQLite 数据库初始化
+│   ├── email/           # 邮件通知模块
+│   ├── hotspot/         # 热点 CRUD 与通知查询 (GetNotifications, UnreadCount, MarkRead, MarkAllRead)
+│   ├── keyword/         # 关键词管理
+│   ├── llm/             # LLM 调用实现，支持自定义 BaseURL
+│   ├── models/          # Wails 绑定的数据模型，定义 API 契约层
+│   ├── quality/         # 热点质量评估逻辑
+│   └── scraper/         # 多平台爬虫 (Bilibili, Bing, HackerNews, Twitter)
+└── frontend/
+    ├── bindings/        # Wails 自动生成的 Go 与 JS 交互绑定
+    └── src/
+        ├── routes/      # TanStack Router 页面路由 (热点雷达、监控词、搜索、设置)
+        ├── features/    # 按功能域组织的代码 (hotspot, keyword, settings)
+        ├── components/  # 共享 UI 组件 (Sidebar, ContentHeader, StatusCards 等)
+        └── hooks/       # 业务逻辑 hook (useAppLogic)
 ```
 
-## 🚀 快速开始
+## 开发
 
-### 前提条件
+前置条件：
+- Go 1.26 或更高版本
+- bun
+- Wails CLI v3 (安装命令：go install github.com/wailsapp/wails/v3/cmd/wails3@latest)
+- Task (安装命令：go install github.com/go-task/task/v3/cmd/task@latest)
 
-- Node.js (建议 v20+)
-- Yarn v4
-
-### 安装依赖
+常用命令：
 
 ```bash
-yarn install
+task dev                      # 开发模式
+task build                    # 构建
+task package                  # 打包
+
+wails3 generate bindings      # 重新生成前端绑定
+go generate ./ent             # 重新生成 Ent 代码
+
+cd frontend && bun dev        # 前端独立开发
 ```
 
-### 运行开发环境
+## 架构说明
 
-```bash
-# 同时启动前端和后端
-yarn dev
+- 后端与客户端一体化：应用不采用传统的 C/S 架构，Go 后端逻辑通过 Wails 绑定机制直接暴露给前端使用。
+- 配置存储：程序配置保存在本地 JSON 文件中，未存储于数据库。
+- 通知模型：通知状态 (is_read) 直接记录在 Hotspot 数据表中，未设立独立的通知表。
+- 数据库设计：选用 SQLite 纯 Go 驱动以规避 CGO 编译问题，schema 变更通过 Ent 自动迁移完成。
+- LLM 接口：提供通用的 OpenAI 兼容接口，支持用户配置自定义 BaseURL。
 
-# 仅启动后端服务
-yarn serve
-```
+## 许可证
 
-### 构建项目
-
-```bash
-yarn build
-```
-
-## 📝 详细文档
-
-为了深入了解系统设计，请参阅以下专业文档：
-
-- 🔌 [通信架构解析](./ARCHITECTURE_COMMUNICATION.md) - 深入了解 HTTP 与 WebSocket 的协作模式。
-- 📈 [质量评分算法](./HOTSPOT_QUALITY_ALGORITHM.md) - 详解如何通过数学模型进行内容过滤。
-- 🧱 [模块实现细节](./LOGIC_KEYWORD.md) - 开发指南与内部逻辑说明。
-
----
-
-## 📄 开源协议
-
-本项目采用 [GPL-3.0](./LICENSE) 开源协议。
-
----
-
-<p align="center">
-  Made with ❤️ by Antigravity
-</p>
+GPL-3.0

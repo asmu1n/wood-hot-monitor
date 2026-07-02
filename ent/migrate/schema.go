@@ -36,6 +36,9 @@ var (
 		{Name: "author_verified", Type: field.TypeBool, Nullable: true},
 		{Name: "published_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"sqlite3": "datetime"}},
 		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"sqlite3": "datetime"}},
+		{Name: "is_notified", Type: field.TypeBool, Default: false},
+		{Name: "notified_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"sqlite3": "datetime"}},
+		{Name: "is_read", Type: field.TypeBool, Default: false},
 		{Name: "keyword_id", Type: field.TypeString, Nullable: true},
 	}
 	// HotspotsTable holds the schema information for the "hotspots" table.
@@ -46,7 +49,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "hotspots_keywords_hotspots",
-				Columns:    []*schema.Column{HotspotsColumns[26]},
+				Columns:    []*schema.Column{HotspotsColumns[29]},
 				RefColumns: []*schema.Column{KeywordsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -56,6 +59,11 @@ var (
 				Name:    "hotspot_url_source",
 				Unique:  true,
 				Columns: []*schema.Column{HotspotsColumns[3], HotspotsColumns[4]},
+			},
+			{
+				Name:    "hotspot_is_notified_is_read",
+				Unique:  false,
+				Columns: []*schema.Column{HotspotsColumns[26], HotspotsColumns[28]},
 			},
 		},
 	}
@@ -94,40 +102,14 @@ var (
 			},
 		},
 	}
-	// NotificationsColumns holds the columns for the "notifications" table.
-	NotificationsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeString, Unique: true},
-		{Name: "type", Type: field.TypeString},
-		{Name: "title", Type: field.TypeString},
-		{Name: "content", Type: field.TypeString},
-		{Name: "is_read", Type: field.TypeBool, Default: false},
-		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"sqlite3": "datetime"}},
-		{Name: "hotspot_id", Type: field.TypeString, Nullable: true},
-	}
-	// NotificationsTable holds the schema information for the "notifications" table.
-	NotificationsTable = &schema.Table{
-		Name:       "notifications",
-		Columns:    NotificationsColumns,
-		PrimaryKey: []*schema.Column{NotificationsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "notifications_hotspots_hotspot",
-				Columns:    []*schema.Column{NotificationsColumns[6]},
-				RefColumns: []*schema.Column{HotspotsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		HotspotsTable,
 		KeywordsTable,
 		KeywordExpansionsTable,
-		NotificationsTable,
 	}
 )
 
 func init() {
 	HotspotsTable.ForeignKeys[0].RefTable = KeywordsTable
-	NotificationsTable.ForeignKeys[0].RefTable = HotspotsTable
 }

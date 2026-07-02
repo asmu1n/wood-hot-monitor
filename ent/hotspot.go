@@ -70,6 +70,12 @@ type Hotspot struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// KeywordID holds the value of the "keyword_id" field.
 	KeywordID *string `json:"keyword_id,omitempty"`
+	// IsNotified holds the value of the "is_notified" field.
+	IsNotified bool `json:"is_notified,omitempty"`
+	// NotifiedAt holds the value of the "notified_at" field.
+	NotifiedAt *time.Time `json:"notified_at,omitempty"`
+	// IsRead holds the value of the "is_read" field.
+	IsRead bool `json:"is_read,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the HotspotQuery when eager-loading is set.
 	Edges        HotspotEdges `json:"edges"`
@@ -101,13 +107,13 @@ func (*Hotspot) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case hotspot.FieldIsReal, hotspot.FieldKeywordMentioned, hotspot.FieldAuthorVerified:
+		case hotspot.FieldIsReal, hotspot.FieldKeywordMentioned, hotspot.FieldAuthorVerified, hotspot.FieldIsNotified, hotspot.FieldIsRead:
 			values[i] = new(sql.NullBool)
 		case hotspot.FieldRelevance, hotspot.FieldViewCount, hotspot.FieldLikeCount, hotspot.FieldRetweetCount, hotspot.FieldReplyCount, hotspot.FieldCommentCount, hotspot.FieldQuoteCount, hotspot.FieldDanmakuCount, hotspot.FieldAuthorFollowers:
 			values[i] = new(sql.NullInt64)
 		case hotspot.FieldID, hotspot.FieldTitle, hotspot.FieldContent, hotspot.FieldURL, hotspot.FieldSource, hotspot.FieldSourceID, hotspot.FieldRelevanceReason, hotspot.FieldImportance, hotspot.FieldSummary, hotspot.FieldAuthorName, hotspot.FieldAuthorUsername, hotspot.FieldAuthorAvatar, hotspot.FieldKeywordID:
 			values[i] = new(sql.NullString)
-		case hotspot.FieldPublishedAt, hotspot.FieldCreatedAt:
+		case hotspot.FieldPublishedAt, hotspot.FieldCreatedAt, hotspot.FieldNotifiedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -304,6 +310,25 @@ func (_m *Hotspot) assignValues(columns []string, values []any) error {
 				_m.KeywordID = new(string)
 				*_m.KeywordID = value.String
 			}
+		case hotspot.FieldIsNotified:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_notified", values[i])
+			} else if value.Valid {
+				_m.IsNotified = value.Bool
+			}
+		case hotspot.FieldNotifiedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field notified_at", values[i])
+			} else if value.Valid {
+				_m.NotifiedAt = new(time.Time)
+				*_m.NotifiedAt = value.Time
+			}
+		case hotspot.FieldIsRead:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_read", values[i])
+			} else if value.Valid {
+				_m.IsRead = value.Bool
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -458,6 +483,17 @@ func (_m *Hotspot) String() string {
 		builder.WriteString("keyword_id=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("is_notified=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsNotified))
+	builder.WriteString(", ")
+	if v := _m.NotifiedAt; v != nil {
+		builder.WriteString("notified_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("is_read=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsRead))
 	builder.WriteByte(')')
 	return builder.String()
 }

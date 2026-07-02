@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Activity, Clock, AlertTriangle, Target } from 'lucide-react';
-import { Meteors } from './Meteors';
 import type { Status } from '@/types';
 
 interface StatsCardsProps {
@@ -19,60 +18,48 @@ const StatusCards: React.FC<StatsCardsProps> = ({ stats, activeKeywordsCount }) 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="group border-primary/10 bg-muted/30 hover:bg-muted/50 relative overflow-hidden rounded-2xl border p-5 shadow-sm transition-all">
-                <div className="from-primary/10 absolute inset-0 bg-linear-to-br to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                <div className="relative">
-                    <div className="text-muted-foreground mb-2 flex items-center gap-2 text-sm font-medium">
-                        <Activity className="text-primary h-4 w-4" />
-                        总热点
-                    </div>
-                    <p className="text-foreground text-3xl font-bold tracking-tight">{stats.total}</p>
+                className="border-primary/10 bg-muted/30 hover:bg-muted/50 rounded-2xl border p-5 shadow-sm transition-colors">
+                <div className="text-muted-foreground mb-2 flex items-center gap-2 text-sm font-medium">
+                    <Activity className="text-primary h-4 w-4" />
+                    总热点
                 </div>
+                <p className="text-foreground text-3xl font-bold tracking-tight">{stats.total}</p>
             </motion.div>
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 }}
-                className="group border-chart-1/10 bg-muted/30 hover:bg-muted/50 relative overflow-hidden rounded-2xl border p-5 shadow-sm transition-all">
-                <div className="from-chart-1/10 absolute inset-0 bg-linear-to-br to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                <div className="relative">
-                    <div className="text-muted-foreground mb-2 flex items-center gap-2 text-sm font-medium">
-                        <Clock className="text-chart-1 h-4 w-4" />
-                        今日新增
-                    </div>
-                    <p className="text-chart-1 text-3xl font-bold tracking-tight">{stats.today}</p>
+                className="border-chart-1/10 bg-muted/30 hover:bg-muted/50 rounded-2xl border p-5 shadow-sm transition-colors">
+                <div className="text-muted-foreground mb-2 flex items-center gap-2 text-sm font-medium">
+                    <Clock className="text-chart-1 h-4 w-4" />
+                    今日新增
                 </div>
+                <p className="text-chart-1 text-3xl font-bold tracking-tight">{stats.today}</p>
             </motion.div>
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="group border-destructive/10 bg-muted/30 hover:bg-muted/50 relative overflow-hidden rounded-2xl border p-5 shadow-sm transition-all">
-                <Meteors number={6} className="opacity-40" />
-                <div className="relative">
-                    <div className="text-muted-foreground mb-2 flex items-center gap-2 text-sm font-medium">
-                        <AlertTriangle className="text-destructive h-4 w-4" />
-                        紧急热点
-                    </div>
-                    <p className="text-destructive text-3xl font-bold tracking-tight">{stats.urgent}</p>
+                className="border-destructive/10 bg-muted/30 hover:bg-muted/50 rounded-2xl border p-5 shadow-sm transition-colors">
+                <div className="text-muted-foreground mb-2 flex items-center gap-2 text-sm font-medium">
+                    <AlertTriangle className="text-destructive h-4 w-4" />
+                    紧急热点
                 </div>
+                <p className="text-destructive text-3xl font-bold tracking-tight">{stats.urgent}</p>
             </motion.div>
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
-                className="group border-chart-2/10 bg-muted/30 hover:bg-muted/50 relative overflow-hidden rounded-2xl border p-5 shadow-sm transition-all">
-                <div className="from-chart-2/10 absolute inset-0 bg-linear-to-br to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-                <div className="relative">
-                    <div className="text-muted-foreground mb-2 flex items-center gap-2 text-sm font-medium">
-                        <Target className="text-chart-2 h-4 w-4" />
-                        监控词
-                    </div>
-                    <p className="text-chart-2 text-3xl font-bold tracking-tight">{activeKeywordsCount}</p>
+                className="border-chart-2/10 bg-muted/30 hover:bg-muted/50 rounded-2xl border p-5 shadow-sm transition-colors">
+                <div className="text-muted-foreground mb-2 flex items-center gap-2 text-sm font-medium">
+                    <Target className="text-chart-2 h-4 w-4" />
+                    监控词
                 </div>
+                <p className="text-chart-2 text-3xl font-bold tracking-tight">{activeKeywordsCount}</p>
             </motion.div>
         </div>
     );

@@ -86,6 +86,14 @@ func (Hotspot) Fields() []ent.Field {
 		field.String("keyword_id").
 			Optional().
 			Nillable(),
+		field.Bool("is_notified").
+			Default(false),
+		field.Time("notified_at").
+			Optional().
+			Nillable().
+			SchemaType(map[string]string{"sqlite3": "datetime"}),
+		field.Bool("is_read").
+			Default(false),
 	}
 }
 
@@ -102,5 +110,6 @@ func (Hotspot) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("url", "source").
 			Unique(),
+		index.Fields("is_notified", "is_read"),
 	}
 }

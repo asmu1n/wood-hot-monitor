@@ -39,22 +39,15 @@ type Hotspot struct {
 	CreatedAt        string          `json:"createdAt"`
 	KeywordID        *string         `json:"-"`
 	Keyword          *HotspotKeyword `json:"keyword"`
+	IsNotified       bool            `json:"isNotified"`
+	NotifiedAt       *string         `json:"notifiedAt"`
+	IsRead           bool            `json:"isRead"`
 }
 
 type HotspotKeyword struct {
 	ID       string  `json:"id"`
 	Text     string  `json:"text"`
 	Category *string `json:"category"`
-}
-
-type Notification struct {
-	ID        string  `json:"id"`
-	Type      string  `json:"type"`
-	Title     string  `json:"title"`
-	Content   string  `json:"content"`
-	IsRead    bool    `json:"isRead"`
-	HotSpotID *string `json:"hotSpotId"`
-	CreatedAt string  `json:"createdAt"`
 }
 
 type Status struct {

@@ -64,6 +64,12 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldKeywordID holds the string denoting the keyword_id field in the database.
 	FieldKeywordID = "keyword_id"
+	// FieldIsNotified holds the string denoting the is_notified field in the database.
+	FieldIsNotified = "is_notified"
+	// FieldNotifiedAt holds the string denoting the notified_at field in the database.
+	FieldNotifiedAt = "notified_at"
+	// FieldIsRead holds the string denoting the is_read field in the database.
+	FieldIsRead = "is_read"
 	// EdgeKeyword holds the string denoting the keyword edge name in mutations.
 	EdgeKeyword = "keyword"
 	// Table holds the table name of the hotspot in the database.
@@ -106,6 +112,9 @@ var Columns = []string{
 	FieldPublishedAt,
 	FieldCreatedAt,
 	FieldKeywordID,
+	FieldIsNotified,
+	FieldNotifiedAt,
+	FieldIsRead,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -125,6 +134,10 @@ var (
 	DefaultRelevance int
 	// DefaultImportance holds the default value on creation for the "importance" field.
 	DefaultImportance string
+	// DefaultIsNotified holds the default value on creation for the "is_notified" field.
+	DefaultIsNotified bool
+	// DefaultIsRead holds the default value on creation for the "is_read" field.
+	DefaultIsRead bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() string
 )
@@ -265,6 +278,21 @@ func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByKeywordID orders the results by the keyword_id field.
 func ByKeywordID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldKeywordID, opts...).ToFunc()
+}
+
+// ByIsNotified orders the results by the is_notified field.
+func ByIsNotified(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsNotified, opts...).ToFunc()
+}
+
+// ByNotifiedAt orders the results by the notified_at field.
+func ByNotifiedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNotifiedAt, opts...).ToFunc()
+}
+
+// ByIsRead orders the results by the is_read field.
+func ByIsRead(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsRead, opts...).ToFunc()
 }
 
 // ByKeywordField orders the results by keyword field.

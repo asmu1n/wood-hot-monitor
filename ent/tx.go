@@ -18,8 +18,6 @@ type Tx struct {
 	Keyword *KeywordClient
 	// KeywordExpansion is the client for interacting with the KeywordExpansion builders.
 	KeywordExpansion *KeywordExpansionClient
-	// Notification is the client for interacting with the Notification builders.
-	Notification *NotificationClient
 
 	// lazily loaded.
 	client     *Client
@@ -154,7 +152,6 @@ func (tx *Tx) init() {
 	tx.Hotspot = NewHotspotClient(tx.config)
 	tx.Keyword = NewKeywordClient(tx.config)
 	tx.KeywordExpansion = NewKeywordExpansionClient(tx.config)
-	tx.Notification = NewNotificationClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.
