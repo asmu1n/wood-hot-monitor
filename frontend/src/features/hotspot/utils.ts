@@ -152,4 +152,12 @@ function onNewHotSpot(callback: (hotspot: HotSpotEvent) => void): () => void {
     return () => cancel();
 }
 
-export { calcHeatScore, getHeatLevel, sortHotSpots, onNewHotSpot };
+function onCheckComplete(callback: () => void): () => void {
+    const cancel = Events.On('check:complete', () => {
+        callback();
+    });
+
+    return () => cancel();
+}
+
+export { calcHeatScore, getHeatLevel, sortHotSpots, onNewHotSpot, onCheckComplete };

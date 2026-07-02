@@ -8,7 +8,7 @@ const pageTitles: Record<string, string> = {
     '/': '热点雷达',
     '/keywords': '监控词',
     '/search': '搜索',
-    '/settings': '设置',
+    '/settings': '设置'
 };
 
 interface ContentHeaderProps {
@@ -28,7 +28,7 @@ export function ContentHeader({
     notifications,
     showNotifications,
     setShowNotifications,
-    onMarkAllRead,
+    onMarkAllRead
 }: ContentHeaderProps) {
     const { location } = useRouterState();
     const title = pageTitles[location.pathname] ?? '';
@@ -43,9 +43,7 @@ export function ContentHeader({
                     disabled={isChecking}
                     className={cn(
                         'flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors',
-                        isChecking
-                            ? 'bg-primary/10 text-primary cursor-wait'
-                            : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                        isChecking ? 'bg-primary/10 text-primary cursor-wait' : 'bg-primary text-primary-foreground hover:bg-primary/90'
                     )}>
                     <RefreshCw className={cn('h-3.5 w-3.5', isChecking && 'animate-spin')} />
                     {isChecking ? '扫描中' : '立即扫描'}
@@ -88,10 +86,7 @@ export function ContentHeader({
                                                 {notifications.slice(0, 10).map(n => (
                                                     <div
                                                         key={n.id}
-                                                        className={cn(
-                                                            'px-4 py-3 transition-colors',
-                                                            n.isRead ? 'opacity-50' : 'hover:bg-muted/50'
-                                                        )}>
+                                                        className={cn('px-4 py-3 transition-colors', n.isRead ? 'opacity-50' : 'hover:bg-muted/50')}>
                                                         <p className="text-popover-foreground text-sm font-medium">{n.title}</p>
                                                         <p className="text-muted-foreground mt-0.5 line-clamp-2 text-xs">{n.summary ?? n.content}</p>
                                                     </div>

@@ -6,19 +6,19 @@ import (
 	"log"
 	"sync"
 	"time"
+	"wood-hot-monitor/ent"
+	hsmodel "wood-hot-monitor/ent/hotspot"
+	kwmodel "wood-hot-monitor/ent/keyword"
+	"wood-hot-monitor/internal/biz/quality"
+	"wood-hot-monitor/internal/core/config"
+	"wood-hot-monitor/internal/core/event"
+	"wood-hot-monitor/internal/core/models"
+	"wood-hot-monitor/internal/infra/database"
+	"wood-hot-monitor/internal/infra/email"
+	"wood-hot-monitor/internal/infra/llm"
+	"wood-hot-monitor/internal/infra/scraper"
 
 	"github.com/google/uuid"
-
-	"wood-hot-monitor/ent"
-	enthot "wood-hot-monitor/ent/hotspot"
-	entkw "wood-hot-monitor/ent/keyword"
-	"wood-hot-monitor/internal/config"
-	"wood-hot-monitor/internal/database"
-	"wood-hot-monitor/internal/email"
-	"wood-hot-monitor/internal/llm"
-	"wood-hot-monitor/internal/models"
-	"wood-hot-monitor/internal/quality"
-	"wood-hot-monitor/internal/scraper"
 )
 
 const (
@@ -28,25 +28,32 @@ const (
 	minRelevance        = 30
 )
 
+type CheckMessage = int
+
+const (
+	CheckStart CheckMessage = 1 + iota
+	CheckComplete
+)
+
 type EventEmitter func(eventName string, data any)
 
 type Service struct {
-	db      *database.DB
-	cfg     *config.Service
-	llm     *llm.Service
-	emitter EventEmitter
+	db       *database.DB
+	cfg      *config.Service
+	llm      *llm.Service
+	notifier event.Notifier
 }
 
-func NewService(db *database.DB, cfg *config.Service, llmSvc *llm.Service, emitter EventEmitter) *Service {
-	return &Service{db: db, cfg: cfg, llm: llmSvc, emitter: emitter}
+func NewService(db *database.DB, cfg *config.Service, llm *llm.Service, notifier event.Notifier) *Service {
+	return &Service{db, cfg, llm, notifier}
 }
 
 func (s *Service) Run(ctx context.Context) error {
-	s.emit("check:start", nil)
-	defer s.emit("check:complete", nil)
+	s.notifier.Emit(event.EventCheckerStarted, nil)
+	defer s.notifier.Emit(event.EventCheckerCompleted, nil)
 
 	keywords, err := s.db.Client.Keyword.Query().
-		Where(entkw.IsActive(true)).
+		Where(kwmodel.IsActive(true)).
 		All(ctx)
 	if err != nil {
 		return fmt.Errorf("list keywords: %w", err)
@@ -103,7 +110,7 @@ func (s *Service) Run(ctx context.Context) error {
 			}
 
 			if isNew {
-				s.emit("hotspot:new", map[string]string{
+				s.notifier.Emit(event.EventHotspotNew, map[string]string{
 					"id":     hotspotID,
 					"title":  sr.Title,
 					"source": sr.Source,
@@ -124,7 +131,7 @@ func (s *Service) upsertHotspot(ctx context.Context, r scraper.SearchResult, ana
 	now := time.Now().UTC()
 
 	existing, err := s.db.Client.Hotspot.Query().
-		Where(enthot.URLEQ(r.URL), enthot.SourceEQ(r.Source)).
+		Where(hsmodel.URLEQ(r.URL), hsmodel.SourceEQ(r.Source)).
 		Only(ctx)
 	if err != nil && !ent.IsNotFound(err) {
 		return "", false, err
@@ -298,12 +305,6 @@ func (s *Service) sendEmailAlert(cfg *models.AppConfig, r scraper.SearchResult, 
 	}
 	if err := emailSvc.SendHotspotAlert(cfg.EmailAddress, r.Title, r.Source, analysis.Importance, summary, r.URL); err != nil {
 		log.Printf("checker: send email failed: %v", err)
-	}
-}
-
-func (s *Service) emit(eventName string, data any) {
-	if s.emitter != nil {
-		s.emitter(eventName, data)
 	}
 }
 

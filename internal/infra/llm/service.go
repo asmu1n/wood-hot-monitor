@@ -8,13 +8,12 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"wood-hot-monitor/ent/keywordexpansion"
+	"wood-hot-monitor/internal/core/config"
+	"wood-hot-monitor/internal/infra/database"
 
 	"github.com/google/uuid"
-	openai "github.com/sashabaranov/go-openai"
-
-	"wood-hot-monitor/ent/keywordexpansion"
-	"wood-hot-monitor/internal/config"
-	"wood-hot-monitor/internal/database"
+	"github.com/sashabaranov/go-openai"
 )
 
 const defaultModel = "Pro/deepseek-ai/DeepSeek-V3.2"

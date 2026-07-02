@@ -9,12 +9,12 @@ import (
 
 // SearchResult 表示从任意来源抓取到的一条搜索结果
 type SearchResult struct {
-	Title     string  `json:"title"`
-	Content   string  `json:"content"`
-	URL       string  `json:"url"`
-	Source    string  `json:"source"`
-	SourceID  string  `json:"sourceId"`
-	Author    *Author `json:"author"`
+	Title    string  `json:"title"`
+	Content  string  `json:"content"`
+	URL      string  `json:"url"`
+	Source   string  `json:"source"`
+	SourceID string  `json:"sourceId"`
+	Author   *Author `json:"author"`
 
 	// 互动指标（各平台按需填充）
 	ViewCount    *int `json:"viewCount"`

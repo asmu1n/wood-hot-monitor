@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { onNewHotSpot } from '@/features/hotspot/utils';
+import { onNewHotSpot, onCheckComplete } from '@/features/hotspot/utils';
 import { keywordApi } from '@/features/keyword/api';
 import { hotspotApi, type HotspotFilters } from '@/features/hotspot/api';
 import { subscribeToKeywords, unsubscribeFromKeywords } from '@/features/keyword/utils';
@@ -155,9 +155,6 @@ export function useAppLogic() {
         mutationFn: () => hotspotApi.check(),
         onSuccess: () => {
             showToast('热点检查已触发', 'success');
-            setTimeout(() => {
-                void queryClient.invalidateQueries({ queryKey: ['hotspots'] });
-            }, 5000);
         },
         onError: () => {
             showToast('触发失败', 'error');
@@ -218,6 +215,18 @@ export function useAppLogic() {
             unSubHotSpot();
         };
     }, [queryClient, showToast]);
+
+    useEffect(() => {
+        const unSubCheckComplete = onCheckComplete(() => {
+            void queryClient.invalidateQueries({ queryKey: ['hotspots'] });
+            void queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            void queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
+        });
+
+        return () => {
+            unSubCheckComplete();
+        };
+    }, [queryClient]);
 
     const toggleReason = (id: string) => {
         setExpandedReasons(prev => {

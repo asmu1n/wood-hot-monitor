@@ -5,17 +5,8 @@ import Toast from '@/components/Toast';
 import { AppProvider, useApp } from '@/context/AppContext';
 
 function RootComponent() {
-    const {
-        isChecking,
-        handleManualCheck,
-        unreadCount,
-        notifications,
-        showNotifications,
-        setShowNotifications,
-        handleMarkAllRead,
-        toast,
-        status
-    } = useApp();
+    const { isChecking, handleManualCheck, unreadCount, notifications, showNotifications, setShowNotifications, handleMarkAllRead, toast, status } =
+        useApp();
 
     return (
         <div className="bg-background flex h-screen overflow-hidden">

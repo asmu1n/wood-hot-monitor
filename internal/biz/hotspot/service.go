@@ -2,15 +2,18 @@ package hotspot
 
 import (
 	"context"
+	"log"
 	"strings"
 	"time"
 
 	"wood-hot-monitor/ent"
-	enthot "wood-hot-monitor/ent/hotspot"
+	hsmodel "wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/predicate"
-	"wood-hot-monitor/internal/database"
-	"wood-hot-monitor/internal/models"
+	"wood-hot-monitor/internal/core/models"
+	"wood-hot-monitor/internal/infra/database"
 )
+
+type CheckFunc func(ctx context.Context) error
 
 type Service struct {
 	db *database.DB
@@ -35,12 +38,12 @@ type GetAllParams struct {
 }
 
 var allowedSortFields = map[string]string{
-	"createdAt":   enthot.FieldCreatedAt,
-	"relevance":   enthot.FieldRelevance,
-	"importance":  enthot.FieldImportance,
-	"publishedAt": enthot.FieldPublishedAt,
-	"likeCount":   enthot.FieldLikeCount,
-	"viewCount":   enthot.FieldViewCount,
+	"createdAt":   hsmodel.FieldCreatedAt,
+	"relevance":   hsmodel.FieldRelevance,
+	"importance":  hsmodel.FieldImportance,
+	"publishedAt": hsmodel.FieldPublishedAt,
+	"likeCount":   hsmodel.FieldLikeCount,
+	"viewCount":   hsmodel.FieldViewCount,
 }
 
 func (s *Service) GetAll(params GetAllParams) (*models.PaginatedResult[models.Hotspot], error) {
@@ -49,12 +52,12 @@ func (s *Service) GetAll(params GetAllParams) (*models.PaginatedResult[models.Ho
 
 	timeFrom, timeTo := resolveTimeRange(params.TimeRange, params.TimeFrom, params.TimeTo)
 
-	preds = append(preds, database.OptionalVal(params.Source, enthot.SourceEQ)...)
-	preds = append(preds, database.OptionalVal(params.Importance, enthot.ImportanceEQ)...)
-	preds = append(preds, database.OptionalVal(params.KeywordID, enthot.KeywordIDEQ)...)
-	preds = append(preds, database.OptionalVal(params.IsReal, enthot.IsRealEQ)...)
-	preds = append(preds, database.OptionalVal(timeFrom, enthot.CreatedAtGTE)...)
-	preds = append(preds, database.OptionalVal(timeTo, enthot.CreatedAtLTE)...)
+	preds = append(preds, database.OptionalVal(params.Source, hsmodel.SourceEQ)...)
+	preds = append(preds, database.OptionalVal(params.Importance, hsmodel.ImportanceEQ)...)
+	preds = append(preds, database.OptionalVal(params.KeywordID, hsmodel.KeywordIDEQ)...)
+	preds = append(preds, database.OptionalVal(params.IsReal, hsmodel.IsRealEQ)...)
+	preds = append(preds, database.OptionalVal(timeFrom, hsmodel.CreatedAtGTE)...)
+	preds = append(preds, database.OptionalVal(timeTo, hsmodel.CreatedAtLTE)...)
 
 	query := s.db.Client.Hotspot.Query()
 	if len(preds) > 0 {
@@ -66,7 +69,7 @@ func (s *Service) GetAll(params GetAllParams) (*models.PaginatedResult[models.Ho
 		return nil, err
 	}
 
-	orderField := enthot.FieldCreatedAt
+	orderField := hsmodel.FieldCreatedAt
 	if params.SortBy != nil {
 		if f, ok := allowedSortFields[*params.SortBy]; ok {
 			orderField = f
@@ -103,7 +106,7 @@ func (s *Service) GetAll(params GetAllParams) (*models.PaginatedResult[models.Ho
 
 func (s *Service) GetByID(id string) (*models.Hotspot, error) {
 	row, err := s.db.Client.Hotspot.Query().
-		Where(enthot.IDEQ(id)).
+		Where(hsmodel.IDEQ(id)).
 		WithKeyword().
 		Only(context.Background())
 	if err != nil {
@@ -116,41 +119,6 @@ func (s *Service) GetByID(id string) (*models.Hotspot, error) {
 	return &m, nil
 }
 
-func (s *Service) GetStatus() (*models.Status, error) {
-	ctx := context.Background()
-
-	total, _ := s.db.Client.Hotspot.Query().Count(ctx)
-
-	todayStart := time.Now().UTC().Truncate(24 * time.Hour)
-	today, _ := s.db.Client.Hotspot.Query().
-		Where(enthot.CreatedAtGTE(todayStart)).Count(ctx)
-
-	urgent, _ := s.db.Client.Hotspot.Query().
-		Where(enthot.ImportanceEQ("urgent")).Count(ctx)
-
-	bySource := make(map[string]int)
-	var sourceCounts []struct {
-		Source string `json:"source"`
-		Count  int    `json:"count"`
-	}
-	err := s.db.Client.Hotspot.Query().
-		GroupBy(enthot.FieldSource).
-		Aggregate(ent.Count()).
-		Scan(ctx, &sourceCounts)
-	if err == nil {
-		for _, sc := range sourceCounts {
-			bySource[sc.Source] = sc.Count
-		}
-	}
-
-	return &models.Status{
-		Total:    total,
-		Today:    today,
-		Urgent:   urgent,
-		BySource: bySource,
-	}, nil
-}
-
 func (s *Service) Delete(id string) error {
 	return s.db.Client.Hotspot.DeleteOneID(id).Exec(context.Background())
 }
@@ -158,18 +126,20 @@ func (s *Service) Delete(id string) error {
 func (s *Service) Search(query string, sources []string) ([]models.Hotspot, error) {
 	ctx := context.Background()
 
+	log.Default().Println("Search query:", query, "sources:", sources)
+
 	var preds []predicate.Hotspot
-	preds = append(preds, enthot.Or(
-		enthot.TitleContains(query),
-		enthot.ContentContains(query),
+	preds = append(preds, hsmodel.Or(
+		hsmodel.TitleContains(query),
+		hsmodel.ContentContains(query),
 	))
 	if len(sources) > 0 {
-		preds = append(preds, enthot.SourceIn(sources...))
+		preds = append(preds, hsmodel.SourceIn(sources...))
 	}
 
 	rows, err := s.db.Client.Hotspot.Query().
 		Where(preds...).
-		Order(ent.Desc(enthot.FieldRelevance), ent.Desc(enthot.FieldCreatedAt)).
+		Order(ent.Desc(hsmodel.FieldRelevance), ent.Desc(hsmodel.FieldCreatedAt)).
 		Limit(50).
 		WithKeyword().
 		All(ctx)
@@ -182,52 +152,6 @@ func (s *Service) Search(query string, sources []string) ([]models.Hotspot, erro
 		result[i] = mapHotspot(row)
 	}
 	return result, nil
-}
-
-func (s *Service) Check() error {
-	return nil
-}
-
-func (s *Service) GetNotifications(limit int) ([]models.Hotspot, error) {
-	ctx := context.Background()
-	if limit <= 0 {
-		limit = 10
-	}
-
-	rows, err := s.db.Client.Hotspot.Query().
-		Where(enthot.IsNotified(true)).
-		Order(ent.Desc(enthot.FieldNotifiedAt)).
-		Limit(limit).
-		WithKeyword().
-		All(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]models.Hotspot, len(rows))
-	for i, row := range rows {
-		result[i] = mapHotspot(row)
-	}
-	return result, nil
-}
-
-func (s *Service) UnreadCount() (int, error) {
-	return s.db.Client.Hotspot.Query().
-		Where(enthot.IsNotified(true), enthot.IsRead(false)).
-		Count(context.Background())
-}
-
-func (s *Service) MarkRead(id string) error {
-	return s.db.Client.Hotspot.UpdateOneID(id).
-		SetIsRead(true).
-		Exec(context.Background())
-}
-
-func (s *Service) MarkAllRead() error {
-	return s.db.Client.Hotspot.Update().
-		Where(enthot.IsNotified(true), enthot.IsRead(false)).
-		SetIsRead(true).
-		Exec(context.Background())
 }
 
 func resolveTimeRange(timeRange, timeFrom, timeTo *string) (*time.Time, *time.Time) {

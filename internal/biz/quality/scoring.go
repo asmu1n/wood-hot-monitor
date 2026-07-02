@@ -5,7 +5,7 @@ import (
 	"sort"
 	"time"
 
-	"wood-hot-monitor/internal/scraper"
+	"wood-hot-monitor/internal/infra/scraper"
 )
 
 // 质量评分三维度权重配置（按平台区分）

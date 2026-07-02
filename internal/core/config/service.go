@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"wood-hot-monitor/internal/models"
+	"wood-hot-monitor/internal/core/models"
 )
 
 // 本地文件配置，读写锁保护

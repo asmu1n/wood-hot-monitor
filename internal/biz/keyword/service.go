@@ -3,11 +3,10 @@ package keyword
 import (
 	"context"
 	"time"
-
 	"wood-hot-monitor/ent"
-	entkw "wood-hot-monitor/ent/keyword"
-	"wood-hot-monitor/internal/database"
-	"wood-hot-monitor/internal/models"
+	kwmodel "wood-hot-monitor/ent/keyword"
+	"wood-hot-monitor/internal/core/models"
+	"wood-hot-monitor/internal/infra/database"
 )
 
 type Service struct {
@@ -20,9 +19,9 @@ func NewService(db *database.DB) *Service {
 
 func (s *Service) GetAll(activeOnly bool) ([]models.Keyword, error) {
 	ctx := context.Background()
-	query := s.db.Client.Keyword.Query().Order(ent.Desc(entkw.FieldCreatedAt))
+	query := s.db.Client.Keyword.Query().Order(ent.Desc(kwmodel.FieldCreatedAt))
 	if activeOnly {
-		query = query.Where(entkw.IsActive(true))
+		query = query.Where(kwmodel.IsActive(true))
 	}
 
 	rows, err := query.All(ctx)
