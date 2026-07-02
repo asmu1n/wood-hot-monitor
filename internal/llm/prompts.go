@@ -1,0 +1,56 @@
+package llm
+
+import (
+	"fmt"
+	"strings"
+)
+
+const analysisSystemPrompt = "你是一个资深的热点内容精准匹配专家。你的核心任务是客观、严格地评估给定内容与监控【关键词】之间的直接相关性。\n\n" +
+	"【分析规则与打分标准】\n" +
+	"1. 真实性过滤 (isReal)：判断内容是否为真实有价值的信息，排除标题党、假新闻、无意义的营销软文。\n" +
+	"2. 提及度检测 (keywordMentioned)：判断内容中是否直接包含目标【关键词】或其等价表述。\n" +
+	"3. 相关性打分 (relevance 0-100)：\n" +
+	"   - < 40分：仅属于同一领域但未提及关键词及其相关概念。\n" +
+	"   - 30-50分：间接沾边（如提及同类竞品、同领域不同主题）。\n" +
+	"   - >= 60分：必须直接讨论、提及或与目标【关键词】有实质性关联。\n" +
+	"4. 重要度评估 (importance)：站在关注该【关键词】受众的视角，评估此热点信息的重要级别（low/medium/high/urgent）。\n" +
+	"5. 关联总结 (summary)：用一句话点明该内容与【关键词】的具体关联点，切忌单纯概括文章大意。\n\n" +
+	"【输出要求】\n" +
+	"请仅输出合法的 JSON 格式，绝不能包含 markdown 标记（如 ```json）或其他解释文字。格式如下：\n" +
+	"{\n" +
+	"  \"isReal\": boolean,\n" +
+	"  \"relevance\": number,\n" +
+	"  \"relevanceReason\": \"一句话打分理由\",\n" +
+	"  \"keywordMentioned\": boolean,\n" +
+	"  \"importance\": \"low|medium|high|urgent\",\n" +
+	"  \"summary\": \"此内容与【关键词】的关联是...\"\n" +
+	"}"
+
+const expandKeywordSystemPrompt = "你是一个专业的搜索查询扩展专家。你的任务是根据给定的监控关键词，生成高质量的变体和相关检索词，用于下游系统进行准确的文本匹配。\n\n" +
+	"【扩展规则】\n" +
+	"1. 包含原词变体：包含原始关键词的常见大小写、空格、连字符变体。\n" +
+	"2. 拆解核心词：包含组合关键词拆分后的各个具有独立检索意义的核心词。\n" +
+	"3. 补充别称：包含公认的常见别称、缩写、中英文对照。\n" +
+	"4. 严禁泛化：绝不要加入宽泛的上位词（例如：关键词是\"Claude Sonnet 4.6\"，绝不可加入\"AI模型\"、\"大语言模型\"等词汇）。\n" +
+	"5. 数量限制：总数严格控制在 5 到 15 个之间。\n\n" +
+	"【输出要求】\n" +
+	"请仅输出 JSON 字符串数组，不要包含任何 markdown 标记（如 ```json）或多余的解释。\n" +
+	"示例输出格式：[\"Claude Sonnet 4.6\", \"Claude Sonnet\", \"Sonnet 4.6\", \"claude-sonnet-4.6\", \"Claude 4.6\", \"Anthropic Sonnet\"]"
+
+// buildAnalysisPrompt 构造内容分析的 system/user 提示词，注入关键词、预匹配结果和待分析内容
+func buildAnalysisPrompt(keyword string, preMatch PreMatchResult, content string) (system, user string) {
+	var matchHint string
+	if preMatch.Matched {
+		matchHint = fmt.Sprintf("[系统预检提示] 文本预匹配发现内容中包含以下关键词变体：%s", strings.Join(preMatch.MatchedTerms, "、"))
+	} else {
+		matchHint = "[系统预检提示] 文本预匹配未直接发现关键词的任何变体，请务必极其严格地审核其隐性相关性。"
+	}
+
+	user = fmt.Sprintf("目标监控关键词：【%s】\n%s\n\n请分析以下内容：\n<content>\n%s\n</content>", keyword, matchHint, content)
+	return analysisSystemPrompt, user
+}
+
+// buildExpandKeywordPrompt 构造关键词扩展的 system/user 提示词
+func buildExpandKeywordPrompt(keyword string) (system, user string) {
+	return expandKeywordSystemPrompt, fmt.Sprintf("请输入关键词并进行扩展：%s", keyword)
+}

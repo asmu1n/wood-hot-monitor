@@ -39,8 +39,8 @@ const KeywordCard: React.FC<KeywordCardProps> = ({ keyword, index, onToggle, onD
 
                     <div>
                         <span className={cn('font-medium', keyword.isActive ? 'text-foreground' : 'text-muted-foreground')}>{keyword.text}</span>
-                        {keyword._count && keyword._count.hotspots > 0 && (
-                            <span className="text-muted-foreground/60 ml-2 text-xs">{keyword._count.hotspots} 条热点</span>
+                        {keyword.hotspotCount != null && keyword.hotspotCount > 0 && (
+                            <span className="text-muted-foreground/60 ml-2 text-xs">{keyword.hotspotCount} 条热点</span>
                         )}
                     </div>
                 </div>

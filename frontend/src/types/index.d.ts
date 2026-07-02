@@ -5,7 +5,7 @@ interface Keyword {
         isActive: boolean;
         createdAt: string;
         updatedAt: string;
-        _count?: { hotspots: number };
+        hotspotCount?: number;
     }
 
     interface Hotspot {
