@@ -8,22 +8,23 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+	"wood-hot-monitor/internal/biz/hotspot"
+	"wood-hot-monitor/internal/biz/keyword"
+	"wood-hot-monitor/internal/core/config"
+	"wood-hot-monitor/internal/core/event"
+	"wood-hot-monitor/internal/infra/database"
+	"wood-hot-monitor/internal/infra/llm"
+	"wood-hot-monitor/internal/worker/checker"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/wailsapp/wails/v3/pkg/application"
-
-	"wood-hot-monitor/internal/checker"
-	"wood-hot-monitor/internal/config"
-	"wood-hot-monitor/internal/database"
-	"wood-hot-monitor/internal/hotspot"
-	"wood-hot-monitor/internal/keyword"
-	"wood-hot-monitor/internal/llm"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
 
 func main() {
+	// 1. 初始化数据库、本地配置文件
 	dataDir := defaultDataDir()
 
 	db, err := database.New(dataDir)
@@ -36,9 +37,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("load config: %v", err)
 	}
+	//  ----
 
-	llmService := llm.NewService(cfgService, db)
-
+	// 2. 初始化 Wails 应用，注入相应服务并运行应用
 	app := application.New(application.Options{
 		Name:        "Wood Hot Monitor",
 		Description: "AI-driven multi-source hotspot monitoring",
@@ -55,22 +56,12 @@ func main() {
 		},
 	})
 
-	emitter := func(eventName string, data any) {
-		app.Event.EmitEvent(&application.CustomEvent{
-			Name: eventName,
-			Data: data,
-		})
-	}
+	notifier := event.NewWailsNotifier(app)
 
-	// 后台定时服务
-	checkerService := checker.NewService(db, cfgService, llmService, emitter)
-
-	scheduler, err := startScheduler(cfgService, checkerService)
-	if err != nil {
-		log.Printf("warning: scheduler start failed: %v", err)
-	} else {
-		defer scheduler.Shutdown()
-	}
+	// 创建LLM服务
+	llmService := llm.NewService(cfgService, db)
+	checkerService := checker.NewService(db, cfgService, llmService, notifier)
+	app.RegisterService(application.NewService(checkerService))
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:  "Wood Hot Monitor",
@@ -78,10 +69,19 @@ func main() {
 		Height: 860,
 		URL:    "/",
 	})
-
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
 	}
+	// ----
+
+	// 3.启动定时后台服务
+	scheduler, err := startScheduler(cfgService, checkerService)
+	if err != nil {
+		log.Printf("warning: scheduler start failed: %v", err)
+	} else {
+		defer scheduler.Shutdown()
+	}
+
 }
 
 func startScheduler(cfgService *config.Service, checkerService *checker.Service) (gocron.Scheduler, error) {
