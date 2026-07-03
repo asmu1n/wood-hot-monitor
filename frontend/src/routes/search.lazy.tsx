@@ -1,28 +1,52 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 
-import { useApp } from '@/context/AppContext';
-import FilterSortBar from '@/components/FilterSortBar';
+import { useKeywords } from '@/features/keyword/hooks';
+import { useHotspotExpand } from '@/features/hotspot/hooks/useHotspotExpand';
+import { useToast } from '@/hooks/useToast';
+import FilterSortBar, { defaultFilterState, type FilterState } from '@/components/FilterSortBar';
 import HotSpotCard from '@/features/hotspot/components/HotSpotCard';
+import { hotspotApi } from '@/features/hotspot/api';
 import { sortHotSpots } from '@/features/hotspot/utils';
+import { attempt } from '@/utils/common';
+import type { Hotspot } from '@/types';
 
 function SearchPage() {
-    const {
-        searchQuery,
-        setSearchQuery,
-        handleSearch,
-        isLoading,
-        searchFilters,
-        setSearchFilters,
-        keywords,
-        searchResults,
-        expandedReasons,
-        expandedContents,
-        toggleReason,
-        toggleContent
-    } = useApp();
+    const { keywords } = useKeywords();
+    const { expandedReasons, expandedContents, toggleReason, toggleContent } = useHotspotExpand();
+    const { showToast } = useToast();
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<Hotspot[]>([]);
+    const [searchFilters, setSearchFilters] = useState<FilterState>({ ...defaultFilterState });
+    const [isSearching, setIsSearching] = useState(false);
+
+    const handleSearch = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!searchQuery.trim()) {
+            return;
+        }
+
+        setIsSearching(true);
+
+        const [err, result] = await attempt(() => {
+            return hotspotApi.search(searchQuery);
+        });
+
+        setIsSearching(false);
+
+        if (err) {
+            showToast('搜索失败', 'error');
+
+            return;
+        }
+
+        setSearchResults(result);
+        showToast(`找到 ${result.length} 条结果`, 'success');
+    };
 
     // Client-side filtering/sorting for search results
     const filteredSearchResults = useMemo(() => {
@@ -95,11 +119,11 @@ function SearchPage() {
                     </div>
                     <motion.button
                         type="submit"
-                        disabled={isLoading}
+                        disabled={isSearching}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className="bg-primary text-primary-foreground shadow-primary/25 flex items-center gap-2 rounded-xl px-6 py-3 font-medium shadow-lg disabled:opacity-50">
-                        {isLoading ? (
+                        {isSearching ? (
                             <div className="border-primary-foreground/30 border-t-primary-foreground h-4 w-4 animate-spin rounded-full border-2" />
                         ) : (
                             <Search className="h-4 w-4" />

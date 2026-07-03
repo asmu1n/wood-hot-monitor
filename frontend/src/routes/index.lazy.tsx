@@ -1,30 +1,18 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { Flame, Search, ChevronsUpDown } from 'lucide-react';
 
-import { useApp } from '@/context/AppContext';
+import { useHotspots } from '@/features/hotspot/hooks/useHotspots';
+import { useHotspotExpand } from '@/features/hotspot/hooks/useHotspotExpand';
+import { useKeywords } from '@/features/keyword/hooks';
 import StatusCards from '@/features/hotspot/components/StatusCards';
 import FilterSortBar from '@/components/FilterSortBar';
 import HotSpotCard from '@/features/hotspot/components/HotSpotCard';
 import HotSpotPagination from '@/features/hotspot/components/HotSpotPagination';
 
 function Dashboard() {
-    const {
-        status,
-        keywords,
-        hotSpots,
-        dashboardFilters,
-        setDashboardFilters,
-        isLoading,
-        currentPage,
-        setCurrentPage,
-        totalPages,
-        expandedReasons,
-        expandedContents,
-        toggleReason,
-        toggleContent,
-        toggleAllReasons,
-        allReasonsExpanded
-    } = useApp();
+    const { hotSpots, isLoading, status, dashboardFilters, setDashboardFilters, currentPage, setCurrentPage, totalPages } = useHotspots();
+    const { keywords } = useKeywords();
+    const { expandedReasons, expandedContents, allReasonsExpanded, toggleReason, toggleContent, toggleAllReasons } = useHotspotExpand();
 
     const activeKeywordsCount = keywords.filter(k => k.isActive).length;
 

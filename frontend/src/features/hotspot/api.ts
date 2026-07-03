@@ -1,4 +1,4 @@
-import { GetAll, GetByID, GetStatus, Search, Delete, Check, GetNotifications, UnreadCount, MarkRead, MarkAllRead } from '@wails/hotspot/service.js';
+import { GetAll, GetByID, GetStatus, Search, Delete, GetNotifications, UnreadCount, MarkRead, MarkAllRead } from '@wails/biz/hotspot/service';
 import type { Hotspot, Status } from '@/types';
 
 export interface HotspotFilters {
@@ -45,8 +45,6 @@ export const hotspotApi = {
     search: (query: string, sources?: string[]) => Search(query, sources ?? []) as Promise<Hotspot[]>,
 
     delete: (id: string) => Delete(id),
-
-    check: () => Check(),
 
     getNotifications: (limit: number = 10) => GetNotifications(limit) as Promise<Hotspot[]>,
 

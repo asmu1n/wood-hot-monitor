@@ -2,11 +2,11 @@ import { createLazyFileRoute } from '@tanstack/react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Target } from 'lucide-react';
 
-import { useApp } from '@/context/AppContext';
+import { useKeywords } from '@/features/keyword/hooks';
 import KeywordCard from '@/features/keyword/components/KeywordCard';
 
 function Keywords() {
-    const { keywords, newKeyword, setNewKeyword, handleAddKeyword, handleToggleKeyword, handleDeleteKeyword } = useApp();
+    const { keywords, newKeyword, setNewKeyword, handleAddKeyword, handleToggleKeyword, handleDeleteKeyword } = useKeywords();
 
     return (
         <div className="space-y-6">

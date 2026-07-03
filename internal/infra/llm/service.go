@@ -39,7 +39,7 @@ func NewService(cfg *config.Service, client *ent.Client) *Service {
 	return &Service{
 		cfg:       cfg,
 		client:    client,
-		semaphore: make(chan struct{}, 10),
+		semaphore: make(chan struct{}, 30),
 	}
 }
 
@@ -67,8 +67,10 @@ func (s *Service) callLLM(ctx context.Context, systemPrompt, userPrompt string) 
 	client := openai.NewClientWithConfig(clientCfg)
 
 	select {
+	// 没触发并发限制的话，推入缓冲栈，在调用完成后弹出。若触发并发限制，则阻塞在这里
 	case s.semaphore <- struct{}{}:
 		defer func() { <-s.semaphore }()
+	// 如果上下文超时，直接结束任务
 	case <-ctx.Done():
 		return "", ctx.Err()
 	}

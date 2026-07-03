@@ -1,5 +1,5 @@
 import type { AppConfig } from '@/types';
-import { Get, Update } from '@wails/config/service.js';
+import { Get, Update } from '@wails/core/config/service.js';
 
 export const settingsApi = {
     getConfig: () => Get(),

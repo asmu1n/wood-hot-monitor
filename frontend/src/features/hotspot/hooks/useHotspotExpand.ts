@@ -1,0 +1,55 @@
+import { useState } from 'react';
+import type { Hotspot } from '@/types';
+
+export function useHotspotExpand() {
+    const [expandedReasons, setExpandedReasons] = useState<Set<string>>(new Set());
+    const [expandedContents, setExpandedContents] = useState<Set<string>>(new Set());
+    const [allReasonsExpanded, setAllReasonsExpanded] = useState(false);
+
+    const toggleReason = (id: string) => {
+        setExpandedReasons(prev => {
+            const next = new Set(prev);
+
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+
+            return next;
+        });
+    };
+
+    const toggleContent = (id: string) => {
+        setExpandedContents(prev => {
+            const next = new Set(prev);
+
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+
+            return next;
+        });
+    };
+
+    const toggleAllReasons = (list: Hotspot[]) => {
+        if (allReasonsExpanded) {
+            setExpandedReasons(new Set());
+        } else {
+            setExpandedReasons(new Set(list.filter(h => h.relevanceReason).map(h => h.id)));
+        }
+
+        setAllReasonsExpanded(!allReasonsExpanded);
+    };
+
+    return {
+        expandedReasons,
+        expandedContents,
+        allReasonsExpanded,
+        toggleReason,
+        toggleContent,
+        toggleAllReasons
+    };
+}

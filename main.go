@@ -41,12 +41,13 @@ func main() {
 
 	// 2. 初始化 Wails 应用，注入相应服务
 	hotspotService := hotspot.NewService(db.Client)
+	keywordService := keyword.NewService(db.Client)
 
 	app := application.New(application.Options{
 		Name:        "Wood Hot Monitor",
 		Description: "AI-driven multi-source hotspot monitoring",
 		Services: []application.Service{
-			application.NewService(keyword.NewService(db.Client)),
+			application.NewService(keywordService),
 			application.NewService(hotspotService),
 			application.NewService(cfgService),
 		},
@@ -61,7 +62,7 @@ func main() {
 	notifier := infraevent.NewWailsNotifier(app)
 
 	llmService := llm.NewService(cfgService, db.Client)
-	checkerService := checker.NewService(db.Client, cfgService, llmService, hotspotService, notifier)
+	checkerService := checker.NewService(keywordService, cfgService, llmService, hotspotService, notifier)
 	app.RegisterService(application.NewService(checkerService))
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{

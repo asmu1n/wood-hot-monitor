@@ -35,7 +35,7 @@ func New(dataDir string) (*DB, error) {
 		return nil, fmt.Errorf("ping database: %w", err)
 	}
 
-	conn.SetMaxOpenConns(1)
+	conn.SetMaxOpenConns(4)
 
 	drv := entsql.OpenDB(dialect.SQLite, conn)
 	client := ent.NewClient(ent.Driver(drv))

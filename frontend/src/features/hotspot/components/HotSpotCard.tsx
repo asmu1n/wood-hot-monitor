@@ -38,7 +38,7 @@ interface HotSpotCardProps {
     onToggleContent: (id: string) => void;
 }
 
-export const getImportanceIcon = (importance: string) => {
+const getImportanceIcon = (importance: string) => {
     switch (importance) {
         case 'urgent':
             return <AlertTriangle className="h-4 w-4" />;
@@ -70,7 +70,7 @@ const getSourceIcon = (source: string) => {
     }
 };
 
-export const getSourceLabel = (source: string) => {
+const getSourceLabel = (source: string) => {
     const labels: Record<string, string> = {
         twitter: 'Twitter',
         bing: 'Bing',

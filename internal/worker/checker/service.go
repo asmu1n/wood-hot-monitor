@@ -6,11 +6,11 @@ import (
 	"log"
 	"sync"
 	"time"
-	"wood-hot-monitor/ent"
-	kwmodel "wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/internal/biz/hotspot"
+	"wood-hot-monitor/internal/biz/keyword"
 	"wood-hot-monitor/internal/biz/quality"
 	"wood-hot-monitor/internal/biz/scraper"
+
 	"wood-hot-monitor/internal/core/config"
 	"wood-hot-monitor/internal/core/event"
 	"wood-hot-monitor/internal/infra/email"
@@ -23,18 +23,16 @@ const (
 	minRelevance        = 30
 )
 
-type EventEmitter func(eventName string, data any)
-
 type Service struct {
-	client   *ent.Client
+	keyword  *keyword.Service
 	cfg      *config.Service
 	llm      *llm.Service
 	hotspot  *hotspot.Service
 	notifier event.Notifier
 }
 
-func NewService(client *ent.Client, cfg *config.Service, llm *llm.Service, hotspot *hotspot.Service, notifier event.Notifier) *Service {
-	return &Service{client, cfg, llm, hotspot, notifier}
+func NewService(keyword *keyword.Service, cfg *config.Service, llm *llm.Service, hotspot *hotspot.Service, notifier event.Notifier) *Service {
+	return &Service{keyword, cfg, llm, hotspot, notifier}
 }
 
 func (s *Service) Run(ctx context.Context) error {
@@ -42,10 +40,8 @@ func (s *Service) Run(ctx context.Context) error {
 	s.notifier.Emit(event.EventCheckerStarted, nil)
 	defer s.notifier.Emit(event.EventCheckerCompleted, nil)
 
-	// 获取关键词
-	keywords, err := s.client.Keyword.Query().
-		Where(kwmodel.IsActive(true)).
-		All(ctx)
+	// 获取活跃关键词
+	keywords, err := s.keyword.GetAll(true)
 	if err != nil {
 		return fmt.Errorf("list keywords: %w", err)
 	}
