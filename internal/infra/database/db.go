@@ -54,10 +54,3 @@ func (db *DB) Close() error {
 	}
 	return nil
 }
-
-func OptionalVal[T any, P any](val *T, fn func(T) P) []P {
-	if val == nil {
-		return nil
-	}
-	return []P{fn(*val)}
-}

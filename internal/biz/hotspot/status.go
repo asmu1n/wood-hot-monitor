@@ -11,13 +11,13 @@ import (
 func (s *Service) GetStatus() (*models.Status, error) {
 	ctx := context.Background()
 
-	total, _ := s.db.Client.Hotspot.Query().Count(ctx)
+	total, _ := s.client.Hotspot.Query().Count(ctx)
 
 	todayStart := time.Now().UTC().Truncate(24 * time.Hour)
-	today, _ := s.db.Client.Hotspot.Query().
+	today, _ := s.client.Hotspot.Query().
 		Where(hsmodel.CreatedAtGTE(todayStart)).Count(ctx)
 
-	urgent, _ := s.db.Client.Hotspot.Query().
+	urgent, _ := s.client.Hotspot.Query().
 		Where(hsmodel.ImportanceEQ("urgent")).Count(ctx)
 
 	bySource := make(map[string]int)
@@ -25,7 +25,7 @@ func (s *Service) GetStatus() (*models.Status, error) {
 		Source string `json:"source"`
 		Count  int    `json:"count"`
 	}
-	err := s.db.Client.Hotspot.Query().
+	err := s.client.Hotspot.Query().
 		GroupBy(hsmodel.FieldSource).
 		Aggregate(ent.Count()).
 		Scan(ctx, &sourceCounts)
@@ -49,7 +49,7 @@ func (s *Service) GetNotifications(limit int) ([]models.Hotspot, error) {
 		limit = 10
 	}
 
-	rows, err := s.db.Client.Hotspot.Query().
+	rows, err := s.client.Hotspot.Query().
 		Where(hsmodel.IsNotified(true)).
 		Order(ent.Desc(hsmodel.FieldNotifiedAt)).
 		Limit(limit).
@@ -67,19 +67,19 @@ func (s *Service) GetNotifications(limit int) ([]models.Hotspot, error) {
 }
 
 func (s *Service) UnreadCount() (int, error) {
-	return s.db.Client.Hotspot.Query().
+	return s.client.Hotspot.Query().
 		Where(hsmodel.IsNotified(true), hsmodel.IsRead(false)).
 		Count(context.Background())
 }
 
 func (s *Service) MarkRead(id string) error {
-	return s.db.Client.Hotspot.UpdateOneID(id).
+	return s.client.Hotspot.UpdateOneID(id).
 		SetIsRead(true).
 		Exec(context.Background())
 }
 
 func (s *Service) MarkAllRead() error {
-	return s.db.Client.Hotspot.Update().
+	return s.client.Hotspot.Update().
 		Where(hsmodel.IsNotified(true), hsmodel.IsRead(false)).
 		SetIsRead(true).
 		Exec(context.Background())

@@ -11,8 +11,8 @@ import (
 	"wood-hot-monitor/internal/biz/hotspot"
 	"wood-hot-monitor/internal/biz/keyword"
 	"wood-hot-monitor/internal/core/config"
-	"wood-hot-monitor/internal/core/event"
 	"wood-hot-monitor/internal/infra/database"
+	infraevent "wood-hot-monitor/internal/infra/event"
 	"wood-hot-monitor/internal/infra/llm"
 	"wood-hot-monitor/internal/worker/checker"
 
@@ -39,13 +39,15 @@ func main() {
 	}
 	//  ----
 
-	// 2. 初始化 Wails 应用，注入相应服务并运行应用
+	// 2. 初始化 Wails 应用，注入相应服务
+	hotspotService := hotspot.NewService(db.Client)
+
 	app := application.New(application.Options{
 		Name:        "Wood Hot Monitor",
 		Description: "AI-driven multi-source hotspot monitoring",
 		Services: []application.Service{
-			application.NewService(keyword.NewService(db)),
-			application.NewService(hotspot.NewService(db)),
+			application.NewService(keyword.NewService(db.Client)),
+			application.NewService(hotspotService),
 			application.NewService(cfgService),
 		},
 		Assets: application.AssetOptions{
@@ -56,11 +58,10 @@ func main() {
 		},
 	})
 
-	notifier := event.NewWailsNotifier(app)
+	notifier := infraevent.NewWailsNotifier(app)
 
-	// 创建LLM服务
-	llmService := llm.NewService(cfgService, db)
-	checkerService := checker.NewService(db, cfgService, llmService, notifier)
+	llmService := llm.NewService(cfgService, db.Client)
+	checkerService := checker.NewService(db.Client, cfgService, llmService, hotspotService, notifier)
 	app.RegisterService(application.NewService(checkerService))
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
@@ -69,17 +70,18 @@ func main() {
 		Height: 860,
 		URL:    "/",
 	})
-	if err := app.Run(); err != nil {
-		log.Fatal(err)
-	}
 	// ----
 
-	// 3.启动定时后台服务
+	// 3.启动定时后台服务，并运行应用
 	scheduler, err := startScheduler(cfgService, checkerService)
 	if err != nil {
 		log.Printf("warning: scheduler start failed: %v", err)
 	} else {
 		defer scheduler.Shutdown()
+	}
+
+	if err := app.Run(); err != nil {
+		log.Fatal(err)
 	}
 
 }

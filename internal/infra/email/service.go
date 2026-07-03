@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
+	"wood-hot-monitor/internal/core/models"
 )
 
 const resendAPIURL = "https://api.resend.com/emails"
@@ -15,7 +17,7 @@ type Service struct {
 	fromEmail string
 }
 
-func NewService(apiKey, fromEmail string) *Service {
+func newService(apiKey, fromEmail string) *Service {
 	return &Service{apiKey: apiKey, fromEmail: fromEmail}
 }
 
@@ -26,8 +28,24 @@ type sendRequest struct {
 	HTML    string   `json:"html"`
 }
 
-// SendHotspotAlert 发送热点告警邮件（仅 high/urgent 级别触发）
-func (s *Service) SendHotspotAlert(toEmail, title, source, importance, summary, url string) error {
+func SendEmailAlert(cfg *models.AppConfig, r models.SearchResult, analysis *models.AnalysisResult) {
+	resendKey, _ := cfg.Settings["resendApiKey"].(string)
+	if resendKey == "" || cfg.EmailAddress == "" {
+		return
+	}
+
+	emailSvc := newService(resendKey, "noreply@woodmonitor.app")
+	summary := analysis.Summary
+	if summary == "" {
+		summary = r.Content
+	}
+	if err := emailSvc.sendHotspotAlert(cfg.EmailAddress, r.Title, r.Source, analysis.Importance, summary, r.URL); err != nil {
+		log.Printf("checker: send email failed: %v", err)
+	}
+}
+
+// sendHotspotAlert 发送热点告警邮件（仅 high/urgent 级别触发）
+func (s *Service) sendHotspotAlert(toEmail, title, source, importance, summary, url string) error {
 	if s.apiKey == "" || toEmail == "" {
 		return nil
 	}

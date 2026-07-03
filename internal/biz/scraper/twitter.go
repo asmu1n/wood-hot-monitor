@@ -13,9 +13,9 @@ const twitterAPIURL = "https://api.twitterapi.io/twitter/tweet/advanced_search"
 
 // Twitter API 响应结构
 type twitterResponse struct {
-	Tweets    []twitterTweet `json:"tweets"`
-	HasNext   bool           `json:"has_next"`
-	NextCursor string        `json:"next_cursor"`
+	Tweets     []twitterTweet `json:"tweets"`
+	HasNext    bool           `json:"has_next"`
+	NextCursor string         `json:"next_cursor"`
 }
 
 type twitterTweet struct {
@@ -24,11 +24,11 @@ type twitterTweet struct {
 	CreatedAt string `json:"createdAt"`
 	URL       string `json:"url"`
 	Author    struct {
-		Name            string `json:"name"`
-		UserName        string `json:"userName"`
-		ProfilePicture  string `json:"profilePicture"`
-		Followers       int    `json:"followers"`
-		IsBlueVerified  bool   `json:"isBlueVerified"`
+		Name           string `json:"name"`
+		UserName       string `json:"userName"`
+		ProfilePicture string `json:"profilePicture"`
+		Followers      int    `json:"followers"`
+		IsBlueVerified bool   `json:"isBlueVerified"`
 	} `json:"author"`
 	LikeCount    int `json:"likeCount"`
 	RetweetCount int `json:"retweetCount"`
@@ -44,8 +44,8 @@ func SearchTwitter(ctx context.Context, query, apiKey string) ([]SearchResult, e
 	}
 
 	params := url.Values{
-		"query":       {query},
-		"queryType":   {"Latest"},
+		"query":     {query},
+		"queryType": {"Latest"},
 	}
 	reqURL := fmt.Sprintf("%s?%s", twitterAPIURL, params.Encode())
 

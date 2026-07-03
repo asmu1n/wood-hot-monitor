@@ -25,19 +25,19 @@ type bilibiliResultGroup struct {
 }
 
 type bilibiliResult struct {
-	BVid       string `json:"bvid"`
-	Title      string `json:"title"`
-	Author     string `json:"author"`
-	Mid        int    `json:"mid"`
-	Pic        string `json:"pic"`
-	Play       int    `json:"play"`
-	Danmaku    int    `json:"danmaku"`
-	Like       int    `json:"like"`
-	Reply      int    `json:"reply"`
-	Favorites  int    `json:"favorites"`
+	BVid        string `json:"bvid"`
+	Title       string `json:"title"`
+	Author      string `json:"author"`
+	Mid         int    `json:"mid"`
+	Pic         string `json:"pic"`
+	Play        int    `json:"play"`
+	Danmaku     int    `json:"danmaku"`
+	Like        int    `json:"like"`
+	Reply       int    `json:"reply"`
+	Favorites   int    `json:"favorites"`
 	Description string `json:"description"`
-	PubDate    int64  `json:"pubdate"`
-	ArcURL     string `json:"arcurl"`
+	PubDate     int64  `json:"pubdate"`
+	ArcURL      string `json:"arcurl"`
 }
 
 // SearchBilibili 通过 API 搜索 Bilibili 视频

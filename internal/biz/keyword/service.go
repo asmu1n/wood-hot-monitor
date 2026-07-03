@@ -6,20 +6,19 @@ import (
 	"wood-hot-monitor/ent"
 	kwmodel "wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/internal/core/models"
-	"wood-hot-monitor/internal/infra/database"
 )
 
 type Service struct {
-	db *database.DB
+	client *ent.Client
 }
 
-func NewService(db *database.DB) *Service {
-	return &Service{db: db}
+func NewService(client *ent.Client) *Service {
+	return &Service{client: client}
 }
 
 func (s *Service) GetAll(activeOnly bool) ([]models.Keyword, error) {
 	ctx := context.Background()
-	query := s.db.Client.Keyword.Query().Order(ent.Desc(kwmodel.FieldCreatedAt))
+	query := s.client.Keyword.Query().Order(ent.Desc(kwmodel.FieldCreatedAt))
 	if activeOnly {
 		query = query.Where(kwmodel.IsActive(true))
 	}
@@ -39,7 +38,7 @@ func (s *Service) GetAll(activeOnly bool) ([]models.Keyword, error) {
 }
 
 func (s *Service) GetByID(id string) (*models.Keyword, error) {
-	row, err := s.db.Client.Keyword.Get(context.Background(), id)
+	row, err := s.client.Keyword.Get(context.Background(), id)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +48,7 @@ func (s *Service) GetByID(id string) (*models.Keyword, error) {
 
 func (s *Service) Create(text string, category *string) (*models.Keyword, error) {
 	now := time.Now().UTC()
-	builder := s.db.Client.Keyword.Create().
+	builder := s.client.Keyword.Create().
 		SetText(text).
 		SetIsActive(true).
 		SetCreatedAt(now).
@@ -68,7 +67,7 @@ func (s *Service) Create(text string, category *string) (*models.Keyword, error)
 
 func (s *Service) Update(id string, text *string, category *string) (*models.Keyword, error) {
 	now := time.Now().UTC()
-	builder := s.db.Client.Keyword.UpdateOneID(id).SetUpdatedAt(now)
+	builder := s.client.Keyword.UpdateOneID(id).SetUpdatedAt(now)
 	if text != nil {
 		builder = builder.SetText(*text)
 	}
@@ -83,12 +82,12 @@ func (s *Service) Update(id string, text *string, category *string) (*models.Key
 }
 
 func (s *Service) Delete(id string) error {
-	return s.db.Client.Keyword.DeleteOneID(id).Exec(context.Background())
+	return s.client.Keyword.DeleteOneID(id).Exec(context.Background())
 }
 
 func (s *Service) Toggle(id string) (*models.Keyword, error) {
 	ctx := context.Background()
-	row, err := s.db.Client.Keyword.Get(ctx, id)
+	row, err := s.client.Keyword.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}

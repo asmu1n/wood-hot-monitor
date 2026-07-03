@@ -7,52 +7,43 @@ import (
 	"sync"
 	"time"
 	"wood-hot-monitor/ent"
-	hsmodel "wood-hot-monitor/ent/hotspot"
 	kwmodel "wood-hot-monitor/ent/keyword"
+	"wood-hot-monitor/internal/biz/hotspot"
 	"wood-hot-monitor/internal/biz/quality"
+	"wood-hot-monitor/internal/biz/scraper"
 	"wood-hot-monitor/internal/core/config"
 	"wood-hot-monitor/internal/core/event"
-	"wood-hot-monitor/internal/core/models"
-	"wood-hot-monitor/internal/infra/database"
 	"wood-hot-monitor/internal/infra/email"
 	"wood-hot-monitor/internal/infra/llm"
-	"wood-hot-monitor/internal/infra/scraper"
-
-	"github.com/google/uuid"
 )
 
 const (
 	freshnessWindow     = 7 * 24 * time.Hour
 	maxResultsPerSource = 5
-	globalAICap         = 12
 	minRelevance        = 30
-)
-
-type CheckMessage = int
-
-const (
-	CheckStart CheckMessage = 1 + iota
-	CheckComplete
 )
 
 type EventEmitter func(eventName string, data any)
 
 type Service struct {
-	db       *database.DB
+	client   *ent.Client
 	cfg      *config.Service
 	llm      *llm.Service
+	hotspot  *hotspot.Service
 	notifier event.Notifier
 }
 
-func NewService(db *database.DB, cfg *config.Service, llm *llm.Service, notifier event.Notifier) *Service {
-	return &Service{db, cfg, llm, notifier}
+func NewService(client *ent.Client, cfg *config.Service, llm *llm.Service, hotspot *hotspot.Service, notifier event.Notifier) *Service {
+	return &Service{client, cfg, llm, hotspot, notifier}
 }
 
 func (s *Service) Run(ctx context.Context) error {
+	// 事件通知
 	s.notifier.Emit(event.EventCheckerStarted, nil)
 	defer s.notifier.Emit(event.EventCheckerCompleted, nil)
 
-	keywords, err := s.db.Client.Keyword.Query().
+	// 获取关键词
+	keywords, err := s.client.Keyword.Query().
 		Where(kwmodel.IsActive(true)).
 		All(ctx)
 	if err != nil {
@@ -64,172 +55,81 @@ func (s *Service) Run(ctx context.Context) error {
 		return nil
 	}
 
+	// 读取本地配置
 	cfg, err := s.cfg.Get()
 	if err != nil {
 		return fmt.Errorf("get config: %w", err)
 	}
 
 	twitterAPIKey, _ := cfg.Settings["twitterApiKey"].(string)
-	aiCount := 0
 
+	var wg sync.WaitGroup
 	for _, kw := range keywords {
 		if ctx.Err() != nil {
-			return ctx.Err()
+			break
 		}
 
-		expanded, err := s.llm.ExpandKeyword(ctx, kw.Text)
-		if err != nil {
-			log.Printf("checker: expand keyword %q failed: %v", kw.Text, err)
-			expanded = []string{kw.Text}
-		}
-
-		allResults := s.searchAllSources(ctx, kw.Text, twitterAPIKey)
-		allResults = scraper.DeduplicateByURL(allResults)
-		allResults = scraper.FilterByFreshness(allResults, freshnessWindow)
-		scraper.SortByPriority(allResults)
-		scored := quality.FilterAndSort(allResults)
-		limited := applySourceQuota(scored, maxResultsPerSource)
-
-		for _, sr := range limited {
-			preMatch := llm.PreMatchKeyword(sr.Title+" "+sr.Content, expanded)
-			analysis, err := s.llm.AnalyzeContent(ctx, sr.Content, kw.Text, &preMatch)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			expanded, err := s.llm.ExpandKeyword(ctx, kw.Text)
 			if err != nil {
-				log.Printf("checker: analyze content failed: %v", err)
-				continue
-			}
-			aiCount++
-
-			if analysis.Relevance < minRelevance {
-				continue
+				log.Printf("checker: expand keyword %q failed: %v", kw.Text, err)
+				expanded = []string{kw.Text}
 			}
 
-			hotspotID, isNew, err := s.upsertHotspot(ctx, sr.SearchResult, analysis, &kw.ID)
+			allResults := s.searchAllSources(ctx, kw.Text, twitterAPIKey)
+			allResults = scraper.DeduplicateByURL(allResults)
+			allResults = scraper.FilterByFreshness(allResults, freshnessWindow)
+			scraper.SortByPriority(allResults)
+			scored := quality.FilterAndSort(allResults)
+			limited := applySourceQuota(scored, maxResultsPerSource)
+
+			var contents []string
+			for _, sr := range limited {
+				contents = append(contents, sr.Title+" "+sr.Content)
+			}
+
+			analysisResults, err := s.llm.BatchAnalyze(ctx, contents, kw.Text, expanded)
 			if err != nil {
-				log.Printf("checker: upsert hotspot failed: %v", err)
-				continue
+				log.Printf("checker: batch analyze failed: %v", err)
+				return
 			}
 
-			if isNew {
-				s.notifier.Emit(event.EventHotspotNew, map[string]string{
-					"id":     hotspotID,
-					"title":  sr.Title,
-					"source": sr.Source,
-				})
+			for i, ar := range analysisResults {
+				if ar.Relevance < minRelevance {
+					continue
+				}
 
-				if analysis.Importance == "high" || analysis.Importance == "urgent" {
-					s.sendEmailAlert(cfg, sr.SearchResult, analysis)
+				targetSearchResult := limited[i].SearchResult
+
+				hotspotID, isNew, err := s.hotspot.UpsertHotspot(ctx, targetSearchResult, ar, &kw.ID)
+				if err != nil {
+					log.Printf("checker: upsert hotspot failed: %v", err)
+					continue
+				}
+
+				if isNew {
+					s.notifier.Emit(event.EventHotspotNew, map[string]string{
+						"id":     hotspotID,
+						"title":  targetSearchResult.Title,
+						"source": targetSearchResult.Source,
+					})
+
+					if ar.Importance == "high" || ar.Importance == "urgent" {
+						email.SendEmailAlert(cfg, targetSearchResult, ar)
+					}
 				}
 			}
-		}
+		}()
 	}
 
-	log.Printf("checker: run complete, %d AI analyses used", aiCount)
+	wg.Wait()
+
 	return nil
 }
 
-func (s *Service) upsertHotspot(ctx context.Context, r scraper.SearchResult, analysis *llm.AnalysisResult, keywordID *string) (string, bool, error) {
-	now := time.Now().UTC()
-
-	existing, err := s.db.Client.Hotspot.Query().
-		Where(hsmodel.URLEQ(r.URL), hsmodel.SourceEQ(r.Source)).
-		Only(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		return "", false, err
-	}
-
-	if existing != nil {
-		builder := s.db.Client.Hotspot.UpdateOneID(existing.ID).
-			SetTitle(r.Title).
-			SetContent(r.Content).
-			SetNillableSourceID(strPtr(r.SourceID)).
-			SetIsReal(analysis.IsReal).
-			SetRelevance(analysis.Relevance).
-			SetNillableRelevanceReason(strPtr(analysis.RelevanceReason)).
-			SetNillableKeywordMentioned(&analysis.KeywordMentioned).
-			SetImportance(analysis.Importance).
-			SetNillableSummary(strPtr(analysis.Summary)).
-			SetNillableViewCount(r.ViewCount).
-			SetNillableLikeCount(r.LikeCount).
-			SetNillableRetweetCount(r.RetweetCount).
-			SetNillableReplyCount(r.ReplyCount).
-			SetNillableCommentCount(r.CommentCount).
-			SetNillableQuoteCount(r.QuoteCount).
-			SetNillableDanmakuCount(r.DanmakuCount).
-			SetNillablePublishedAt(r.PublishedAt)
-
-		if r.Author != nil {
-			builder = builder.
-				SetNillableAuthorName(strPtr(r.Author.Name)).
-				SetNillableAuthorUsername(strPtr(r.Author.Username)).
-				SetNillableAuthorAvatar(strPtr(r.Author.Avatar))
-			if r.Author.Followers > 0 {
-				builder = builder.SetAuthorFollowers(r.Author.Followers)
-			}
-			if r.Author.Verified {
-				builder = builder.SetAuthorVerified(true)
-			}
-		}
-
-		if keywordID != nil {
-			builder = builder.SetKeywordID(*keywordID)
-		}
-
-		if err := builder.Exec(ctx); err != nil {
-			return "", false, err
-		}
-		return existing.ID, false, nil
-	}
-
-	builder := s.db.Client.Hotspot.Create().
-		SetID(uuid.NewString()).
-		SetTitle(r.Title).
-		SetContent(r.Content).
-		SetURL(r.URL).
-		SetSource(r.Source).
-		SetNillableSourceID(strPtr(r.SourceID)).
-		SetIsReal(analysis.IsReal).
-		SetRelevance(analysis.Relevance).
-		SetNillableRelevanceReason(strPtr(analysis.RelevanceReason)).
-		SetNillableKeywordMentioned(&analysis.KeywordMentioned).
-		SetImportance(analysis.Importance).
-		SetNillableSummary(strPtr(analysis.Summary)).
-		SetNillableViewCount(r.ViewCount).
-		SetNillableLikeCount(r.LikeCount).
-		SetNillableRetweetCount(r.RetweetCount).
-		SetNillableReplyCount(r.ReplyCount).
-		SetNillableCommentCount(r.CommentCount).
-		SetNillableQuoteCount(r.QuoteCount).
-		SetNillableDanmakuCount(r.DanmakuCount).
-		SetNillablePublishedAt(r.PublishedAt).
-		SetIsNotified(true).
-		SetNotifiedAt(now).
-		SetIsRead(false).
-		SetCreatedAt(now)
-
-	if r.Author != nil {
-		builder = builder.
-			SetNillableAuthorName(strPtr(r.Author.Name)).
-			SetNillableAuthorUsername(strPtr(r.Author.Username)).
-			SetNillableAuthorAvatar(strPtr(r.Author.Avatar))
-		if r.Author.Followers > 0 {
-			builder = builder.SetAuthorFollowers(r.Author.Followers)
-		}
-		if r.Author.Verified {
-			builder = builder.SetAuthorVerified(true)
-		}
-	}
-
-	if keywordID != nil {
-		builder = builder.SetKeywordID(*keywordID)
-	}
-
-	h, err := builder.Save(ctx)
-	if err != nil {
-		return "", false, err
-	}
-	return h.ID, true, nil
-}
-
+// 爬取所有来源
 func (s *Service) searchAllSources(ctx context.Context, query, twitterAPIKey string) []scraper.SearchResult {
 	type sourceResult struct {
 		results []scraper.SearchResult
@@ -279,6 +179,7 @@ func (s *Service) searchAllSources(ctx context.Context, query, twitterAPIKey str
 	return all
 }
 
+// 数据数量过滤
 func applySourceQuota(results []quality.ScoredResult, maxPerSource int) []quality.ScoredResult {
 	counts := make(map[string]int)
 	var out []quality.ScoredResult
@@ -290,27 +191,4 @@ func applySourceQuota(results []quality.ScoredResult, maxPerSource int) []qualit
 		out = append(out, r)
 	}
 	return out
-}
-
-func (s *Service) sendEmailAlert(cfg *models.AppConfig, r scraper.SearchResult, analysis *llm.AnalysisResult) {
-	resendKey, _ := cfg.Settings["resendApiKey"].(string)
-	if resendKey == "" || cfg.EmailAddress == "" {
-		return
-	}
-
-	emailSvc := email.NewService(resendKey, "noreply@woodmonitor.app")
-	summary := analysis.Summary
-	if summary == "" {
-		summary = r.Content
-	}
-	if err := emailSvc.SendHotspotAlert(cfg.EmailAddress, r.Title, r.Source, analysis.Importance, summary, r.URL); err != nil {
-		log.Printf("checker: send email failed: %v", err)
-	}
-}
-
-func strPtr(s string) *string {
-	if s == "" {
-		return nil
-	}
-	return &s
 }

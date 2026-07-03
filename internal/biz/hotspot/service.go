@@ -10,17 +10,18 @@ import (
 	hsmodel "wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/predicate"
 	"wood-hot-monitor/internal/core/models"
-	"wood-hot-monitor/internal/infra/database"
+
+	"github.com/google/uuid"
 )
 
 type CheckFunc func(ctx context.Context) error
 
 type Service struct {
-	db *database.DB
+	client *ent.Client
 }
 
-func NewService(db *database.DB) *Service {
-	return &Service{db: db}
+func NewService(client *ent.Client) *Service {
+	return &Service{client: client}
 }
 
 type GetAllParams struct {
@@ -52,14 +53,14 @@ func (s *Service) GetAll(params GetAllParams) (*models.PaginatedResult[models.Ho
 
 	timeFrom, timeTo := resolveTimeRange(params.TimeRange, params.TimeFrom, params.TimeTo)
 
-	preds = append(preds, database.OptionalVal(params.Source, hsmodel.SourceEQ)...)
-	preds = append(preds, database.OptionalVal(params.Importance, hsmodel.ImportanceEQ)...)
-	preds = append(preds, database.OptionalVal(params.KeywordID, hsmodel.KeywordIDEQ)...)
-	preds = append(preds, database.OptionalVal(params.IsReal, hsmodel.IsRealEQ)...)
-	preds = append(preds, database.OptionalVal(timeFrom, hsmodel.CreatedAtGTE)...)
-	preds = append(preds, database.OptionalVal(timeTo, hsmodel.CreatedAtLTE)...)
+	preds = append(preds, optionalVal(params.Source, hsmodel.SourceEQ)...)
+	preds = append(preds, optionalVal(params.Importance, hsmodel.ImportanceEQ)...)
+	preds = append(preds, optionalVal(params.KeywordID, hsmodel.KeywordIDEQ)...)
+	preds = append(preds, optionalVal(params.IsReal, hsmodel.IsRealEQ)...)
+	preds = append(preds, optionalVal(timeFrom, hsmodel.CreatedAtGTE)...)
+	preds = append(preds, optionalVal(timeTo, hsmodel.CreatedAtLTE)...)
 
-	query := s.db.Client.Hotspot.Query()
+	query := s.client.Hotspot.Query()
 	if len(preds) > 0 {
 		query = query.Where(preds...)
 	}
@@ -105,7 +106,7 @@ func (s *Service) GetAll(params GetAllParams) (*models.PaginatedResult[models.Ho
 }
 
 func (s *Service) GetByID(id string) (*models.Hotspot, error) {
-	row, err := s.db.Client.Hotspot.Query().
+	row, err := s.client.Hotspot.Query().
 		Where(hsmodel.IDEQ(id)).
 		WithKeyword().
 		Only(context.Background())
@@ -120,7 +121,7 @@ func (s *Service) GetByID(id string) (*models.Hotspot, error) {
 }
 
 func (s *Service) Delete(id string) error {
-	return s.db.Client.Hotspot.DeleteOneID(id).Exec(context.Background())
+	return s.client.Hotspot.DeleteOneID(id).Exec(context.Background())
 }
 
 func (s *Service) Search(query string, sources []string) ([]models.Hotspot, error) {
@@ -137,7 +138,7 @@ func (s *Service) Search(query string, sources []string) ([]models.Hotspot, erro
 		preds = append(preds, hsmodel.SourceIn(sources...))
 	}
 
-	rows, err := s.db.Client.Hotspot.Query().
+	rows, err := s.client.Hotspot.Query().
 		Where(preds...).
 		Order(ent.Desc(hsmodel.FieldRelevance), ent.Desc(hsmodel.FieldCreatedAt)).
 		Limit(50).
@@ -152,6 +153,109 @@ func (s *Service) Search(query string, sources []string) ([]models.Hotspot, erro
 		result[i] = mapHotspot(row)
 	}
 	return result, nil
+}
+
+func (s *Service) UpsertHotspot(ctx context.Context, r models.SearchResult, analysis *models.AnalysisResult, keywordID *string) (string, bool, error) {
+	now := time.Now().UTC()
+
+	existing, err := s.client.Hotspot.Query().
+		Where(hsmodel.URLEQ(r.URL), hsmodel.SourceEQ(r.Source)).
+		Only(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return "", false, err
+	}
+
+	if existing != nil {
+		builder := s.client.Hotspot.UpdateOneID(existing.ID).
+			SetTitle(r.Title).
+			SetContent(r.Content).
+			SetNillableSourceID(strPtr(r.SourceID)).
+			SetIsReal(analysis.IsReal).
+			SetRelevance(analysis.Relevance).
+			SetNillableRelevanceReason(strPtr(analysis.RelevanceReason)).
+			SetNillableKeywordMentioned(&analysis.KeywordMentioned).
+			SetImportance(analysis.Importance).
+			SetNillableSummary(strPtr(analysis.Summary)).
+			SetNillableViewCount(r.ViewCount).
+			SetNillableLikeCount(r.LikeCount).
+			SetNillableRetweetCount(r.RetweetCount).
+			SetNillableReplyCount(r.ReplyCount).
+			SetNillableCommentCount(r.CommentCount).
+			SetNillableQuoteCount(r.QuoteCount).
+			SetNillableDanmakuCount(r.DanmakuCount).
+			SetNillablePublishedAt(r.PublishedAt)
+
+		if r.Author != nil {
+			builder = builder.
+				SetNillableAuthorName(strPtr(r.Author.Name)).
+				SetNillableAuthorUsername(strPtr(r.Author.Username)).
+				SetNillableAuthorAvatar(strPtr(r.Author.Avatar))
+			if r.Author.Followers > 0 {
+				builder = builder.SetAuthorFollowers(r.Author.Followers)
+			}
+			if r.Author.Verified {
+				builder = builder.SetAuthorVerified(true)
+			}
+		}
+
+		if keywordID != nil {
+			builder = builder.SetKeywordID(*keywordID)
+		}
+
+		if err := builder.Exec(ctx); err != nil {
+			return "", false, err
+		}
+		return existing.ID, false, nil
+	}
+
+	builder := s.client.Hotspot.Create().
+		SetID(uuid.NewString()).
+		SetTitle(r.Title).
+		SetContent(r.Content).
+		SetURL(r.URL).
+		SetSource(r.Source).
+		SetNillableSourceID(strPtr(r.SourceID)).
+		SetIsReal(analysis.IsReal).
+		SetRelevance(analysis.Relevance).
+		SetNillableRelevanceReason(strPtr(analysis.RelevanceReason)).
+		SetNillableKeywordMentioned(&analysis.KeywordMentioned).
+		SetImportance(analysis.Importance).
+		SetNillableSummary(strPtr(analysis.Summary)).
+		SetNillableViewCount(r.ViewCount).
+		SetNillableLikeCount(r.LikeCount).
+		SetNillableRetweetCount(r.RetweetCount).
+		SetNillableReplyCount(r.ReplyCount).
+		SetNillableCommentCount(r.CommentCount).
+		SetNillableQuoteCount(r.QuoteCount).
+		SetNillableDanmakuCount(r.DanmakuCount).
+		SetNillablePublishedAt(r.PublishedAt).
+		SetIsNotified(true).
+		SetNotifiedAt(now).
+		SetIsRead(false).
+		SetCreatedAt(now)
+
+	if r.Author != nil {
+		builder = builder.
+			SetNillableAuthorName(strPtr(r.Author.Name)).
+			SetNillableAuthorUsername(strPtr(r.Author.Username)).
+			SetNillableAuthorAvatar(strPtr(r.Author.Avatar))
+		if r.Author.Followers > 0 {
+			builder = builder.SetAuthorFollowers(r.Author.Followers)
+		}
+		if r.Author.Verified {
+			builder = builder.SetAuthorVerified(true)
+		}
+	}
+
+	if keywordID != nil {
+		builder = builder.SetKeywordID(*keywordID)
+	}
+
+	h, err := builder.Save(ctx)
+	if err != nil {
+		return "", false, err
+	}
+	return h.ID, true, nil
 }
 
 func resolveTimeRange(timeRange, timeFrom, timeTo *string) (*time.Time, *time.Time) {
@@ -226,4 +330,18 @@ func mapHotspot(h *ent.Hotspot) models.Hotspot {
 		m.Keyword = &models.HotspotKeyword{ID: kw.ID, Text: kw.Text, Category: kw.Category}
 	}
 	return m
+}
+
+func strPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+func optionalVal[T any, P any](val *T, fn func(T) P) []P {
+	if val == nil {
+		return nil
+	}
+	return []P{fn(*val)}
 }

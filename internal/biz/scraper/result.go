@@ -5,37 +5,12 @@ import (
 	"net/http"
 	"sort"
 	"time"
+
+	"wood-hot-monitor/internal/core/models"
 )
 
-// SearchResult 表示从任意来源抓取到的一条搜索结果
-type SearchResult struct {
-	Title    string  `json:"title"`
-	Content  string  `json:"content"`
-	URL      string  `json:"url"`
-	Source   string  `json:"source"`
-	SourceID string  `json:"sourceId"`
-	Author   *Author `json:"author"`
-
-	// 互动指标（各平台按需填充）
-	ViewCount    *int `json:"viewCount"`
-	LikeCount    *int `json:"likeCount"`
-	RetweetCount *int `json:"retweetCount"`
-	ReplyCount   *int `json:"replyCount"`
-	CommentCount *int `json:"commentCount"`
-	QuoteCount   *int `json:"quoteCount"`
-	DanmakuCount *int `json:"danmakuCount"`
-
-	PublishedAt *time.Time `json:"publishedAt"`
-}
-
-// Author 表示内容发布者信息
-type Author struct {
-	Name      string `json:"name"`
-	Username  string `json:"username"`
-	Avatar    string `json:"avatar"`
-	Followers int    `json:"followers"`
-	Verified  bool   `json:"verified"`
-}
+type SearchResult = models.SearchResult
+type Author = models.Author
 
 // sourcePriority 平台优先级映射，数值越小越优先
 // 参考 hotspotCheck.ts: twitter > weibo > bilibili > hackernews > sogou > bing > google > duckduckgo
@@ -51,7 +26,7 @@ var sourcePriority = map[string]int{
 }
 
 // userAgents 随机 User-Agent 池，模拟真实浏览器请求
-var userAgents = []string{
+var userAgents = [4]string{
 	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
 	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
 	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",

@@ -5,7 +5,7 @@ import (
 	"sort"
 	"time"
 
-	"wood-hot-monitor/internal/infra/scraper"
+	"wood-hot-monitor/internal/core/models"
 )
 
 // 质量评分三维度权重配置（按平台区分）
@@ -47,12 +47,12 @@ var defaultThreshold = PlatformThreshold{MinScore: 5}
 
 // ScoredResult 附带质量分数的搜索结果
 type ScoredResult struct {
-	scraper.SearchResult
+	models.SearchResult
 	QualityScore float64
 }
 
 // ScoreResult 对单条结果计算质量分数（0~100）
-func ScoreResult(r scraper.SearchResult) float64 {
+func ScoreResult(r models.SearchResult) float64 {
 	w := defaultWeights
 	if pw, ok := platformWeights[r.Source]; ok {
 		w = pw
@@ -62,11 +62,11 @@ func ScoreResult(r scraper.SearchResult) float64 {
 	auth := authorityScore(r)
 	rec := recencyScore(r)
 
-	return clamp(eng*w.Engagement+auth*w.Authority+rec*w.Recency, 0, 100)
+	return max(0, min(eng*w.Engagement+auth*w.Authority+rec*w.Recency, 100))
 }
 
 // FilterAndSort 过滤低于平台阈值的结果，按质量分降序排列
-func FilterAndSort(results []scraper.SearchResult) []ScoredResult {
+func FilterAndSort(results []models.SearchResult) []ScoredResult {
 	var scored []ScoredResult
 	for _, r := range results {
 		score := ScoreResult(r)
@@ -84,9 +84,7 @@ func FilterAndSort(results []scraper.SearchResult) []ScoredResult {
 	return scored
 }
 
-// engagementScore 计算互动指标得分（0~100）
-// 综合点赞、评论、转发、播放等指标，使用对数缩放
-func engagementScore(r scraper.SearchResult) float64 {
+func engagementScore(r models.SearchResult) float64 {
 	total := 0.0
 	if r.LikeCount != nil {
 		total += float64(*r.LikeCount) * 1.0
@@ -113,11 +111,11 @@ func engagementScore(r scraper.SearchResult) float64 {
 		return 10
 	}
 	// 对数缩放：log10(total+1) * 20，上限100
-	return clamp(math.Log10(total+1)*20, 0, 100)
+	return max(0.0, min(math.Log10(total+1)*20, 100))
 }
 
 // authorityScore 计算作者权威度得分（0~100）
-func authorityScore(r scraper.SearchResult) float64 {
+func authorityScore(r models.SearchResult) float64 {
 	if r.Author == nil {
 		return 20
 	}
@@ -127,13 +125,13 @@ func authorityScore(r scraper.SearchResult) float64 {
 	}
 	if r.Author.Followers > 0 {
 		// 粉丝数对数缩放
-		score += clamp(math.Log10(float64(r.Author.Followers))*10, 0, 50)
+		score += max(0.0, min(math.Log10(float64(r.Author.Followers))*10, 50))
 	}
-	return clamp(score, 0, 100)
+	return max(0.0, min(score, 100))
 }
 
 // recencyScore 计算时效性得分（0~100），基于时间衰减
-func recencyScore(r scraper.SearchResult) float64 {
+func recencyScore(r models.SearchResult) float64 {
 	if r.PublishedAt == nil {
 		return 30
 	}
@@ -142,15 +140,5 @@ func recencyScore(r scraper.SearchResult) float64 {
 		hours = 0
 	}
 	// 指数衰减：1h=100, 24h≈60, 72h≈30, 168h(7d)≈10
-	return clamp(100*math.Exp(-hours/72), 0, 100)
-}
-
-func clamp(v, lo, hi float64) float64 {
-	if v < lo {
-		return lo
-	}
-	if v > hi {
-		return hi
-	}
-	return v
+	return max(0.0, min(100*math.Exp(-hours/72), 100))
 }

@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type Keyword struct {
 	ID           string  `json:"id"`
 	Text         string  `json:"text"`
@@ -79,4 +81,44 @@ type KeywordExpansion struct {
 	Keyword   string `json:"keyword"`
 	Expansion string `json:"expansion"`
 	CreatedAt string `json:"createdAt"`
+}
+
+// SearchResult 表示从任意来源抓取到的一条搜索结果
+type SearchResult struct {
+	Title    string  `json:"title"`
+	Content  string  `json:"content"`
+	URL      string  `json:"url"`
+	Source   string  `json:"source"`
+	SourceID string  `json:"sourceId"`
+	Author   *Author `json:"author"`
+
+	// 互动指标（各平台按需填充）
+	ViewCount    *int `json:"viewCount"`
+	LikeCount    *int `json:"likeCount"`
+	RetweetCount *int `json:"retweetCount"`
+	ReplyCount   *int `json:"replyCount"`
+	CommentCount *int `json:"commentCount"`
+	QuoteCount   *int `json:"quoteCount"`
+	DanmakuCount *int `json:"danmakuCount"`
+
+	PublishedAt *time.Time `json:"publishedAt"`
+}
+
+// Author 表示内容发布者信息
+type Author struct {
+	Name      string `json:"name"`
+	Username  string `json:"username"`
+	Avatar    string `json:"avatar"`
+	Followers int    `json:"followers"`
+	Verified  bool   `json:"verified"`
+}
+
+// AnalysisResult 表示 LLM 内容分析的结构化结果
+type AnalysisResult struct {
+	IsReal           bool   `json:"isReal"`
+	Relevance        int    `json:"relevance"`
+	RelevanceReason  string `json:"relevanceReason"`
+	KeywordMentioned bool   `json:"keywordMentioned"`
+	Importance       string `json:"importance"`
+	Summary          string `json:"summary"`
 }
