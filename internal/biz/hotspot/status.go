@@ -8,9 +8,7 @@ import (
 	"wood-hot-monitor/internal/core/models"
 )
 
-func (s *Service) GetStatus() (*models.Status, error) {
-	ctx := context.Background()
-
+func (s *Service) GetStatus(ctx context.Context) (*models.Status, error) {
 	total, _ := s.client.Hotspot.Query().Count(ctx)
 
 	todayStart := time.Now().UTC().Truncate(24 * time.Hour)
@@ -43,8 +41,7 @@ func (s *Service) GetStatus() (*models.Status, error) {
 	}, nil
 }
 
-func (s *Service) GetNotifications(limit int) ([]models.Hotspot, error) {
-	ctx := context.Background()
+func (s *Service) GetNotifications(ctx context.Context, limit int) ([]models.Hotspot, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -66,21 +63,21 @@ func (s *Service) GetNotifications(limit int) ([]models.Hotspot, error) {
 	return result, nil
 }
 
-func (s *Service) UnreadCount() (int, error) {
+func (s *Service) UnreadCount(ctx context.Context) (int, error) {
 	return s.client.Hotspot.Query().
 		Where(hsmodel.IsNotified(true), hsmodel.IsRead(false)).
-		Count(context.Background())
+		Count(ctx)
 }
 
-func (s *Service) MarkRead(id string) error {
+func (s *Service) MarkRead(ctx context.Context, id string) error {
 	return s.client.Hotspot.UpdateOneID(id).
 		SetIsRead(true).
-		Exec(context.Background())
+		Exec(ctx)
 }
 
-func (s *Service) MarkAllRead() error {
+func (s *Service) MarkAllRead(ctx context.Context) error {
 	return s.client.Hotspot.Update().
 		Where(hsmodel.IsNotified(true), hsmodel.IsRead(false)).
 		SetIsRead(true).
-		Exec(context.Background())
+		Exec(ctx)
 }

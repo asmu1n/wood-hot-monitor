@@ -41,7 +41,7 @@ func (s *Service) Run(ctx context.Context) error {
 	defer s.notifier.Emit(event.EventCheckerCompleted, nil)
 
 	// 获取活跃关键词
-	keywords, err := s.keyword.GetAll(true)
+	keywords, err := s.keyword.GetAll(ctx, true)
 	if err != nil {
 		return fmt.Errorf("list keywords: %w", err)
 	}
@@ -111,7 +111,7 @@ func (s *Service) Run(ctx context.Context) error {
 						"title":  targetSearchResult.Title,
 						"source": targetSearchResult.Source,
 					})
-
+					log.Printf("checker: new hotspot: %s", targetSearchResult.Title)
 					if ar.Importance == "high" || ar.Importance == "urgent" {
 						email.SendEmailAlert(cfg, targetSearchResult, ar)
 					}

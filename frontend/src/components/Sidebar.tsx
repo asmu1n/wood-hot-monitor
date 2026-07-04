@@ -6,7 +6,7 @@ const navItems = [
     { to: '/', label: '热点雷达', icon: Activity },
     { to: '/keywords', label: '监控词', icon: Target },
     { to: '/search', label: '搜索', icon: Search },
-    { to: '/settings', label: '设置', icon: Settings },
+    { to: '/settings', label: '设置', icon: Settings }
 ] as const;
 
 interface SidebarProps {
@@ -16,7 +16,7 @@ interface SidebarProps {
 export function Sidebar({ status }: SidebarProps) {
     return (
         <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border flex h-screen w-56 shrink-0 flex-col border-r">
-            <div className="border-sidebar-border flex items-center gap-3 border-b px-5 py-4">
+            <div className="border-sidebar-border flex items-center gap-3 border-b px-5 py-3">
                 <div className="bg-sidebar-primary flex h-9 w-9 items-center justify-center rounded-lg">
                     <Flame className="text-sidebar-primary-foreground h-[18px] w-[18px]" />
                 </div>

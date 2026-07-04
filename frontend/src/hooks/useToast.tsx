@@ -1,3 +1,4 @@
+import Toast from '@/components/Toast';
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 
 type ToastData = { message: string; type: 'success' | 'error' } | null;
@@ -17,7 +18,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         setTimeout(() => setToast(null), 3000);
     }, []);
 
-    return <ToastContext.Provider value={{ toast, showToast }}>{children}</ToastContext.Provider>;
+    return (
+        <ToastContext.Provider value={{ toast, showToast }}>
+            <>
+                <Toast toast={toast} />
+                {children}
+            </>
+        </ToastContext.Provider>
+    );
 }
 
 export function useToast() {

@@ -10,25 +10,24 @@ import HotSpotCard from '@/features/hotspot/components/HotSpotCard';
 import HotSpotPagination from '@/features/hotspot/components/HotSpotPagination';
 
 function Dashboard() {
-    const { hotSpots, isLoading, status, dashboardFilters, setDashboardFilters, currentPage, setCurrentPage, totalPages } = useHotspots();
+    const { hotSpots, isLoading, status, dashboardFilters, currentPage, setDashboardFilters, setCurrentPage, totalPages } = useHotspots();
     const { keywords } = useKeywords();
     const { expandedReasons, expandedContents, allReasonsExpanded, toggleReason, toggleContent, toggleAllReasons } = useHotspotExpand();
 
     const activeKeywordsCount = keywords.filter(k => k.isActive).length;
 
     return (
-        <div className="space-y-8">
+        <div className="flex h-full flex-col space-y-4">
             {/* Hero Stats */}
-            <StatusCards stats={status} activeKeywordsCount={activeKeywordsCount} />
+            <StatusCards className="flex-none" stats={status} activeKeywordsCount={activeKeywordsCount} />
 
             {/* Hotspots Feed */}
-            <div>
+            <div className="flex-1 overflow-y-auto">
                 <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-foreground flex items-center gap-2 text-lg font-semibold">
                         <Flame className="text-primary h-5 w-5" />
                         实时热点流
                     </h2>
-                    <span className="text-muted-foreground text-xs opacity-60">每 30 分钟自动更新</span>
                 </div>
 
                 {/* Filter & Sort Bar */}
@@ -49,7 +48,7 @@ function Dashboard() {
                         <p className="text-muted-foreground mt-1 text-sm">添加监控关键词开始追踪</p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-3 overflow-y-scroll">
                         {/* 一键展开/折叠所有理由 */}
                         {hotSpots.some(h => h.relevanceReason) && (
                             <div className="flex justify-end">
@@ -75,10 +74,15 @@ function Dashboard() {
                         ))}
                     </div>
                 )}
-
-                {/* Pagination */}
-                <HotSpotPagination currentPage={currentPage} totalPages={totalPages} totalItems={status?.total || 0} onPageChange={setCurrentPage} />
             </div>
+            {/* Pagination */}
+            <HotSpotPagination
+                className="flex-none"
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={status?.total || 0}
+                onPageChange={setCurrentPage}
+            />
         </div>
     );
 }

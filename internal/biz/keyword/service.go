@@ -16,8 +16,7 @@ func NewService(client *ent.Client) *Service {
 	return &Service{client: client}
 }
 
-func (s *Service) GetAll(activeOnly bool) ([]models.Keyword, error) {
-	ctx := context.Background()
+func (s *Service) GetAll(ctx context.Context, activeOnly bool) ([]models.Keyword, error) {
 	query := s.client.Keyword.Query().Order(ent.Desc(kwmodel.FieldCreatedAt))
 	if activeOnly {
 		query = query.Where(kwmodel.IsActive(true))
@@ -37,8 +36,8 @@ func (s *Service) GetAll(activeOnly bool) ([]models.Keyword, error) {
 	return result, nil
 }
 
-func (s *Service) GetByID(id string) (*models.Keyword, error) {
-	row, err := s.client.Keyword.Get(context.Background(), id)
+func (s *Service) GetByID(ctx context.Context, id string) (*models.Keyword, error) {
+	row, err := s.client.Keyword.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +45,7 @@ func (s *Service) GetByID(id string) (*models.Keyword, error) {
 	return &m, nil
 }
 
-func (s *Service) Create(text string, category *string) (*models.Keyword, error) {
+func (s *Service) Create(ctx context.Context, text string, category *string) (*models.Keyword, error) {
 	now := time.Now().UTC()
 	builder := s.client.Keyword.Create().
 		SetText(text).
@@ -57,7 +56,7 @@ func (s *Service) Create(text string, category *string) (*models.Keyword, error)
 		builder = builder.SetCategory(*category)
 	}
 
-	row, err := builder.Save(context.Background())
+	row, err := builder.Save(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +64,7 @@ func (s *Service) Create(text string, category *string) (*models.Keyword, error)
 	return &m, nil
 }
 
-func (s *Service) Update(id string, text *string, category *string) (*models.Keyword, error) {
+func (s *Service) Update(ctx context.Context, id string, text *string, category *string) (*models.Keyword, error) {
 	now := time.Now().UTC()
 	builder := s.client.Keyword.UpdateOneID(id).SetUpdatedAt(now)
 	if text != nil {
@@ -75,18 +74,17 @@ func (s *Service) Update(id string, text *string, category *string) (*models.Key
 		builder = builder.SetCategory(*category)
 	}
 
-	if _, err := builder.Save(context.Background()); err != nil {
+	if _, err := builder.Save(ctx); err != nil {
 		return nil, err
 	}
-	return s.GetByID(id)
+	return s.GetByID(ctx, id)
 }
 
-func (s *Service) Delete(id string) error {
-	return s.client.Keyword.DeleteOneID(id).Exec(context.Background())
+func (s *Service) Delete(ctx context.Context, id string) error {
+	return s.client.Keyword.DeleteOneID(id).Exec(ctx)
 }
 
-func (s *Service) Toggle(id string) (*models.Keyword, error) {
-	ctx := context.Background()
+func (s *Service) Toggle(ctx context.Context, id string) (*models.Keyword, error) {
 	row, err := s.client.Keyword.Get(ctx, id)
 	if err != nil {
 		return nil, err

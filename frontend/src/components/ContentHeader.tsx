@@ -38,6 +38,7 @@ export function ContentHeader({
             <h1 className="text-foreground text-lg font-semibold">{title}</h1>
 
             <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-xs opacity-60">每 30 分钟自动更新</span>
                 <button
                     onClick={onManualCheck}
                     disabled={isChecking}
@@ -56,7 +57,7 @@ export function ContentHeader({
                         <Bell className="text-muted-foreground h-[18px] w-[18px]" />
                         {unreadCount > 0 && (
                             <span className="bg-destructive text-destructive-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold">
-                                {unreadCount > 9 ? '9+' : unreadCount}
+                                {unreadCount > 99 ? '99+' : unreadCount}
                             </span>
                         )}
                     </button>

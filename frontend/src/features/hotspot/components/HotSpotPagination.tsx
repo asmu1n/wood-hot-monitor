@@ -3,19 +3,20 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/ui';
 
 interface HotSpotPaginationProps {
+    className?: string;
     currentPage: number;
     totalPages: number;
     totalItems: number;
     onPageChange: (page: number) => void;
 }
 
-const HotSpotPagination: React.FC<HotSpotPaginationProps> = ({ currentPage, totalPages, totalItems, onPageChange }) => {
+const HotSpotPagination: React.FC<HotSpotPaginationProps> = ({ className, currentPage, totalPages, totalItems, onPageChange }) => {
     if (totalPages <= 1) {
         return null;
     }
 
     return (
-        <div className="mt-6 flex items-center justify-center gap-3">
+        <div className={cn('mt-2 flex items-center justify-center gap-3', className)}>
             <button
                 onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                 disabled={currentPage <= 1}

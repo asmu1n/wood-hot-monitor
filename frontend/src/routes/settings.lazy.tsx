@@ -17,6 +17,9 @@ interface FormState {
     resendApiKey: string;
 }
 
+const CLS_INPUT =
+    'border-border bg-background text-foreground placeholder-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20 w-full rounded-lg border px-3 py-2.5 text-sm transition-all focus:ring-2 focus:outline-none';
+
 // 1. 父组件：负责数据获取和加载状态
 function SettingsPage() {
     const { data: config, isLoading } = useQuery({
@@ -90,35 +93,38 @@ function SettingsForm({ config }: { config: any }) {
             setForm(prev => ({ ...prev, [key]: key === 'checkInterval' ? Number(e.target.value) || 0 : e.target.value }));
         };
 
-    const inputCls =
-        'border-border bg-background text-foreground placeholder-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20 w-full rounded-lg border px-3 py-2.5 text-sm transition-all focus:ring-2 focus:outline-none';
-
     return (
         <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-8">
             <Section icon={Brain} title="LLM 配置">
                 <Field label="服务提供商" hint="如 openai、deepseek 等">
-                    <input value={form.llmProvider} onChange={set('llmProvider')} placeholder="openai" className={inputCls} />
+                    <input value={form.llmProvider} onChange={set('llmProvider')} placeholder="openai" className={CLS_INPUT} />
                 </Field>
                 <Field label="模型">
-                    <input value={form.llmModel} onChange={set('llmModel')} placeholder="Pro/deepseek-ai/DeepSeek-V3.2" className={inputCls} />
+                    <input value={form.llmModel} onChange={set('llmModel')} placeholder="Pro/deepseek-ai/DeepSeek-V3.2" className={CLS_INPUT} />
                 </Field>
                 <Field label="API Key">
-                    <input type="password" value={form.llmApiKey} onChange={set('llmApiKey')} placeholder="sk-..." className={inputCls} />
+                    <input type="password" value={form.llmApiKey} onChange={set('llmApiKey')} placeholder="sk-..." className={CLS_INPUT} />
                 </Field>
                 <Field label="Base URL" hint="自定义接入地址">
-                    <input value={form.llmBaseUrl} onChange={set('llmBaseUrl')} placeholder="https://api.openai.com/v1" className={inputCls} />
+                    <input value={form.llmBaseUrl} onChange={set('llmBaseUrl')} placeholder="https://api.openai.com/v1" className={CLS_INPUT} />
                 </Field>
             </Section>
 
             <Section icon={Clock} title="监控配置">
                 <Field label="检查间隔（分钟）">
-                    <input type="number" min={1} value={form.checkInterval} onChange={set('checkInterval')} className={inputCls} />
+                    <input type="number" min={1} value={form.checkInterval} onChange={set('checkInterval')} className={CLS_INPUT} />
                 </Field>
             </Section>
 
             <Section icon={Mail} title="通知配置">
                 <Field label="通知邮箱">
-                    <input type="email" value={form.emailAddress} onChange={set('emailAddress')} placeholder="you@example.com" className={inputCls} />
+                    <input
+                        type="email"
+                        value={form.emailAddress}
+                        onChange={set('emailAddress')}
+                        placeholder="you@example.com"
+                        className={CLS_INPUT}
+                    />
                 </Field>
             </Section>
 
@@ -129,11 +135,11 @@ function SettingsForm({ config }: { config: any }) {
                         value={form.twitterApiKey}
                         onChange={set('twitterApiKey')}
                         placeholder="输入 Twitter API Key"
-                        className={inputCls}
+                        className={CLS_INPUT}
                     />
                 </Field>
                 <Field label="Resend API Key">
-                    <input type="password" value={form.resendApiKey} onChange={set('resendApiKey')} placeholder="re_..." className={inputCls} />
+                    <input type="password" value={form.resendApiKey} onChange={set('resendApiKey')} placeholder="re_..." className={CLS_INPUT} />
                 </Field>
             </Section>
 

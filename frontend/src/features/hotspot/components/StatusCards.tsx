@@ -1,20 +1,21 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Activity, Clock, AlertTriangle, Target } from 'lucide-react';
 import type { Status } from '@/types';
+import { cn } from '@/lib/ui';
 
 interface StatsCardsProps {
     stats: Status | null;
     activeKeywordsCount: number;
+    className?: string;
 }
 
-const StatusCards: React.FC<StatsCardsProps> = ({ stats, activeKeywordsCount }) => {
+function StatusCards({ stats, activeKeywordsCount, className }: StatsCardsProps) {
     if (!stats) {
         return null;
     }
 
     return (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className={cn('grid grid-cols-2 gap-4 lg:grid-cols-4', className)}>
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -63,6 +64,6 @@ const StatusCards: React.FC<StatsCardsProps> = ({ stats, activeKeywordsCount }) 
             </motion.div>
         </div>
     );
-};
+}
 
 export default StatusCards;

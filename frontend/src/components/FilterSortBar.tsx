@@ -25,6 +25,7 @@ export const defaultFilterState: FilterState = {
 };
 
 interface FilterSortBarProps {
+    className?: string;
     filters: FilterState;
     onChange: (filters: FilterState) => void;
     keywords: Keyword[];
@@ -137,7 +138,7 @@ function Dropdown({
     );
 }
 
-export default function FilterSortBar({ filters, onChange, keywords }: FilterSortBarProps) {
+export default function FilterSortBar({ className, filters, keywords, onChange }: FilterSortBarProps) {
     const [showFilters, setShowFilters] = useState(false);
 
     const activeFilterCount = [filters.source, filters.importance, filters.keywordId, filters.timeRange, filters.isReal].filter(v => v !== '').length;
@@ -155,7 +156,7 @@ export default function FilterSortBar({ filters, onChange, keywords }: FilterSor
     const keywordOptions = [{ value: '', label: '全部关键词' }, ...keywords.filter(k => k.isActive).map(k => ({ value: k.id, label: k.text }))];
 
     return (
-        <div className="space-y-3">
+        <div className={cn('space-y-3', className)}>
             {/* Main Bar: Sort + Filter Toggle */}
             <div className="flex flex-wrap items-center gap-2">
                 {/* Sort Selector */}

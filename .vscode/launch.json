@@ -8,6 +8,20 @@
             "mode": "auto",
             "program": "${workspaceFolder}",
             "cwd": "${workspaceFolder}"
-        }
+        },
+        {
+            "type": "chrome",
+            "name": "Launch Mac for webapp",
+            "request": "launch",
+            "runtimeArgs": [
+                "--remote-debugging-port=9222"
+            ],
+            "url": "http://localhost:9245",
+            "webRoot": "${workspaceFolder}/apps/frontend",
+            "userDataDir": "/Users/muinas/code_space/chrome-debug-profile",
+            "presentation": {
+                "hidden": false
+            }
+        },
     ]
 }

@@ -1,5 +1,6 @@
 import { GetAll, GetByID, GetStatus, Search, Delete, GetNotifications, UnreadCount, MarkRead, MarkAllRead } from '@wails/biz/hotspot/service';
 import type { Hotspot, Status } from '@/types';
+import type { SearchParams } from '@wails/biz/hotspot';
 
 export interface HotspotFilters {
     page?: number;
@@ -42,7 +43,7 @@ export const hotspotApi = {
 
     getStatus: () => GetStatus() as Promise<Status | null>,
 
-    search: (query: string, sources?: string[]) => Search(query, sources ?? []) as Promise<Hotspot[]>,
+    search: (params: SearchParams) => Search(params) as Promise<PaginatedHotspots | null>,
 
     delete: (id: string) => Delete(id),
 

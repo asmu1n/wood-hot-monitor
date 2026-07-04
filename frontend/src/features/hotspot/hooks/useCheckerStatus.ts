@@ -8,10 +8,10 @@ export function useCheckerStatus() {
     const { mutate: manualCheck, isPending: isChecking } = useMutation({
         mutationFn: () => Run(),
         onSuccess: () => {
-            showToast('热点检查已触发', 'success');
+            showToast('热点检查已完成', 'success');
         },
         onError: () => {
-            showToast('触发失败', 'error');
+            showToast('热点检查失败', 'error');
         }
     });
 

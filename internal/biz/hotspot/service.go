@@ -2,7 +2,6 @@ package hotspot
 
 import (
 	"context"
-	"log"
 	"strings"
 	"time"
 
@@ -38,6 +37,13 @@ type GetAllParams struct {
 	SortOrder  *string `json:"sortOrder"`
 }
 
+type SearchParams struct {
+	Page    int      `json:"page"`
+	Limit   int      `json:"limit"`
+	Query   string   `json:"query"`
+	Sources []string `json:"sources"`
+}
+
 var allowedSortFields = map[string]string{
 	"createdAt":   hsmodel.FieldCreatedAt,
 	"relevance":   hsmodel.FieldRelevance,
@@ -47,8 +53,7 @@ var allowedSortFields = map[string]string{
 	"viewCount":   hsmodel.FieldViewCount,
 }
 
-func (s *Service) GetAll(params GetAllParams) (*models.PaginatedResult[models.Hotspot], error) {
-	ctx := context.Background()
+func (s *Service) GetAll(ctx context.Context, params GetAllParams) (*models.PaginatedResult[models.Hotspot], error) {
 	var preds []predicate.Hotspot
 
 	timeFrom, timeTo := resolveTimeRange(params.TimeRange, params.TimeFrom, params.TimeTo)
@@ -105,11 +110,11 @@ func (s *Service) GetAll(params GetAllParams) (*models.PaginatedResult[models.Ho
 	}, nil
 }
 
-func (s *Service) GetByID(id string) (*models.Hotspot, error) {
+func (s *Service) GetByID(ctx context.Context, id string) (*models.Hotspot, error) {
 	row, err := s.client.Hotspot.Query().
 		Where(hsmodel.IDEQ(id)).
 		WithKeyword().
-		Only(context.Background())
+		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, nil
@@ -120,28 +125,33 @@ func (s *Service) GetByID(id string) (*models.Hotspot, error) {
 	return &m, nil
 }
 
-func (s *Service) Delete(id string) error {
-	return s.client.Hotspot.DeleteOneID(id).Exec(context.Background())
+func (s *Service) Delete(ctx context.Context, id string) error {
+	return s.client.Hotspot.DeleteOneID(id).Exec(ctx)
 }
 
-func (s *Service) Search(query string, sources []string) ([]models.Hotspot, error) {
-	ctx := context.Background()
-
-	log.Default().Println("Search query:", query, "sources:", sources)
-
+func (s *Service) Search(ctx context.Context, params SearchParams) (*models.PaginatedResult[models.Hotspot], error) {
 	var preds []predicate.Hotspot
 	preds = append(preds, hsmodel.Or(
-		hsmodel.TitleContains(query),
-		hsmodel.ContentContains(query),
+		hsmodel.TitleContains(params.Query),
+		hsmodel.ContentContains(params.Query),
 	))
-	if len(sources) > 0 {
-		preds = append(preds, hsmodel.SourceIn(sources...))
+	if len(params.Sources) > 0 {
+		preds = append(preds, hsmodel.SourceIn(params.Sources...))
 	}
 
-	rows, err := s.client.Hotspot.Query().
-		Where(preds...).
+	query := s.client.Hotspot.Query().Where(preds...)
+
+	total, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	offset := (params.Page - 1) * params.Limit
+
+	rows, err := query.
 		Order(ent.Desc(hsmodel.FieldRelevance), ent.Desc(hsmodel.FieldCreatedAt)).
-		Limit(50).
+		Limit(params.Limit).
+		Offset(offset).
 		WithKeyword().
 		All(ctx)
 	if err != nil {
@@ -152,7 +162,12 @@ func (s *Service) Search(query string, sources []string) ([]models.Hotspot, erro
 	for i, row := range rows {
 		result[i] = mapHotspot(row)
 	}
-	return result, nil
+	return &models.PaginatedResult[models.Hotspot]{
+		Data:  result,
+		Total: total,
+		Page:  params.Page,
+		Limit: params.Limit,
+	}, nil
 }
 
 func (s *Service) UpsertHotspot(ctx context.Context, r models.SearchResult, analysis *models.AnalysisResult, keywordID *string) (string, bool, error) {

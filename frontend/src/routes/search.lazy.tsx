@@ -1,129 +1,70 @@
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search } from 'lucide-react';
+import { Search, ChevronsUpDown } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
-import { useKeywords } from '@/features/keyword/hooks';
 import { useHotspotExpand } from '@/features/hotspot/hooks/useHotspotExpand';
-import { useToast } from '@/hooks/useToast';
-import FilterSortBar, { defaultFilterState, type FilterState } from '@/components/FilterSortBar';
 import HotSpotCard from '@/features/hotspot/components/HotSpotCard';
+import HotSpotPagination from '@/features/hotspot/components/HotSpotPagination';
 import { hotspotApi } from '@/features/hotspot/api';
-import { sortHotSpots } from '@/features/hotspot/utils';
-import { attempt } from '@/utils/common';
-import type { Hotspot } from '@/types';
+
+const LIMIT_COUNT = 20;
 
 function SearchPage() {
-    const { keywords } = useKeywords();
-    const { expandedReasons, expandedContents, toggleReason, toggleContent } = useHotspotExpand();
-    const { showToast } = useToast();
+    const { expandedReasons, expandedContents, allReasonsExpanded, toggleReason, toggleContent, toggleAllReasons } = useHotspotExpand();
 
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState<Hotspot[]>([]);
-    const [searchFilters, setSearchFilters] = useState<FilterState>({ ...defaultFilterState });
-    const [isSearching, setIsSearching] = useState(false);
+    const [searchInput, setSearchInput] = useState('');
+    const [submittedQuery, setSubmittedQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
 
-    const handleSearch = async (e: React.FormEvent) => {
+    const {
+        data: searchRes,
+        isLoading,
+        isFetching
+    } = useQuery({
+        queryKey: ['search', submittedQuery, currentPage],
+        queryFn: () => hotspotApi.search({ query: submittedQuery, page: currentPage, limit: LIMIT_COUNT, sources: [] }),
+        enabled: !!submittedQuery
+    });
+
+    const searchResults = useMemo(() => searchRes?.data ?? [], [searchRes]);
+    const totalPages = useMemo(() => {
+        if (!searchRes) return 1;
+        return Math.ceil(searchRes.total / searchRes.limit) || 1;
+    }, [searchRes]);
+
+    const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
+        const trimmed = searchInput.trim();
 
-        if (!searchQuery.trim()) {
-            return;
-        }
+        if (!trimmed) return;
 
-        setIsSearching(true);
-
-        const [err, result] = await attempt(() => {
-            return hotspotApi.search(searchQuery);
-        });
-
-        setIsSearching(false);
-
-        if (err) {
-            showToast('搜索失败', 'error');
-
-            return;
-        }
-
-        setSearchResults(result);
-        showToast(`找到 ${result.length} 条结果`, 'success');
+        setSubmittedQuery(trimmed);
+        setCurrentPage(1);
     };
 
-    // Client-side filtering/sorting for search results
-    const filteredSearchResults = useMemo(() => {
-        let results = [...searchResults];
-
-        // Apply filters
-        if (searchFilters.source) {
-            results = results.filter(h => h.source === searchFilters.source);
-        }
-
-        if (searchFilters.importance) {
-            results = results.filter(h => h.importance === searchFilters.importance);
-        }
-
-        if (searchFilters.isReal === 'true') {
-            results = results.filter(h => h.isReal);
-        } else if (searchFilters.isReal === 'false') {
-            results = results.filter(h => !h.isReal);
-        }
-
-        if (searchFilters.keywordId) {
-            results = results.filter(h => h.keyword?.id === searchFilters.keywordId);
-        }
-
-        if (searchFilters.timeRange) {
-            const now = new Date();
-            let dateFrom: Date | null = null;
-
-            switch (searchFilters.timeRange) {
-                case '1h':
-                    dateFrom = new Date(now.getTime() - 60 * 60 * 1000);
-                    break;
-                case 'today':
-                    dateFrom = new Date(now);
-                    dateFrom.setHours(0, 0, 0, 0);
-                    break;
-                case '7d':
-                    dateFrom = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                    break;
-                case '30d':
-                    dateFrom = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-                    break;
-            }
-
-            if (dateFrom) {
-                results = results.filter(h => new Date(h.createdAt) >= dateFrom!);
-            }
-        }
-
-        // Apply sorting using shared utility
-        results = sortHotSpots(results, searchFilters.sortBy || 'createdAt', (searchFilters.sortOrder || 'desc') as 'asc' | 'desc');
-
-        return results;
-    }, [searchResults, searchFilters]);
-
     return (
-        <div className="space-y-6">
-            {/* Search Form */}
-            <form onSubmit={handleSearch} className="border-border bg-muted/30 rounded-2xl border p-5 shadow-sm">
+        <div className="flex h-full flex-col space-y-6">
+            <form onSubmit={handleSearch} className="border-border bg-muted/30 flex-none rounded-2xl border p-5 shadow-sm">
                 <div className="flex gap-3">
                     <div className="relative flex-1">
                         <Search className="text-muted-foreground/60 absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2" />
                         <input
                             type="text"
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
+                            value={searchInput}
+                            onChange={e => setSearchInput(e.target.value)}
                             placeholder="搜索热点内容..."
                             className="border-border bg-background text-foreground placeholder-muted-foreground/50 focus:border-primary/50 focus:ring-primary/20 w-full rounded-xl border py-3 pr-4 pl-12 transition-all focus:ring-2 focus:outline-none"
                         />
                     </div>
                     <motion.button
                         type="submit"
-                        disabled={isSearching}
+                        disabled={isFetching}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className="bg-primary text-primary-foreground shadow-primary/25 flex items-center gap-2 rounded-xl px-6 py-3 font-medium shadow-lg disabled:opacity-50">
-                        {isSearching ? (
+                        {isFetching ? (
                             <div className="border-primary-foreground/30 border-t-primary-foreground h-4 w-4 animate-spin rounded-full border-2" />
                         ) : (
                             <Search className="h-4 w-4" />
@@ -133,29 +74,53 @@ function SearchPage() {
                 </div>
             </form>
 
-            {/* Search Filter & Sort Bar */}
-            <FilterSortBar filters={searchFilters} onChange={setSearchFilters} keywords={keywords} />
-
-            {/* Search Results */}
-            <div className="space-y-3">
-                {filteredSearchResults.length === 0 && searchResults.length > 0 && (
-                    <div className="border-border rounded-2xl border border-dashed py-12 text-center">
-                        <p className="text-muted-foreground">当前筛选条件下无结果</p>
-                        <p className="text-muted-foreground/70 mt-1 text-sm">尝试调整筛选条件</p>
+            <div className="flex-1 overflow-y-auto">
+                {isLoading ? (
+                    <div className="flex items-center justify-center py-16">
+                        <div className="border-primary/30 border-t-primary h-8 w-8 animate-spin rounded-full border-2" />
+                    </div>
+                ) : !submittedQuery ? null : searchResults.length === 0 ? (
+                    <div className="border-border bg-muted/20 rounded-2xl border border-dashed py-16 text-center">
+                        <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                            <Search className="text-muted-foreground h-8 w-8" />
+                        </div>
+                        <p className="text-foreground font-medium">未找到相关热点</p>
+                        <p className="text-muted-foreground mt-1 text-sm">尝试使用其他关键词搜索</p>
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                        {searchResults.some(h => h.relevanceReason) && (
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={() => toggleAllReasons(searchResults)}
+                                    className="text-muted-foreground hover:bg-muted hover:text-primary flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs transition-colors">
+                                    <ChevronsUpDown className="h-3.5 w-3.5" />
+                                    {allReasonsExpanded ? '折叠所有理由' : '展开所有理由'}
+                                </button>
+                            </div>
+                        )}
+                        {searchResults.map((hotspot, i) => (
+                            <HotSpotCard
+                                key={hotspot.id}
+                                hotspot={hotspot}
+                                index={i}
+                                isExpandedReason={expandedReasons.has(hotspot.id)}
+                                isExpandedContent={expandedContents.has(hotspot.id)}
+                                onToggleReason={toggleReason}
+                                onToggleContent={toggleContent}
+                            />
+                        ))}
                     </div>
                 )}
-                {filteredSearchResults.map((hotspot, i) => (
-                    <HotSpotCard
-                        key={hotspot.id}
-                        hotspot={hotspot}
-                        index={i}
-                        isExpandedReason={expandedReasons.has(hotspot.id)}
-                        isExpandedContent={expandedContents.has(hotspot.id)}
-                        onToggleReason={toggleReason}
-                        onToggleContent={toggleContent}
-                    />
-                ))}
             </div>
+
+            <HotSpotPagination
+                className="flex-none"
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={searchRes?.total ?? 0}
+                onPageChange={setCurrentPage}
+            />
         </div>
     );
 }

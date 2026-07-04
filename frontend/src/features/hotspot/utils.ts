@@ -153,7 +153,7 @@ function onNewHotSpot(callback: (hotspot: HotSpotEvent) => void): () => void {
 }
 
 function onCheckComplete(callback: () => void): () => void {
-    const cancel = Events.On('check:complete', () => {
+    const cancel = Events.On('checker:completed', () => {
         callback();
     });
 
