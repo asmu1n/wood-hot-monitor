@@ -72,7 +72,7 @@ func (s *Service) ExpandKeyword(ctx context.Context, keyword string) ([]string, 
 		}
 	}
 
-	log.Printf("query expansion for %q: %d variants", keyword, len(result))
+	log.Printf("query expansion for %q: %d variants: %v", keyword, len(result), result)
 	return result, nil
 }
 

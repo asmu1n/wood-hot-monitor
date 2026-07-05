@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { keywordApi } from '@/features/keyword/api';
-import { subscribeToKeywords, unsubscribeFromKeywords } from '@/features/keyword/utils';
 import { useToast } from '@/hooks/useToast';
 import type { Keyword } from '@/types';
 
@@ -17,14 +16,10 @@ export function useKeywords() {
 
     const addKeywordMutation = useMutation({
         mutationFn: (text: string) => keywordApi.create(text),
-        onSuccess: async keyword => {
+        onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ['keywords'] });
             setNewKeyword('');
             showToast('关键词添加成功', 'success');
-
-            if (keyword) {
-                subscribeToKeywords([keyword.text]);
-            }
         },
         onError: (error: Error) => {
             showToast(error.message || '添加失败', 'error');
@@ -43,8 +38,7 @@ export function useKeywords() {
 
     const deleteKeywordMutation = useMutation({
         mutationFn: (keyword: Keyword) => keywordApi.delete(keyword.id),
-        onSuccess: async (_, keyword) => {
-            unsubscribeFromKeywords([keyword.text]);
+        onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ['keywords'] });
             showToast('关键词已删除', 'success');
         },
@@ -59,15 +53,7 @@ export function useKeywords() {
 
     const toggleKeywordMutation = useMutation({
         mutationFn: (keyword: Keyword) => keywordApi.toggle(keyword.id),
-        onSuccess: async updatedKeyword => {
-            if (updatedKeyword) {
-                if (updatedKeyword.isActive) {
-                    subscribeToKeywords([updatedKeyword.text]);
-                } else {
-                    unsubscribeFromKeywords([updatedKeyword.text]);
-                }
-            }
-
+        onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ['keywords'] });
         },
         onError: () => {
@@ -78,16 +64,6 @@ export function useKeywords() {
     const handleToggleKeyword = (keyword: Keyword) => {
         toggleKeywordMutation.mutate(keyword);
     };
-
-    useEffect(() => {
-        if (keywords.length > 0) {
-            const activeKeywords = keywords.filter((k: Keyword) => k.isActive).map((k: Keyword) => k.text);
-
-            if (activeKeywords.length > 0) {
-                subscribeToKeywords(activeKeywords);
-            }
-        }
-    }, [keywords]);
 
     return {
         keywords,

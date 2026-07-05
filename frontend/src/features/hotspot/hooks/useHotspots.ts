@@ -5,6 +5,7 @@ import { defaultFilterState, type FilterState } from '@/components/FilterSortBar
 
 const LIMIT_COUNT = 20;
 
+// 热点信息条件分页查询
 export function useHotspots() {
     const [dashboardFilters, setDashboardFilters] = useState<FilterState>({ ...defaultFilterState });
     const [currentPage, setCurrentPage] = useState(1);

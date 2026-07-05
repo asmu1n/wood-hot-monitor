@@ -59,6 +59,7 @@ func (s *Service) Run(ctx context.Context) error {
 
 	twitterAPIKey, _ := cfg.Settings["twitterApiKey"].(string)
 
+	// 并发等待锁
 	var wg sync.WaitGroup
 	for _, kw := range keywords {
 		if ctx.Err() != nil {
@@ -169,6 +170,7 @@ func (s *Service) searchAllSources(ctx context.Context, query, twitterAPIKey str
 			log.Printf("checker: %s search failed: %v", sr.source, sr.err)
 			continue
 		}
+		log.Printf("checker: %s search results: %d", sr.source, len(sr.results))
 		all = append(all, sr.results...)
 	}
 

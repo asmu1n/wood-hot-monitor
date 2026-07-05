@@ -30,7 +30,10 @@ function SearchPage() {
 
     const searchResults = useMemo(() => searchRes?.data ?? [], [searchRes]);
     const totalPages = useMemo(() => {
-        if (!searchRes) return 1;
+        if (!searchRes) {
+            return 1;
+        }
+
         return Math.ceil(searchRes.total / searchRes.limit) || 1;
     }, [searchRes]);
 
@@ -38,7 +41,9 @@ function SearchPage() {
         e.preventDefault();
         const trimmed = searchInput.trim();
 
-        if (!trimmed) return;
+        if (!trimmed) {
+            return;
+        }
 
         setSubmittedQuery(trimmed);
         setCurrentPage(1);

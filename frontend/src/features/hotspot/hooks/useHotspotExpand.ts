@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Hotspot } from '@/types';
 
+// 展开热点信息卡片逻辑
 export function useHotspotExpand() {
     const [expandedReasons, setExpandedReasons] = useState<Set<string>>(new Set());
     const [expandedContents, setExpandedContents] = useState<Set<string>>(new Set());
