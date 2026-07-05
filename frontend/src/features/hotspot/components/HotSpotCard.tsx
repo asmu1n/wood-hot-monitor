@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Flame,
@@ -85,7 +84,7 @@ const getSourceLabel = (source: string) => {
     return labels[source.toLowerCase()] || source;
 };
 
-const HotSpotCard: React.FC<HotSpotCardProps> = ({ hotspot, index, isExpandedReason, isExpandedContent, onToggleReason, onToggleContent }) => {
+function HotSpotCard({ hotspot, index, isExpandedReason, isExpandedContent, onToggleReason, onToggleContent }: HotSpotCardProps) {
     const heatScore = calcHeatScore(hotspot);
     const heat = getHeatLevel(heatScore);
 
@@ -320,6 +319,6 @@ const HotSpotCard: React.FC<HotSpotCardProps> = ({ hotspot, index, isExpandedRea
             </div>
         </motion.div>
     );
-};
+}
 
 export default HotSpotCard;

@@ -144,20 +144,26 @@ interface HotSpotEvent {
     keyword?: { text: string } | null;
 }
 
-function onNewHotSpot(callback: (hotspot: HotSpotEvent) => void): () => void {
+function onNewHotSpot(callback: (hotspot: HotSpotEvent) => void) {
     const cancel = Events.On('hotspot:new', (event: { data: HotSpotEvent }) => {
         callback(event.data);
     });
 
-    return () => cancel();
+    return cancel;
 }
 
-function onCheckComplete(callback: () => void): () => void {
+function onCheckComplete(callback: VoidFunction) {
     const cancel = Events.On('checker:completed', () => {
         callback();
     });
 
-    return () => cancel();
+    return cancel;
 }
 
-export { calcHeatScore, getHeatLevel, sortHotSpots, onNewHotSpot, onCheckComplete };
+function onCheckStart(cb: VoidFunction) {
+    const cancel = Events.On('checker:started', cb);
+
+    return cancel;
+}
+
+export { calcHeatScore, getHeatLevel, sortHotSpots, onNewHotSpot, onCheckComplete, onCheckStart };

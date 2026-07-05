@@ -7,7 +7,6 @@ import { settingsApi } from '@/features/settings/api';
 import { useToast } from '@/hooks/useToast';
 
 interface FormState {
-    llmProvider: string;
     llmModel: string;
     llmApiKey: string;
     llmBaseUrl: string;
@@ -47,7 +46,6 @@ function SettingsForm({ config }: { config: any }) {
     // 💡 重点：利用惰性初始化 (Lazy Initialization)，直接将传入的数据设为初始状态
     // 这样它只会在组件第一次挂载时执行一次，完美替代了原有的 useEffect 同步逻辑
     const [form, setForm] = useState<FormState>(() => ({
-        llmProvider: config?.llmProvider || '',
         llmModel: config?.llmModel || '',
         llmApiKey: config?.llmApiKey || '',
         llmBaseUrl: config?.llmBaseUrl || '',
@@ -60,7 +58,6 @@ function SettingsForm({ config }: { config: any }) {
     const saveMutation = useMutation({
         mutationFn: async (data: FormState) => {
             await settingsApi.updateConfig({
-                llmProvider: data.llmProvider,
                 llmModel: data.llmModel,
                 llmApiKey: data.llmApiKey,
                 llmBaseUrl: data.llmBaseUrl,
@@ -94,11 +91,8 @@ function SettingsForm({ config }: { config: any }) {
         };
 
     return (
-        <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-8">
+        <form onSubmit={handleSubmit} className="mx-auto h-full max-w-2xl scrollbar-none space-y-8 overflow-y-scroll">
             <Section icon={Brain} title="LLM 配置">
-                <Field label="服务提供商" hint="如 openai、deepseek 等">
-                    <input value={form.llmProvider} onChange={set('llmProvider')} placeholder="openai" className={CLS_INPUT} />
-                </Field>
                 <Field label="模型">
                     <input value={form.llmModel} onChange={set('llmModel')} placeholder="Pro/deepseek-ai/DeepSeek-V3.2" className={CLS_INPUT} />
                 </Field>

@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X } from 'lucide-react';
 import { cn } from '@/lib/ui';
@@ -7,7 +6,7 @@ interface ToastProps {
     toast: { message: string; type: 'success' | 'error' } | null;
 }
 
-const Toast: React.FC<ToastProps> = ({ toast }) => {
+function Toast({ toast }: ToastProps) {
     return (
         <AnimatePresence>
             {toast && (
@@ -27,6 +26,6 @@ const Toast: React.FC<ToastProps> = ({ toast }) => {
             )}
         </AnimatePresence>
     );
-};
+}
 
 export default Toast;

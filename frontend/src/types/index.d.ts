@@ -50,7 +50,6 @@ interface Status {
 
 interface AppConfig {
     emailAddress: string;
-    llmProvider: string;
     llmModel: string;
     llmApiKey: string;
     llmBaseUrl: string;

@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/ui';
 
@@ -10,7 +9,7 @@ interface HotSpotPaginationProps {
     onPageChange: (page: number) => void;
 }
 
-const HotSpotPagination: React.FC<HotSpotPaginationProps> = ({ className, currentPage, totalPages, totalItems, onPageChange }) => {
+function HotSpotPagination({ className, currentPage, totalPages, totalItems, onPageChange }: HotSpotPaginationProps) {
     if (totalPages <= 1) {
         return null;
     }
@@ -61,6 +60,6 @@ const HotSpotPagination: React.FC<HotSpotPaginationProps> = ({ className, curren
             <span className="text-muted-foreground/60 ml-2 text-xs">共 {totalItems} 条</span>
         </div>
     );
-};
+}
 
 export default HotSpotPagination;

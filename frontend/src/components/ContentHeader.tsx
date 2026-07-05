@@ -13,12 +13,12 @@ const pageTitles: Record<string, string> = {
 
 interface ContentHeaderProps {
     isChecking: boolean;
-    onManualCheck: () => void;
     unreadCount: number;
     notifications: Hotspot[];
     showNotifications: boolean;
     setShowNotifications: (show: boolean) => void;
     onMarkAllRead: () => void;
+    onManualCheck: () => void;
 }
 
 export function ContentHeader({
@@ -38,7 +38,6 @@ export function ContentHeader({
             <h1 className="text-foreground text-lg font-semibold">{title}</h1>
 
             <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-xs opacity-60">每 30 分钟自动更新</span>
                 <button
                     onClick={onManualCheck}
                     disabled={isChecking}
@@ -56,7 +55,7 @@ export function ContentHeader({
                         className="border-border hover:bg-muted relative rounded-lg border p-2 transition-colors">
                         <Bell className="text-muted-foreground h-[18px] w-[18px]" />
                         {unreadCount > 0 && (
-                            <span className="bg-destructive text-destructive-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold">
+                            <span className="bg-destructive text-destructive-foreground absolute -top-1 -right-1 flex h-4.5 w-4.5 items-center justify-center rounded-full text-[9px] font-bold">
                                 {unreadCount > 99 ? '99+' : unreadCount}
                             </span>
                         )}

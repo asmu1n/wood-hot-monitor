@@ -68,7 +68,6 @@ type PaginatedResult[T any] struct {
 
 type AppConfig struct {
 	EmailAddress  string         `json:"emailAddress"`
-	LLMProvider   string         `json:"llmProvider"`
 	LLMModel      string         `json:"llmModel"`
 	LLMAPIKey     string         `json:"llmApiKey"`
 	LLMBaseURL    string         `json:"llmBaseUrl"`

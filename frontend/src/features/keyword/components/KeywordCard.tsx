@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 import { cn } from '@/lib/ui';
@@ -11,7 +10,7 @@ interface KeywordCardProps {
     onDelete: (keyword: Keyword) => void;
 }
 
-const KeywordCard: React.FC<KeywordCardProps> = ({ keyword, index, onToggle, onDelete }) => {
+function KeywordCard({ keyword, index, onToggle, onDelete }: KeywordCardProps) {
     return (
         <motion.div
             layout
@@ -53,6 +52,6 @@ const KeywordCard: React.FC<KeywordCardProps> = ({ keyword, index, onToggle, onD
             </div>
         </motion.div>
     );
-};
+}
 
 export default KeywordCard;
