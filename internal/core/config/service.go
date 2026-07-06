@@ -77,13 +77,15 @@ func (s *Service) UpdateSettings(settings map[string]any) error {
 }
 
 func (s *Service) SubscribeUpdates(cb func(models.AppConfig)) func() {
-
+	s.mu.Lock()
 	s.cbId++
 	id := s.cbId
 	s.updateListeners[id] = cb
-
+	s.mu.Unlock()
 	unSub := func() {
+		s.mu.Lock()
 		delete(s.updateListeners, id)
+		s.mu.Unlock()
 	}
 
 	return unSub
@@ -106,7 +108,18 @@ func (s *Service) save() error {
 }
 
 func (s *Service) notify(val *models.AppConfig) {
+	s.mu.RLock()
+
+	listeners := make([]ConfigCallback, 0, len(s.updateListeners))
+
 	for _, cb := range s.updateListeners {
+		listeners = append(listeners, cb)
+
+	}
+
+	s.mu.RUnlock()
+
+	for _, cb := range listeners {
 		cb(*val)
 	}
 }
