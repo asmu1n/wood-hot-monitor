@@ -24,17 +24,17 @@ func NewService(client *ent.Client) *Service {
 }
 
 type GetAllParams struct {
-	Page       int     `json:"page"`
-	Limit      int     `json:"limit"`
-	Source     *string `json:"source"`
-	Importance *string `json:"importance"`
-	KeywordID  *string `json:"keywordId"`
-	IsReal     *bool   `json:"isReal"`
-	TimeRange  *string `json:"timeRange"`
-	TimeFrom   *string `json:"timeFrom"`
-	TimeTo     *string `json:"timeTo"`
-	SortBy     *string `json:"sortBy"`
-	SortOrder  *string `json:"sortOrder"`
+	Page       int                `json:"page"`
+	Limit      int                `json:"limit"`
+	Source     *string            `json:"source"`
+	Importance *models.Importance `json:"importance"`
+	KeywordID  *string            `json:"keywordId"`
+	IsReal     *bool              `json:"isReal"`
+	TimeRange  *string            `json:"timeRange"`
+	TimeFrom   *string            `json:"timeFrom"`
+	TimeTo     *string            `json:"timeTo"`
+	SortBy     *string            `json:"sortBy"`
+	SortOrder  *string            `json:"sortOrder"`
 }
 
 type SearchParams struct {

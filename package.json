@@ -11,6 +11,7 @@
     "scripts": {
         "dev": "wails3 dev -config ./build/config.yml -port 9245",
         "build": "wails3 task build",
+        "generate:bindings": "wails3 generate bindings -ts -i",
         "type-check": "bun run --cwd frontend type-check",
         "lint": "bun run --cwd frontend lint"
     },

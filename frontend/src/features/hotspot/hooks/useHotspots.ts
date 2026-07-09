@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { hotspotApi, type HotspotFilters } from '@/features/hotspot/api';
+import { hotspotApi } from '@/features/hotspot/api';
 import { defaultFilterState, type FilterState } from '@/components/FilterSortBar';
+import type { GetAllParams } from '@wails/biz/hotspot';
 
 const LIMIT_COUNT = 20;
 
@@ -10,11 +11,13 @@ export function useHotspots() {
     const [dashboardFilters, setDashboardFilters] = useState<FilterState>({ ...defaultFilterState });
     const [currentPage, setCurrentPage] = useState(1);
 
-    const hotspotParams: HotspotFilters = useMemo(
+    const hotspotParams: GetAllParams = useMemo(
         () => ({
             limit: LIMIT_COUNT,
             page: currentPage,
-            ...Object.fromEntries(Object.entries(dashboardFilters).filter(([, v]) => v != null && v !== ''))
+            timeFrom: null,
+            timeTo: null,
+            ...dashboardFilters
         }),
         [dashboardFilters, currentPage]
     );

@@ -19,7 +19,7 @@ export default defineConfig([
     reactPlugin.configs.flat['jsx-runtime'],
     tsEslint.configs.recommended,
     {
-        ignores: ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/.vscode/**', '**/.yarn/**', '**/build/**', '**/public/**']
+        ignores: ['**/node_modules/**', '**/dist/**', '**/.git/**', '**/.vscode/**', '**/.yarn/**', '**/build/**', '**/public/**', '**/bindings/**']
     },
     {
         languageOptions: {

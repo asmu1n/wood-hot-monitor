@@ -20,7 +20,7 @@ var (
 		{Name: "relevance", Type: field.TypeInt, Default: 0},
 		{Name: "relevance_reason", Type: field.TypeString, Nullable: true},
 		{Name: "keyword_mentioned", Type: field.TypeBool, Nullable: true},
-		{Name: "importance", Type: field.TypeString, Default: "low"},
+		{Name: "importance", Type: field.TypeEnum, Enums: []string{"low", "medium", "high", "urgent"}, Default: "low"},
 		{Name: "summary", Type: field.TypeString, Nullable: true},
 		{Name: "view_count", Type: field.TypeInt, Nullable: true},
 		{Name: "like_count", Type: field.TypeInt, Nullable: true},

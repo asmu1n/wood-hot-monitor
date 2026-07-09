@@ -57,7 +57,7 @@ function RootComponent() {
                     isChecking={isChecking}
                     onManualCheck={handleManualCheck}
                     unreadCount={unreadCount}
-                    notifications={notifications}
+                    notifications={notifications || []}
                     showNotifications={showNotifications}
                     setShowNotifications={setShowNotifications}
                     onMarkAllRead={handleMarkAllRead}

@@ -3,6 +3,9 @@
 package hotspot
 
 import (
+	"fmt"
+	"wood-hot-monitor/internal/core/models"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 )
@@ -132,8 +135,6 @@ var (
 	DefaultIsReal bool
 	// DefaultRelevance holds the default value on creation for the "relevance" field.
 	DefaultRelevance int
-	// DefaultImportance holds the default value on creation for the "importance" field.
-	DefaultImportance string
 	// DefaultIsNotified holds the default value on creation for the "is_notified" field.
 	DefaultIsNotified bool
 	// DefaultIsRead holds the default value on creation for the "is_read" field.
@@ -141,6 +142,18 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() string
 )
+
+const DefaultImportance models.Importance = "low"
+
+// ImportanceValidator is a validator for the "importance" field enum values. It is called by the builders before save.
+func ImportanceValidator(i models.Importance) error {
+	switch i {
+	case "low", "medium", "high", "urgent":
+		return nil
+	default:
+		return fmt.Errorf("hotspot: invalid enum value for importance field: %q", i)
+	}
+}
 
 // OrderOption defines the ordering options for the Hotspot queries.
 type OrderOption func(*sql.Selector)

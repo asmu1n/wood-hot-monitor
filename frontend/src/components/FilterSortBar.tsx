@@ -2,24 +2,17 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpDown, Filter, X, Clock, Flame, TrendingUp, Target, ChevronDown, Check, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/ui';
-import type { Keyword } from '@/types';
+import { Importance, Keyword } from '@wails/core/models';
+import type { GetAllParams } from '@wails/biz/hotspot';
 
-export interface FilterState {
-    source: string;
-    importance: string;
-    keywordId: string;
-    timeRange: string;
-    isReal: string;
-    sortBy: string;
-    sortOrder: string;
-}
+export type FilterState = Pick<GetAllParams, 'source' | 'importance' | 'keywordId' | 'timeRange' | 'isReal' | 'sortBy' | 'sortOrder'>;
 
 export const defaultFilterState: FilterState = {
-    source: '',
-    importance: '',
-    keywordId: '',
-    timeRange: '',
-    isReal: '',
+    source: null,
+    importance: null,
+    keywordId: null,
+    timeRange: null,
+    isReal: null,
     sortBy: 'createdAt',
     sortOrder: 'desc'
 };
@@ -40,7 +33,7 @@ const SORT_OPTIONS = [
 ];
 
 const SOURCE_OPTIONS = [
-    { value: '', label: '全部来源' },
+    { value: null, label: '全部来源' },
     { value: 'twitter', label: 'Twitter' },
     { value: 'bing', label: 'Bing' },
     { value: 'google', label: 'Google' },
@@ -52,15 +45,15 @@ const SOURCE_OPTIONS = [
 ];
 
 const IMPORTANCE_OPTIONS = [
-    { value: '', label: '全部等级' },
-    { value: 'urgent', label: '🔴 紧急', color: 'text-red-400' },
-    { value: 'high', label: '🟠 高', color: 'text-orange-400' },
-    { value: 'medium', label: '🟡 中', color: 'text-amber-400' },
-    { value: 'low', label: '🟢 低', color: 'text-emerald-400' }
+    { value: null, label: '全部等级' },
+    { value: Importance.UrgentImportance, label: '🔴 紧急', color: 'text-red-400' },
+    { value: Importance.HighImportance, label: '🟠 高', color: 'text-orange-400' },
+    { value: Importance.MediumImportance, label: '🟡 中', color: 'text-amber-400' },
+    { value: Importance.LowImportance, label: '🟢 低', color: 'text-emerald-400' }
 ];
 
 const TIME_RANGE_OPTIONS = [
-    { value: '', label: '全部时间' },
+    { value: null, label: '全部时间' },
     { value: '1h', label: '最近 1 小时' },
     { value: 'today', label: '今天' },
     { value: '7d', label: '最近 7 天' },
@@ -68,22 +61,22 @@ const TIME_RANGE_OPTIONS = [
 ];
 
 const REAL_OPTIONS = [
-    { value: '', label: '全部' },
-    { value: 'true', label: '✅ 真实' },
-    { value: 'false', label: '⚠️ 疑似虚假' }
+    { value: null, label: '全部' },
+    { value: true, label: '✅ 真实' },
+    { value: false, label: '⚠️ 疑似虚假' }
 ];
 
 // Dropdown component
-function Dropdown({
+function Dropdown<T = any>({
     label,
     value,
     options,
     onChange
 }: {
     label: string;
-    value: string;
-    options: { value: string; label: string; color?: string }[];
-    onChange: (v: string) => void;
+    value: T;
+    options: { value: T; label: string; color?: string }[];
+    onChange: (v: T) => void;
 }) {
     const [open, setOpen] = useState(false);
     const selected = options.find(o => o.value === value);
@@ -115,7 +108,7 @@ function Dropdown({
                             className="border-border bg-popover/98 absolute top-full left-0 z-50 mt-1 min-w-[160px] overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl">
                             {options.map(option => (
                                 <button
-                                    key={option.value}
+                                    key={String(option.value)}
                                     onClick={() => {
                                         onChange(option.value);
                                         setOpen(false);
@@ -145,7 +138,7 @@ export default function FilterSortBar({ className, filters, keywords, onChange }
 
     const hasNonDefaultSort = filters.sortBy !== 'createdAt';
 
-    const update = (key: keyof FilterState, value: string) => {
+    const update = (key: keyof FilterState, value: FilterState[keyof FilterState]) => {
         onChange({ ...filters, [key]: value });
     };
 
@@ -240,7 +233,7 @@ export default function FilterSortBar({ className, filters, keywords, onChange }
                         {filters.isReal && (
                             <FilterTag
                                 label={REAL_OPTIONS.find(o => o.value === filters.isReal)?.label || '真实性'}
-                                onRemove={() => update('isReal', '')}
+                                onRemove={() => update('isReal', null)}
                             />
                         )}
                     </div>

@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
+import type { Status } from '@wails/core/models';
 import { Activity, Target, Search, Settings, Flame } from 'lucide-react';
-import type { Status } from '@/types';
 
 const navItems = [
     { to: '/', label: '热点雷达', icon: Activity },

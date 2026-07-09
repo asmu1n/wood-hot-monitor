@@ -12,6 +12,7 @@ import (
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/keywordexpansion"
 	"wood-hot-monitor/ent/predicate"
+	"wood-hot-monitor/internal/core/models"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -47,7 +48,7 @@ type HotspotMutation struct {
 	addrelevance        *int
 	relevance_reason    *string
 	keyword_mentioned   *bool
-	importance          *string
+	importance          *models.Importance
 	summary             *string
 	view_count          *int
 	addview_count       *int
@@ -570,12 +571,12 @@ func (m *HotspotMutation) ResetKeywordMentioned() {
 }
 
 // SetImportance sets the "importance" field.
-func (m *HotspotMutation) SetImportance(s string) {
-	m.importance = &s
+func (m *HotspotMutation) SetImportance(value models.Importance) {
+	m.importance = &value
 }
 
 // Importance returns the value of the "importance" field in the mutation.
-func (m *HotspotMutation) Importance() (r string, exists bool) {
+func (m *HotspotMutation) Importance() (r models.Importance, exists bool) {
 	v := m.importance
 	if v == nil {
 		return
@@ -586,7 +587,7 @@ func (m *HotspotMutation) Importance() (r string, exists bool) {
 // OldImportance returns the old "importance" field's value of the Hotspot entity.
 // If the Hotspot object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HotspotMutation) OldImportance(ctx context.Context) (v string, err error) {
+func (m *HotspotMutation) OldImportance(ctx context.Context) (v models.Importance, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldImportance is only allowed on UpdateOne operations")
 	}
@@ -2020,7 +2021,7 @@ func (m *HotspotMutation) SetField(name string, value ent.Value) error {
 		m.SetKeywordMentioned(v)
 		return nil
 	case hotspot.FieldImportance:
-		v, ok := value.(string)
+		v, ok := value.(models.Importance)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

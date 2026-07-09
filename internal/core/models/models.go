@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Keyword struct {
 	ID           string  `json:"id"`
@@ -23,7 +25,7 @@ type Hotspot struct {
 	Relevance        int             `json:"relevance"`
 	RelevanceReason  *string         `json:"relevanceReason"`
 	KeywordMentioned *bool           `json:"keywordMentioned"`
-	Importance       string          `json:"importance"`
+	Importance       Importance      `json:"importance"`
 	Summary          *string         `json:"summary"`
 	ViewCount        *int            `json:"viewCount"`
 	LikeCount        *int            `json:"likeCount"`
@@ -114,10 +116,23 @@ type Author struct {
 
 // AnalysisResult 表示 LLM 内容分析的结构化结果
 type AnalysisResult struct {
-	IsReal           bool   `json:"isReal"`
-	Relevance        int    `json:"relevance"`
-	RelevanceReason  string `json:"relevanceReason"`
-	KeywordMentioned bool   `json:"keywordMentioned"`
-	Importance       string `json:"importance"`
-	Summary          string `json:"summary"`
+	IsReal           bool       `json:"isReal"`
+	Relevance        int        `json:"relevance"`
+	RelevanceReason  string     `json:"relevanceReason"`
+	KeywordMentioned bool       `json:"keywordMentioned"`
+	Importance       Importance `json:"importance"`
+	Summary          string     `json:"summary"`
+}
+
+type Importance string
+
+const (
+	LowImportance    Importance = "low"
+	MediumImportance Importance = "medium"
+	HighImportance   Importance = "high"
+	UrgentImportance Importance = "urgent"
+)
+
+func (i Importance) Values() []string {
+	return []string{string(LowImportance), string(MediumImportance), string(HighImportance), string(UrgentImportance)}
 }

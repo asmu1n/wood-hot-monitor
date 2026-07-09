@@ -8,6 +8,7 @@ import (
 	"time"
 	"wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
+	"wood-hot-monitor/internal/core/models"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -37,7 +38,7 @@ type Hotspot struct {
 	// KeywordMentioned holds the value of the "keyword_mentioned" field.
 	KeywordMentioned *bool `json:"keyword_mentioned,omitempty"`
 	// Importance holds the value of the "importance" field.
-	Importance string `json:"importance,omitempty"`
+	Importance models.Importance `json:"importance,omitempty"`
 	// Summary holds the value of the "summary" field.
 	Summary *string `json:"summary,omitempty"`
 	// ViewCount holds the value of the "view_count" field.
@@ -197,7 +198,7 @@ func (_m *Hotspot) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field importance", values[i])
 			} else if value.Valid {
-				_m.Importance = value.String
+				_m.Importance = models.Importance(value.String)
 			}
 		case hotspot.FieldSummary:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -404,7 +405,7 @@ func (_m *Hotspot) String() string {
 	}
 	builder.WriteString(", ")
 	builder.WriteString("importance=")
-	builder.WriteString(_m.Importance)
+	builder.WriteString(fmt.Sprintf("%v", _m.Importance))
 	builder.WriteString(", ")
 	if v := _m.Summary; v != nil {
 		builder.WriteString("summary=")

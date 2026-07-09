@@ -45,7 +45,7 @@ func SendEmailAlert(cfg *models.AppConfig, r models.SearchResult, analysis *mode
 }
 
 // sendHotspotAlert 发送热点告警邮件（仅 high/urgent 级别触发）
-func (s *Service) sendHotspotAlert(toEmail, title, source, importance, summary, url string) error {
+func (s *Service) sendHotspotAlert(toEmail string, title string, source string, importance models.Importance, summary string, url string) error {
 	if s.apiKey == "" || toEmail == "" {
 		return nil
 	}

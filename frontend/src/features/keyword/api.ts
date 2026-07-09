@@ -1,5 +1,5 @@
 import { GetAll, GetByID, Create, Delete, Toggle } from '@wails/biz/keyword/service.js';
-import type { Keyword } from '@/types';
+import type { Keyword } from '@wails/core/models';
 
 export const keywordApi = {
     getAll: () => GetAll(false) as Promise<Keyword[]>,

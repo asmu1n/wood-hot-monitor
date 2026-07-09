@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"wood-hot-monitor/internal/core/models"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -35,8 +37,9 @@ func (Hotspot) Fields() []ent.Field {
 		field.Bool("keyword_mentioned").
 			Optional().
 			Nillable(),
-		field.String("importance").
-			Default("low"),
+		field.Enum("importance").
+			GoType(models.Importance("")).
+			Default(string(models.LowImportance)),
 		field.String("summary").
 			Optional().
 			Nillable(),

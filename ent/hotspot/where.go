@@ -5,6 +5,7 @@ package hotspot
 import (
 	"time"
 	"wood-hot-monitor/ent/predicate"
+	"wood-hot-monitor/internal/core/models"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -108,11 +109,6 @@ func RelevanceReason(v string) predicate.Hotspot {
 // KeywordMentioned applies equality check predicate on the "keyword_mentioned" field. It's identical to KeywordMentionedEQ.
 func KeywordMentioned(v bool) predicate.Hotspot {
 	return predicate.Hotspot(sql.FieldEQ(FieldKeywordMentioned, v))
-}
-
-// Importance applies equality check predicate on the "importance" field. It's identical to ImportanceEQ.
-func Importance(v string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldEQ(FieldImportance, v))
 }
 
 // Summary applies equality check predicate on the "summary" field. It's identical to SummaryEQ.
@@ -691,68 +687,33 @@ func KeywordMentionedNotNil() predicate.Hotspot {
 }
 
 // ImportanceEQ applies the EQ predicate on the "importance" field.
-func ImportanceEQ(v string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldEQ(FieldImportance, v))
+func ImportanceEQ(v models.Importance) predicate.Hotspot {
+	vc := v
+	return predicate.Hotspot(sql.FieldEQ(FieldImportance, vc))
 }
 
 // ImportanceNEQ applies the NEQ predicate on the "importance" field.
-func ImportanceNEQ(v string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldNEQ(FieldImportance, v))
+func ImportanceNEQ(v models.Importance) predicate.Hotspot {
+	vc := v
+	return predicate.Hotspot(sql.FieldNEQ(FieldImportance, vc))
 }
 
 // ImportanceIn applies the In predicate on the "importance" field.
-func ImportanceIn(vs ...string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldIn(FieldImportance, vs...))
+func ImportanceIn(vs ...models.Importance) predicate.Hotspot {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Hotspot(sql.FieldIn(FieldImportance, v...))
 }
 
 // ImportanceNotIn applies the NotIn predicate on the "importance" field.
-func ImportanceNotIn(vs ...string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldNotIn(FieldImportance, vs...))
-}
-
-// ImportanceGT applies the GT predicate on the "importance" field.
-func ImportanceGT(v string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldGT(FieldImportance, v))
-}
-
-// ImportanceGTE applies the GTE predicate on the "importance" field.
-func ImportanceGTE(v string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldGTE(FieldImportance, v))
-}
-
-// ImportanceLT applies the LT predicate on the "importance" field.
-func ImportanceLT(v string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldLT(FieldImportance, v))
-}
-
-// ImportanceLTE applies the LTE predicate on the "importance" field.
-func ImportanceLTE(v string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldLTE(FieldImportance, v))
-}
-
-// ImportanceContains applies the Contains predicate on the "importance" field.
-func ImportanceContains(v string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldContains(FieldImportance, v))
-}
-
-// ImportanceHasPrefix applies the HasPrefix predicate on the "importance" field.
-func ImportanceHasPrefix(v string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldHasPrefix(FieldImportance, v))
-}
-
-// ImportanceHasSuffix applies the HasSuffix predicate on the "importance" field.
-func ImportanceHasSuffix(v string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldHasSuffix(FieldImportance, v))
-}
-
-// ImportanceEqualFold applies the EqualFold predicate on the "importance" field.
-func ImportanceEqualFold(v string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldEqualFold(FieldImportance, v))
-}
-
-// ImportanceContainsFold applies the ContainsFold predicate on the "importance" field.
-func ImportanceContainsFold(v string) predicate.Hotspot {
-	return predicate.Hotspot(sql.FieldContainsFold(FieldImportance, v))
+func ImportanceNotIn(vs ...models.Importance) predicate.Hotspot {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Hotspot(sql.FieldNotIn(FieldImportance, v...))
 }
 
 // SummaryEQ applies the EQ predicate on the "summary" field.

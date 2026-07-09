@@ -1,55 +1,33 @@
 import { GetAll, GetByID, GetStatus, Search, Delete, GetNotifications, UnreadCount, MarkRead, MarkAllRead } from '@wails/biz/hotspot/service';
-import type { Hotspot, Status } from '@/types';
-import type { SearchParams } from '@wails/biz/hotspot';
-
-export interface HotspotFilters {
-    page?: number;
-    limit?: number;
-    source?: string;
-    importance?: string;
-    keywordId?: string;
-    isReal?: string;
-    timeRange?: string;
-    timeFrom?: string;
-    timeTo?: string;
-    sortBy?: string;
-    sortOrder?: 'desc' | 'asc';
-}
-
-export interface PaginatedHotspots {
-    data: Hotspot[];
-    total: number;
-    page: number;
-    limit: number;
-}
+import type { GetAllParams, SearchParams } from '@wails/biz/hotspot';
 
 export const hotspotApi = {
-    getAll: (params: HotspotFilters = {}) =>
+    getAll: (params: GetAllParams) =>
         GetAll({
             page: params.page ?? 1,
             limit: params.limit ?? 20,
             source: params.source ?? null,
             importance: params.importance ?? null,
             keywordId: params.keywordId ?? null,
-            isReal: params.isReal != null ? params.isReal === 'true' : null,
+            isReal: params.isReal != null ? params.isReal === true : null,
             timeRange: params.timeRange ?? null,
             timeFrom: params.timeFrom ?? null,
             timeTo: params.timeTo ?? null,
             sortBy: params.sortBy ?? null,
             sortOrder: params.sortOrder ?? null
-        }) as Promise<PaginatedHotspots | null>,
+        }),
 
-    getById: (id: string) => GetByID(id) as Promise<Hotspot | null>,
+    getById: (id: string) => GetByID(id),
 
-    getStatus: () => GetStatus() as Promise<Status | null>,
+    getStatus: () => GetStatus(),
 
-    search: (params: SearchParams) => Search(params) as Promise<PaginatedHotspots | null>,
+    search: (params: SearchParams) => Search(params),
 
     delete: (id: string) => Delete(id),
 
-    getNotifications: (limit: number = 10) => GetNotifications(limit) as Promise<Hotspot[]>,
+    getNotifications: (limit: number = 10) => GetNotifications(limit),
 
-    unreadCount: () => UnreadCount() as Promise<number>,
+    unreadCount: () => UnreadCount(),
 
     markRead: (id: string) => MarkRead(id),
 

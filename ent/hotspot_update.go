@@ -10,6 +10,7 @@ import (
 	"wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/predicate"
+	"wood-hot-monitor/internal/core/models"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -181,13 +182,13 @@ func (_u *HotspotUpdate) ClearKeywordMentioned() *HotspotUpdate {
 }
 
 // SetImportance sets the "importance" field.
-func (_u *HotspotUpdate) SetImportance(v string) *HotspotUpdate {
+func (_u *HotspotUpdate) SetImportance(v models.Importance) *HotspotUpdate {
 	_u.mutation.SetImportance(v)
 	return _u
 }
 
 // SetNillableImportance sets the "importance" field if the given value is not nil.
-func (_u *HotspotUpdate) SetNillableImportance(v *string) *HotspotUpdate {
+func (_u *HotspotUpdate) SetNillableImportance(v *models.Importance) *HotspotUpdate {
 	if v != nil {
 		_u.SetImportance(*v)
 	}
@@ -641,7 +642,20 @@ func (_u *HotspotUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *HotspotUpdate) check() error {
+	if v, ok := _u.mutation.Importance(); ok {
+		if err := hotspot.ImportanceValidator(v); err != nil {
+			return &ValidationError{Name: "importance", err: fmt.Errorf(`ent: validator failed for field "Hotspot.importance": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *HotspotUpdate) sqlSave(ctx context.Context) (_node int, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(hotspot.Table, hotspot.Columns, sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
@@ -690,7 +704,7 @@ func (_u *HotspotUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		_spec.ClearField(hotspot.FieldKeywordMentioned, field.TypeBool)
 	}
 	if value, ok := _u.mutation.Importance(); ok {
-		_spec.SetField(hotspot.FieldImportance, field.TypeString, value)
+		_spec.SetField(hotspot.FieldImportance, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Summary(); ok {
 		_spec.SetField(hotspot.FieldSummary, field.TypeString, value)
@@ -1013,13 +1027,13 @@ func (_u *HotspotUpdateOne) ClearKeywordMentioned() *HotspotUpdateOne {
 }
 
 // SetImportance sets the "importance" field.
-func (_u *HotspotUpdateOne) SetImportance(v string) *HotspotUpdateOne {
+func (_u *HotspotUpdateOne) SetImportance(v models.Importance) *HotspotUpdateOne {
 	_u.mutation.SetImportance(v)
 	return _u
 }
 
 // SetNillableImportance sets the "importance" field if the given value is not nil.
-func (_u *HotspotUpdateOne) SetNillableImportance(v *string) *HotspotUpdateOne {
+func (_u *HotspotUpdateOne) SetNillableImportance(v *models.Importance) *HotspotUpdateOne {
 	if v != nil {
 		_u.SetImportance(*v)
 	}
@@ -1486,7 +1500,20 @@ func (_u *HotspotUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// check runs all checks and user-defined validators on the builder.
+func (_u *HotspotUpdateOne) check() error {
+	if v, ok := _u.mutation.Importance(); ok {
+		if err := hotspot.ImportanceValidator(v); err != nil {
+			return &ValidationError{Name: "importance", err: fmt.Errorf(`ent: validator failed for field "Hotspot.importance": %w`, err)}
+		}
+	}
+	return nil
+}
+
 func (_u *HotspotUpdateOne) sqlSave(ctx context.Context) (_node *Hotspot, err error) {
+	if err := _u.check(); err != nil {
+		return _node, err
+	}
 	_spec := sqlgraph.NewUpdateSpec(hotspot.Table, hotspot.Columns, sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString))
 	id, ok := _u.mutation.ID()
 	if !ok {
@@ -1552,7 +1579,7 @@ func (_u *HotspotUpdateOne) sqlSave(ctx context.Context) (_node *Hotspot, err er
 		_spec.ClearField(hotspot.FieldKeywordMentioned, field.TypeBool)
 	}
 	if value, ok := _u.mutation.Importance(); ok {
-		_spec.SetField(hotspot.FieldImportance, field.TypeString, value)
+		_spec.SetField(hotspot.FieldImportance, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Summary(); ok {
 		_spec.SetField(hotspot.FieldSummary, field.TypeString, value)

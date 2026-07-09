@@ -23,10 +23,6 @@ func init() {
 	hotspotDescRelevance := hotspotFields[7].Descriptor()
 	// hotspot.DefaultRelevance holds the default value on creation for the relevance field.
 	hotspot.DefaultRelevance = hotspotDescRelevance.Default.(int)
-	// hotspotDescImportance is the schema descriptor for importance field.
-	hotspotDescImportance := hotspotFields[10].Descriptor()
-	// hotspot.DefaultImportance holds the default value on creation for the importance field.
-	hotspot.DefaultImportance = hotspotDescImportance.Default.(string)
 	// hotspotDescIsNotified is the schema descriptor for is_notified field.
 	hotspotDescIsNotified := hotspotFields[27].Descriptor()
 	// hotspot.DefaultIsNotified holds the default value on creation for the is_notified field.

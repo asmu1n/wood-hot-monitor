@@ -9,6 +9,7 @@ import (
 	"time"
 	"wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
+	"wood-hot-monitor/internal/core/models"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -119,13 +120,13 @@ func (_c *HotspotCreate) SetNillableKeywordMentioned(v *bool) *HotspotCreate {
 }
 
 // SetImportance sets the "importance" field.
-func (_c *HotspotCreate) SetImportance(v string) *HotspotCreate {
+func (_c *HotspotCreate) SetImportance(v models.Importance) *HotspotCreate {
 	_c.mutation.SetImportance(v)
 	return _c
 }
 
 // SetNillableImportance sets the "importance" field if the given value is not nil.
-func (_c *HotspotCreate) SetNillableImportance(v *string) *HotspotCreate {
+func (_c *HotspotCreate) SetNillableImportance(v *models.Importance) *HotspotCreate {
 	if v != nil {
 		_c.SetImportance(*v)
 	}
@@ -493,6 +494,11 @@ func (_c *HotspotCreate) check() error {
 	if _, ok := _c.mutation.Importance(); !ok {
 		return &ValidationError{Name: "importance", err: errors.New(`ent: missing required field "Hotspot.importance"`)}
 	}
+	if v, ok := _c.mutation.Importance(); ok {
+		if err := hotspot.ImportanceValidator(v); err != nil {
+			return &ValidationError{Name: "importance", err: fmt.Errorf(`ent: validator failed for field "Hotspot.importance": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Hotspot.created_at"`)}
 	}
@@ -575,7 +581,7 @@ func (_c *HotspotCreate) createSpec() (*Hotspot, *sqlgraph.CreateSpec) {
 		_node.KeywordMentioned = &value
 	}
 	if value, ok := _c.mutation.Importance(); ok {
-		_spec.SetField(hotspot.FieldImportance, field.TypeString, value)
+		_spec.SetField(hotspot.FieldImportance, field.TypeEnum, value)
 		_node.Importance = value
 	}
 	if value, ok := _c.mutation.Summary(); ok {
@@ -852,7 +858,7 @@ func (u *HotspotUpsert) ClearKeywordMentioned() *HotspotUpsert {
 }
 
 // SetImportance sets the "importance" field.
-func (u *HotspotUpsert) SetImportance(v string) *HotspotUpsert {
+func (u *HotspotUpsert) SetImportance(v models.Importance) *HotspotUpsert {
 	u.Set(hotspot.FieldImportance, v)
 	return u
 }
@@ -1429,7 +1435,7 @@ func (u *HotspotUpsertOne) ClearKeywordMentioned() *HotspotUpsertOne {
 }
 
 // SetImportance sets the "importance" field.
-func (u *HotspotUpsertOne) SetImportance(v string) *HotspotUpsertOne {
+func (u *HotspotUpsertOne) SetImportance(v models.Importance) *HotspotUpsertOne {
 	return u.Update(func(s *HotspotUpsert) {
 		s.SetImportance(v)
 	})
@@ -2235,7 +2241,7 @@ func (u *HotspotUpsertBulk) ClearKeywordMentioned() *HotspotUpsertBulk {
 }
 
 // SetImportance sets the "importance" field.
-func (u *HotspotUpsertBulk) SetImportance(v string) *HotspotUpsertBulk {
+func (u *HotspotUpsertBulk) SetImportance(v models.Importance) *HotspotUpsertBulk {
 	return u.Update(func(s *HotspotUpsert) {
 		s.SetImportance(v)
 	})

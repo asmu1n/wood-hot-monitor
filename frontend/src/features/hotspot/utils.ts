@@ -1,5 +1,5 @@
+import type { Hotspot } from '@wails/core/models';
 import { Events } from '@wailsio/runtime';
-import type { Hotspot } from '@/types';
 
 /** 计算热度综合指标（归一化 0-100） */
 function calcHeatScore(h: Hotspot): number {

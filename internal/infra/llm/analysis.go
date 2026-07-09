@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"wood-hot-monitor/internal/core/models"
 )
 
 // PreMatchKeyword 在文本中检查是否包含任一扩展关键词（不区分大小写），返回匹配结果。
@@ -54,7 +55,7 @@ func (s *Service) AnalyzeContent(ctx context.Context, content, keyword string, p
 
 	result.Relevance = max(0, min(result.Relevance, 100))
 	if !validImportances[result.Importance] {
-		result.Importance = "low"
+		result.Importance = models.LowImportance
 	}
 	result.RelevanceReason = truncateRunes(result.RelevanceReason, 200)
 	result.Summary = truncateRunes(result.Summary, 150)

@@ -24,8 +24,11 @@ var (
 	reArray  = regexp.MustCompile(`(?s)\[.*\]`)
 	reObject = regexp.MustCompile(`(?s)\{.*\}`)
 
-	validImportances = map[string]bool{
-		"low": true, "medium": true, "high": true, "urgent": true,
+	validImportances = map[models.Importance]bool{
+		models.LowImportance:    true,
+		models.MediumImportance: true,
+		models.HighImportance:   true,
+		models.UrgentImportance: true,
 	}
 )
 
