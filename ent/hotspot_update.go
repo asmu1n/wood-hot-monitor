@@ -7,10 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"wood-hot-monitor/ent/hotspot"
+	enthotspot "wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/predicate"
-	"wood-hot-monitor/internal/core/models"
+	"wood-hot-monitor/internal/domain/hotspot"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -182,13 +182,13 @@ func (_u *HotspotUpdate) ClearKeywordMentioned() *HotspotUpdate {
 }
 
 // SetImportance sets the "importance" field.
-func (_u *HotspotUpdate) SetImportance(v models.Importance) *HotspotUpdate {
+func (_u *HotspotUpdate) SetImportance(v hotspot.Importance) *HotspotUpdate {
 	_u.mutation.SetImportance(v)
 	return _u
 }
 
 // SetNillableImportance sets the "importance" field if the given value is not nil.
-func (_u *HotspotUpdate) SetNillableImportance(v *models.Importance) *HotspotUpdate {
+func (_u *HotspotUpdate) SetNillableImportance(v *hotspot.Importance) *HotspotUpdate {
 	if v != nil {
 		_u.SetImportance(*v)
 	}
@@ -645,7 +645,7 @@ func (_u *HotspotUpdate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (_u *HotspotUpdate) check() error {
 	if v, ok := _u.mutation.Importance(); ok {
-		if err := hotspot.ImportanceValidator(v); err != nil {
+		if err := enthotspot.ImportanceValidator(v); err != nil {
 			return &ValidationError{Name: "importance", err: fmt.Errorf(`ent: validator failed for field "Hotspot.importance": %w`, err)}
 		}
 	}
@@ -656,7 +656,7 @@ func (_u *HotspotUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(hotspot.Table, hotspot.Columns, sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString))
+	_spec := sqlgraph.NewUpdateSpec(enthotspot.Table, enthotspot.Columns, sqlgraph.NewFieldSpec(enthotspot.FieldID, field.TypeString))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -665,173 +665,173 @@ func (_u *HotspotUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 	}
 	if value, ok := _u.mutation.Title(); ok {
-		_spec.SetField(hotspot.FieldTitle, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Content(); ok {
-		_spec.SetField(hotspot.FieldContent, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldContent, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.URL(); ok {
-		_spec.SetField(hotspot.FieldURL, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldURL, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Source(); ok {
-		_spec.SetField(hotspot.FieldSource, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldSource, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.SourceID(); ok {
-		_spec.SetField(hotspot.FieldSourceID, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldSourceID, field.TypeString, value)
 	}
 	if _u.mutation.SourceIDCleared() {
-		_spec.ClearField(hotspot.FieldSourceID, field.TypeString)
+		_spec.ClearField(enthotspot.FieldSourceID, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsReal(); ok {
-		_spec.SetField(hotspot.FieldIsReal, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldIsReal, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Relevance(); ok {
-		_spec.SetField(hotspot.FieldRelevance, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldRelevance, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedRelevance(); ok {
-		_spec.AddField(hotspot.FieldRelevance, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldRelevance, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.RelevanceReason(); ok {
-		_spec.SetField(hotspot.FieldRelevanceReason, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldRelevanceReason, field.TypeString, value)
 	}
 	if _u.mutation.RelevanceReasonCleared() {
-		_spec.ClearField(hotspot.FieldRelevanceReason, field.TypeString)
+		_spec.ClearField(enthotspot.FieldRelevanceReason, field.TypeString)
 	}
 	if value, ok := _u.mutation.KeywordMentioned(); ok {
-		_spec.SetField(hotspot.FieldKeywordMentioned, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldKeywordMentioned, field.TypeBool, value)
 	}
 	if _u.mutation.KeywordMentionedCleared() {
-		_spec.ClearField(hotspot.FieldKeywordMentioned, field.TypeBool)
+		_spec.ClearField(enthotspot.FieldKeywordMentioned, field.TypeBool)
 	}
 	if value, ok := _u.mutation.Importance(); ok {
-		_spec.SetField(hotspot.FieldImportance, field.TypeEnum, value)
+		_spec.SetField(enthotspot.FieldImportance, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Summary(); ok {
-		_spec.SetField(hotspot.FieldSummary, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldSummary, field.TypeString, value)
 	}
 	if _u.mutation.SummaryCleared() {
-		_spec.ClearField(hotspot.FieldSummary, field.TypeString)
+		_spec.ClearField(enthotspot.FieldSummary, field.TypeString)
 	}
 	if value, ok := _u.mutation.ViewCount(); ok {
-		_spec.SetField(hotspot.FieldViewCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldViewCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedViewCount(); ok {
-		_spec.AddField(hotspot.FieldViewCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldViewCount, field.TypeInt, value)
 	}
 	if _u.mutation.ViewCountCleared() {
-		_spec.ClearField(hotspot.FieldViewCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldViewCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.LikeCount(); ok {
-		_spec.SetField(hotspot.FieldLikeCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldLikeCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedLikeCount(); ok {
-		_spec.AddField(hotspot.FieldLikeCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldLikeCount, field.TypeInt, value)
 	}
 	if _u.mutation.LikeCountCleared() {
-		_spec.ClearField(hotspot.FieldLikeCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldLikeCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.RetweetCount(); ok {
-		_spec.SetField(hotspot.FieldRetweetCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldRetweetCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedRetweetCount(); ok {
-		_spec.AddField(hotspot.FieldRetweetCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldRetweetCount, field.TypeInt, value)
 	}
 	if _u.mutation.RetweetCountCleared() {
-		_spec.ClearField(hotspot.FieldRetweetCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldRetweetCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.ReplyCount(); ok {
-		_spec.SetField(hotspot.FieldReplyCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldReplyCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedReplyCount(); ok {
-		_spec.AddField(hotspot.FieldReplyCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldReplyCount, field.TypeInt, value)
 	}
 	if _u.mutation.ReplyCountCleared() {
-		_spec.ClearField(hotspot.FieldReplyCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldReplyCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.CommentCount(); ok {
-		_spec.SetField(hotspot.FieldCommentCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldCommentCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedCommentCount(); ok {
-		_spec.AddField(hotspot.FieldCommentCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldCommentCount, field.TypeInt, value)
 	}
 	if _u.mutation.CommentCountCleared() {
-		_spec.ClearField(hotspot.FieldCommentCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldCommentCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.QuoteCount(); ok {
-		_spec.SetField(hotspot.FieldQuoteCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldQuoteCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedQuoteCount(); ok {
-		_spec.AddField(hotspot.FieldQuoteCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldQuoteCount, field.TypeInt, value)
 	}
 	if _u.mutation.QuoteCountCleared() {
-		_spec.ClearField(hotspot.FieldQuoteCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldQuoteCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.DanmakuCount(); ok {
-		_spec.SetField(hotspot.FieldDanmakuCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldDanmakuCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedDanmakuCount(); ok {
-		_spec.AddField(hotspot.FieldDanmakuCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldDanmakuCount, field.TypeInt, value)
 	}
 	if _u.mutation.DanmakuCountCleared() {
-		_spec.ClearField(hotspot.FieldDanmakuCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldDanmakuCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.AuthorName(); ok {
-		_spec.SetField(hotspot.FieldAuthorName, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldAuthorName, field.TypeString, value)
 	}
 	if _u.mutation.AuthorNameCleared() {
-		_spec.ClearField(hotspot.FieldAuthorName, field.TypeString)
+		_spec.ClearField(enthotspot.FieldAuthorName, field.TypeString)
 	}
 	if value, ok := _u.mutation.AuthorUsername(); ok {
-		_spec.SetField(hotspot.FieldAuthorUsername, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldAuthorUsername, field.TypeString, value)
 	}
 	if _u.mutation.AuthorUsernameCleared() {
-		_spec.ClearField(hotspot.FieldAuthorUsername, field.TypeString)
+		_spec.ClearField(enthotspot.FieldAuthorUsername, field.TypeString)
 	}
 	if value, ok := _u.mutation.AuthorAvatar(); ok {
-		_spec.SetField(hotspot.FieldAuthorAvatar, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldAuthorAvatar, field.TypeString, value)
 	}
 	if _u.mutation.AuthorAvatarCleared() {
-		_spec.ClearField(hotspot.FieldAuthorAvatar, field.TypeString)
+		_spec.ClearField(enthotspot.FieldAuthorAvatar, field.TypeString)
 	}
 	if value, ok := _u.mutation.AuthorFollowers(); ok {
-		_spec.SetField(hotspot.FieldAuthorFollowers, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldAuthorFollowers, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedAuthorFollowers(); ok {
-		_spec.AddField(hotspot.FieldAuthorFollowers, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldAuthorFollowers, field.TypeInt, value)
 	}
 	if _u.mutation.AuthorFollowersCleared() {
-		_spec.ClearField(hotspot.FieldAuthorFollowers, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldAuthorFollowers, field.TypeInt)
 	}
 	if value, ok := _u.mutation.AuthorVerified(); ok {
-		_spec.SetField(hotspot.FieldAuthorVerified, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldAuthorVerified, field.TypeBool, value)
 	}
 	if _u.mutation.AuthorVerifiedCleared() {
-		_spec.ClearField(hotspot.FieldAuthorVerified, field.TypeBool)
+		_spec.ClearField(enthotspot.FieldAuthorVerified, field.TypeBool)
 	}
 	if value, ok := _u.mutation.PublishedAt(); ok {
-		_spec.SetField(hotspot.FieldPublishedAt, field.TypeTime, value)
+		_spec.SetField(enthotspot.FieldPublishedAt, field.TypeTime, value)
 	}
 	if _u.mutation.PublishedAtCleared() {
-		_spec.ClearField(hotspot.FieldPublishedAt, field.TypeTime)
+		_spec.ClearField(enthotspot.FieldPublishedAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.IsNotified(); ok {
-		_spec.SetField(hotspot.FieldIsNotified, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldIsNotified, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.NotifiedAt(); ok {
-		_spec.SetField(hotspot.FieldNotifiedAt, field.TypeTime, value)
+		_spec.SetField(enthotspot.FieldNotifiedAt, field.TypeTime, value)
 	}
 	if _u.mutation.NotifiedAtCleared() {
-		_spec.ClearField(hotspot.FieldNotifiedAt, field.TypeTime)
+		_spec.ClearField(enthotspot.FieldNotifiedAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.IsRead(); ok {
-		_spec.SetField(hotspot.FieldIsRead, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldIsRead, field.TypeBool, value)
 	}
 	if _u.mutation.KeywordCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   hotspot.KeywordTable,
-			Columns: []string{hotspot.KeywordColumn},
+			Table:   enthotspot.KeywordTable,
+			Columns: []string{enthotspot.KeywordColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(keyword.FieldID, field.TypeString),
@@ -843,8 +843,8 @@ func (_u *HotspotUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   hotspot.KeywordTable,
-			Columns: []string{hotspot.KeywordColumn},
+			Table:   enthotspot.KeywordTable,
+			Columns: []string{enthotspot.KeywordColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(keyword.FieldID, field.TypeString),
@@ -857,7 +857,7 @@ func (_u *HotspotUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{hotspot.Label}
+			err = &NotFoundError{enthotspot.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -1027,13 +1027,13 @@ func (_u *HotspotUpdateOne) ClearKeywordMentioned() *HotspotUpdateOne {
 }
 
 // SetImportance sets the "importance" field.
-func (_u *HotspotUpdateOne) SetImportance(v models.Importance) *HotspotUpdateOne {
+func (_u *HotspotUpdateOne) SetImportance(v hotspot.Importance) *HotspotUpdateOne {
 	_u.mutation.SetImportance(v)
 	return _u
 }
 
 // SetNillableImportance sets the "importance" field if the given value is not nil.
-func (_u *HotspotUpdateOne) SetNillableImportance(v *models.Importance) *HotspotUpdateOne {
+func (_u *HotspotUpdateOne) SetNillableImportance(v *hotspot.Importance) *HotspotUpdateOne {
 	if v != nil {
 		_u.SetImportance(*v)
 	}
@@ -1503,7 +1503,7 @@ func (_u *HotspotUpdateOne) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (_u *HotspotUpdateOne) check() error {
 	if v, ok := _u.mutation.Importance(); ok {
-		if err := hotspot.ImportanceValidator(v); err != nil {
+		if err := enthotspot.ImportanceValidator(v); err != nil {
 			return &ValidationError{Name: "importance", err: fmt.Errorf(`ent: validator failed for field "Hotspot.importance": %w`, err)}
 		}
 	}
@@ -1514,7 +1514,7 @@ func (_u *HotspotUpdateOne) sqlSave(ctx context.Context) (_node *Hotspot, err er
 	if err := _u.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(hotspot.Table, hotspot.Columns, sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString))
+	_spec := sqlgraph.NewUpdateSpec(enthotspot.Table, enthotspot.Columns, sqlgraph.NewFieldSpec(enthotspot.FieldID, field.TypeString))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Hotspot.id" for update`)}
@@ -1522,12 +1522,12 @@ func (_u *HotspotUpdateOne) sqlSave(ctx context.Context) (_node *Hotspot, err er
 	_spec.Node.ID.Value = id
 	if fields := _u.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, hotspot.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, enthotspot.FieldID)
 		for _, f := range fields {
-			if !hotspot.ValidColumn(f) {
+			if !enthotspot.ValidColumn(f) {
 				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 			}
-			if f != hotspot.FieldID {
+			if f != enthotspot.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, f)
 			}
 		}
@@ -1540,173 +1540,173 @@ func (_u *HotspotUpdateOne) sqlSave(ctx context.Context) (_node *Hotspot, err er
 		}
 	}
 	if value, ok := _u.mutation.Title(); ok {
-		_spec.SetField(hotspot.FieldTitle, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Content(); ok {
-		_spec.SetField(hotspot.FieldContent, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldContent, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.URL(); ok {
-		_spec.SetField(hotspot.FieldURL, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldURL, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Source(); ok {
-		_spec.SetField(hotspot.FieldSource, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldSource, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.SourceID(); ok {
-		_spec.SetField(hotspot.FieldSourceID, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldSourceID, field.TypeString, value)
 	}
 	if _u.mutation.SourceIDCleared() {
-		_spec.ClearField(hotspot.FieldSourceID, field.TypeString)
+		_spec.ClearField(enthotspot.FieldSourceID, field.TypeString)
 	}
 	if value, ok := _u.mutation.IsReal(); ok {
-		_spec.SetField(hotspot.FieldIsReal, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldIsReal, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.Relevance(); ok {
-		_spec.SetField(hotspot.FieldRelevance, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldRelevance, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedRelevance(); ok {
-		_spec.AddField(hotspot.FieldRelevance, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldRelevance, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.RelevanceReason(); ok {
-		_spec.SetField(hotspot.FieldRelevanceReason, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldRelevanceReason, field.TypeString, value)
 	}
 	if _u.mutation.RelevanceReasonCleared() {
-		_spec.ClearField(hotspot.FieldRelevanceReason, field.TypeString)
+		_spec.ClearField(enthotspot.FieldRelevanceReason, field.TypeString)
 	}
 	if value, ok := _u.mutation.KeywordMentioned(); ok {
-		_spec.SetField(hotspot.FieldKeywordMentioned, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldKeywordMentioned, field.TypeBool, value)
 	}
 	if _u.mutation.KeywordMentionedCleared() {
-		_spec.ClearField(hotspot.FieldKeywordMentioned, field.TypeBool)
+		_spec.ClearField(enthotspot.FieldKeywordMentioned, field.TypeBool)
 	}
 	if value, ok := _u.mutation.Importance(); ok {
-		_spec.SetField(hotspot.FieldImportance, field.TypeEnum, value)
+		_spec.SetField(enthotspot.FieldImportance, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Summary(); ok {
-		_spec.SetField(hotspot.FieldSummary, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldSummary, field.TypeString, value)
 	}
 	if _u.mutation.SummaryCleared() {
-		_spec.ClearField(hotspot.FieldSummary, field.TypeString)
+		_spec.ClearField(enthotspot.FieldSummary, field.TypeString)
 	}
 	if value, ok := _u.mutation.ViewCount(); ok {
-		_spec.SetField(hotspot.FieldViewCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldViewCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedViewCount(); ok {
-		_spec.AddField(hotspot.FieldViewCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldViewCount, field.TypeInt, value)
 	}
 	if _u.mutation.ViewCountCleared() {
-		_spec.ClearField(hotspot.FieldViewCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldViewCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.LikeCount(); ok {
-		_spec.SetField(hotspot.FieldLikeCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldLikeCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedLikeCount(); ok {
-		_spec.AddField(hotspot.FieldLikeCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldLikeCount, field.TypeInt, value)
 	}
 	if _u.mutation.LikeCountCleared() {
-		_spec.ClearField(hotspot.FieldLikeCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldLikeCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.RetweetCount(); ok {
-		_spec.SetField(hotspot.FieldRetweetCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldRetweetCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedRetweetCount(); ok {
-		_spec.AddField(hotspot.FieldRetweetCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldRetweetCount, field.TypeInt, value)
 	}
 	if _u.mutation.RetweetCountCleared() {
-		_spec.ClearField(hotspot.FieldRetweetCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldRetweetCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.ReplyCount(); ok {
-		_spec.SetField(hotspot.FieldReplyCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldReplyCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedReplyCount(); ok {
-		_spec.AddField(hotspot.FieldReplyCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldReplyCount, field.TypeInt, value)
 	}
 	if _u.mutation.ReplyCountCleared() {
-		_spec.ClearField(hotspot.FieldReplyCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldReplyCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.CommentCount(); ok {
-		_spec.SetField(hotspot.FieldCommentCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldCommentCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedCommentCount(); ok {
-		_spec.AddField(hotspot.FieldCommentCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldCommentCount, field.TypeInt, value)
 	}
 	if _u.mutation.CommentCountCleared() {
-		_spec.ClearField(hotspot.FieldCommentCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldCommentCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.QuoteCount(); ok {
-		_spec.SetField(hotspot.FieldQuoteCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldQuoteCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedQuoteCount(); ok {
-		_spec.AddField(hotspot.FieldQuoteCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldQuoteCount, field.TypeInt, value)
 	}
 	if _u.mutation.QuoteCountCleared() {
-		_spec.ClearField(hotspot.FieldQuoteCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldQuoteCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.DanmakuCount(); ok {
-		_spec.SetField(hotspot.FieldDanmakuCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldDanmakuCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedDanmakuCount(); ok {
-		_spec.AddField(hotspot.FieldDanmakuCount, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldDanmakuCount, field.TypeInt, value)
 	}
 	if _u.mutation.DanmakuCountCleared() {
-		_spec.ClearField(hotspot.FieldDanmakuCount, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldDanmakuCount, field.TypeInt)
 	}
 	if value, ok := _u.mutation.AuthorName(); ok {
-		_spec.SetField(hotspot.FieldAuthorName, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldAuthorName, field.TypeString, value)
 	}
 	if _u.mutation.AuthorNameCleared() {
-		_spec.ClearField(hotspot.FieldAuthorName, field.TypeString)
+		_spec.ClearField(enthotspot.FieldAuthorName, field.TypeString)
 	}
 	if value, ok := _u.mutation.AuthorUsername(); ok {
-		_spec.SetField(hotspot.FieldAuthorUsername, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldAuthorUsername, field.TypeString, value)
 	}
 	if _u.mutation.AuthorUsernameCleared() {
-		_spec.ClearField(hotspot.FieldAuthorUsername, field.TypeString)
+		_spec.ClearField(enthotspot.FieldAuthorUsername, field.TypeString)
 	}
 	if value, ok := _u.mutation.AuthorAvatar(); ok {
-		_spec.SetField(hotspot.FieldAuthorAvatar, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldAuthorAvatar, field.TypeString, value)
 	}
 	if _u.mutation.AuthorAvatarCleared() {
-		_spec.ClearField(hotspot.FieldAuthorAvatar, field.TypeString)
+		_spec.ClearField(enthotspot.FieldAuthorAvatar, field.TypeString)
 	}
 	if value, ok := _u.mutation.AuthorFollowers(); ok {
-		_spec.SetField(hotspot.FieldAuthorFollowers, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldAuthorFollowers, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.AddedAuthorFollowers(); ok {
-		_spec.AddField(hotspot.FieldAuthorFollowers, field.TypeInt, value)
+		_spec.AddField(enthotspot.FieldAuthorFollowers, field.TypeInt, value)
 	}
 	if _u.mutation.AuthorFollowersCleared() {
-		_spec.ClearField(hotspot.FieldAuthorFollowers, field.TypeInt)
+		_spec.ClearField(enthotspot.FieldAuthorFollowers, field.TypeInt)
 	}
 	if value, ok := _u.mutation.AuthorVerified(); ok {
-		_spec.SetField(hotspot.FieldAuthorVerified, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldAuthorVerified, field.TypeBool, value)
 	}
 	if _u.mutation.AuthorVerifiedCleared() {
-		_spec.ClearField(hotspot.FieldAuthorVerified, field.TypeBool)
+		_spec.ClearField(enthotspot.FieldAuthorVerified, field.TypeBool)
 	}
 	if value, ok := _u.mutation.PublishedAt(); ok {
-		_spec.SetField(hotspot.FieldPublishedAt, field.TypeTime, value)
+		_spec.SetField(enthotspot.FieldPublishedAt, field.TypeTime, value)
 	}
 	if _u.mutation.PublishedAtCleared() {
-		_spec.ClearField(hotspot.FieldPublishedAt, field.TypeTime)
+		_spec.ClearField(enthotspot.FieldPublishedAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.IsNotified(); ok {
-		_spec.SetField(hotspot.FieldIsNotified, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldIsNotified, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.NotifiedAt(); ok {
-		_spec.SetField(hotspot.FieldNotifiedAt, field.TypeTime, value)
+		_spec.SetField(enthotspot.FieldNotifiedAt, field.TypeTime, value)
 	}
 	if _u.mutation.NotifiedAtCleared() {
-		_spec.ClearField(hotspot.FieldNotifiedAt, field.TypeTime)
+		_spec.ClearField(enthotspot.FieldNotifiedAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.IsRead(); ok {
-		_spec.SetField(hotspot.FieldIsRead, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldIsRead, field.TypeBool, value)
 	}
 	if _u.mutation.KeywordCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   hotspot.KeywordTable,
-			Columns: []string{hotspot.KeywordColumn},
+			Table:   enthotspot.KeywordTable,
+			Columns: []string{enthotspot.KeywordColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(keyword.FieldID, field.TypeString),
@@ -1718,8 +1718,8 @@ func (_u *HotspotUpdateOne) sqlSave(ctx context.Context) (_node *Hotspot, err er
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   hotspot.KeywordTable,
-			Columns: []string{hotspot.KeywordColumn},
+			Table:   enthotspot.KeywordTable,
+			Columns: []string{enthotspot.KeywordColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(keyword.FieldID, field.TypeString),
@@ -1735,7 +1735,7 @@ func (_u *HotspotUpdateOne) sqlSave(ctx context.Context) (_node *Hotspot, err er
 	_spec.ScanValues = _node.scanValues
 	if err = sqlgraph.UpdateNode(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{hotspot.Label}
+			err = &NotFoundError{enthotspot.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}

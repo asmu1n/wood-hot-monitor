@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	domain "wood-hot-monitor/internal/domain/hotspot"
 )
 
 const twitterAPIURL = "https://api.twitterapi.io/twitter/tweet/advanced_search"
 
-// Twitter API 响应结构
 type twitterResponse struct {
 	Tweets     []twitterTweet `json:"tweets"`
 	HasNext    bool           `json:"has_next"`
@@ -37,8 +38,7 @@ type twitterTweet struct {
 	ViewCount    int `json:"viewCount"`
 }
 
-// SearchTwitter 通过 twitterapi.io 搜索推文（需要 Bearer Token）
-func SearchTwitter(ctx context.Context, query, apiKey string) ([]SearchResult, error) {
+func SearchTwitter(ctx context.Context, query, apiKey string) ([]domain.SearchResult, error) {
 	if apiKey == "" {
 		return nil, nil
 	}
@@ -72,28 +72,28 @@ func SearchTwitter(ctx context.Context, query, apiKey string) ([]SearchResult, e
 		return nil, fmt.Errorf("decode twitter response: %w", err)
 	}
 
-	results := make([]SearchResult, 0, len(data.Tweets))
+	results := make([]domain.SearchResult, 0, len(data.Tweets))
 	for _, tweet := range data.Tweets {
 		tweetURL := tweet.URL
 		if tweetURL == "" {
 			tweetURL = fmt.Sprintf("https://x.com/%s/status/%s", tweet.Author.UserName, tweet.ID)
 		}
 
-		// Twitter 时间格式: "Mon Jan 02 15:04:05 +0000 2006"
 		var published *time.Time
 		if tweet.CreatedAt != "" {
+			// Twitter 时间格式: "Mon Jan 02 15:04:05 +0000 2006"
 			if t, err := time.Parse("Mon Jan 02 15:04:05 +0000 2006", tweet.CreatedAt); err == nil {
 				published = TimePtr(t)
 			}
 		}
 
-		results = append(results, SearchResult{
+		results = append(results, domain.SearchResult{
 			Title:    truncate(tweet.Text, 100),
 			Content:  tweet.Text,
 			URL:      tweetURL,
 			Source:   "twitter",
 			SourceID: tweet.ID,
-			Author: &Author{
+			Author: &domain.Author{
 				Name:      tweet.Author.Name,
 				Username:  tweet.Author.UserName,
 				Avatar:    tweet.Author.ProfilePicture,

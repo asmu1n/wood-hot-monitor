@@ -37,7 +37,6 @@ const expandKeywordSystemPrompt = "你是一个专业的搜索查询扩展专家
 	"请仅输出 JSON 字符串数组，不要包含任何 markdown 标记（如 ```json）或多余的解释。\n" +
 	"示例输出格式：[\"Claude Sonnet 4.6\", \"Claude Sonnet\", \"Sonnet 4.6\", \"claude-sonnet-4.6\", \"Claude 4.6\", \"Anthropic Sonnet\"]"
 
-// buildAnalysisPrompt 构造内容分析的 system/user 提示词，注入关键词、预匹配结果和待分析内容
 func buildAnalysisPrompt(keyword string, preMatch PreMatchResult, content string) (system, user string) {
 	var matchHint string
 	if preMatch.Matched {
@@ -50,7 +49,6 @@ func buildAnalysisPrompt(keyword string, preMatch PreMatchResult, content string
 	return analysisSystemPrompt, user
 }
 
-// buildExpandKeywordPrompt 构造关键词扩展的 system/user 提示词
 func buildExpandKeywordPrompt(keyword string) (system, user string) {
 	return expandKeywordSystemPrompt, fmt.Sprintf("请输入关键词并进行扩展：%s", keyword)
 }

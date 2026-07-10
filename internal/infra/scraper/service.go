@@ -1,0 +1,262 @@
+package scraper
+
+import (
+	"context"
+	"log"
+	"math"
+	"math/rand"
+	"net/http"
+	"sort"
+	"sync"
+	"time"
+
+	domain "wood-hot-monitor/internal/domain/hotspot"
+)
+
+var sourcePriority = map[string]int{
+	"twitter":    0,
+	"weibo":      1,
+	"bilibili":   2,
+	"hackernews": 3,
+	"sogou":      4,
+	"bing":       5,
+	"google":     6,
+	"duckduckgo": 7,
+}
+
+var userAgents = [4]string{
+	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
+	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+	"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
+}
+
+func RandomUA() string {
+	return userAgents[rand.Intn(len(userAgents))]
+}
+
+func NewHTTPClient(timeout time.Duration) *http.Client {
+	return &http.Client{Timeout: timeout}
+}
+
+func SetRequestHeaders(req *http.Request) {
+	req.Header.Set("User-Agent", RandomUA())
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7")
+}
+
+type Service struct{}
+
+func NewService() *Service {
+	return &Service{}
+}
+
+func (s *Service) SearchAll(ctx context.Context, query string, config domain.ScraperConfig) []domain.SearchResult {
+	type sourceResult struct {
+		results []domain.SearchResult
+		source  string
+		err     error
+	}
+
+	ch := make(chan sourceResult, 4)
+	var wg sync.WaitGroup
+
+	search := func(name string, fn func() ([]domain.SearchResult, error)) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			results, err := fn()
+			ch <- sourceResult{results: results, source: name, err: err}
+		}()
+	}
+
+	search("hackernews", func() ([]domain.SearchResult, error) {
+		return SearchHackerNews(ctx, query)
+	})
+	search("bing", func() ([]domain.SearchResult, error) {
+		return SearchBing(ctx, query)
+	})
+	search("bilibili", func() ([]domain.SearchResult, error) {
+		return SearchBilibili(ctx, query)
+	})
+	search("twitter", func() ([]domain.SearchResult, error) {
+		return SearchTwitter(ctx, query, config.TwitterAPIKey)
+	})
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	var all []domain.SearchResult
+	for sr := range ch {
+		if sr.err != nil {
+			log.Printf("scraper: %s search failed: %v", sr.source, sr.err)
+			continue
+		}
+		log.Printf("scraper: %s search results: %d", sr.source, len(sr.results))
+		all = append(all, sr.results...)
+	}
+
+	return all
+}
+
+func DeduplicateByURL(results []domain.SearchResult) []domain.SearchResult {
+	seen := make(map[string]bool, len(results))
+	out := make([]domain.SearchResult, 0, len(results))
+	for _, r := range results {
+		if r.URL == "" || seen[r.URL] {
+			continue
+		}
+		seen[r.URL] = true
+		out = append(out, r)
+	}
+	return out
+}
+
+func FilterByFreshness(results []domain.SearchResult, maxAge time.Duration) []domain.SearchResult {
+	cutoff := time.Now().Add(-maxAge)
+	out := make([]domain.SearchResult, 0, len(results))
+	for _, r := range results {
+		if r.PublishedAt == nil || r.PublishedAt.After(cutoff) {
+			out = append(out, r)
+		}
+	}
+	return out
+}
+
+func SortByPriority(results []domain.SearchResult) {
+	sort.SliceStable(results, func(i, j int) bool {
+		pi := priorityOf(results[i].Source)
+		pj := priorityOf(results[j].Source)
+		return pi < pj
+	})
+}
+
+func priorityOf(source string) int {
+	if p, ok := sourcePriority[source]; ok {
+		return p
+	}
+	return 99
+}
+
+func IntPtr(v int) *int       { return &v }
+func TimePtr(t time.Time) *time.Time { return &t }
+
+type PlatformWeights struct {
+	Engagement float64
+	Authority  float64
+	Recency    float64
+}
+
+type ScoredResult struct {
+	domain.SearchResult
+	QualityScore float64
+}
+
+var platformWeights = map[string]PlatformWeights{
+	"twitter":    {Engagement: 0.4, Authority: 0.35, Recency: 0.25},
+	"weibo":      {Engagement: 0.4, Authority: 0.3, Recency: 0.3},
+	"bilibili":   {Engagement: 0.45, Authority: 0.25, Recency: 0.3},
+	"hackernews": {Engagement: 0.5, Authority: 0.2, Recency: 0.3},
+	"bing":       {Engagement: 0.2, Authority: 0.3, Recency: 0.5},
+	"sogou":      {Engagement: 0.2, Authority: 0.3, Recency: 0.5},
+	"google":     {Engagement: 0.2, Authority: 0.3, Recency: 0.5},
+	"duckduckgo": {Engagement: 0.2, Authority: 0.3, Recency: 0.5},
+}
+
+var platformThresholds = map[string]float64{
+	"twitter":    15,
+	"weibo":      15,
+	"bilibili":   10,
+	"hackernews": 10,
+	"bing":       5,
+	"sogou":      5,
+	"google":     5,
+	"duckduckgo": 5,
+}
+
+var defaultWeights = PlatformWeights{Engagement: 0.3, Authority: 0.3, Recency: 0.4}
+
+func ScoreResult(r domain.SearchResult) float64 {
+	w := defaultWeights
+	if pw, ok := platformWeights[r.Source]; ok {
+		w = pw
+	}
+	eng := engagementScore(r)
+	auth := authorityScore(r)
+	rec := recencyScore(r)
+	return max(0, min(eng*w.Engagement+auth*w.Authority+rec*w.Recency, 100))
+}
+
+func FilterAndSort(results []domain.SearchResult) []ScoredResult {
+	var scored []ScoredResult
+	for _, r := range results {
+		score := ScoreResult(r)
+		threshold := 5.0
+		if t, ok := platformThresholds[r.Source]; ok {
+			threshold = t
+		}
+		if score >= threshold {
+			scored = append(scored, ScoredResult{SearchResult: r, QualityScore: score})
+		}
+	}
+	sort.Slice(scored, func(i, j int) bool {
+		return scored[i].QualityScore > scored[j].QualityScore
+	})
+	return scored
+}
+
+func engagementScore(r domain.SearchResult) float64 {
+	total := 0.0
+	if r.LikeCount != nil {
+		total += float64(*r.LikeCount) * 1.0
+	}
+	if r.CommentCount != nil {
+		total += float64(*r.CommentCount) * 2.0
+	}
+	if r.RetweetCount != nil {
+		total += float64(*r.RetweetCount) * 1.5
+	}
+	if r.ReplyCount != nil {
+		total += float64(*r.ReplyCount) * 2.0
+	}
+	if r.QuoteCount != nil {
+		total += float64(*r.QuoteCount) * 1.5
+	}
+	if r.ViewCount != nil {
+		total += float64(*r.ViewCount) * 0.01
+	}
+	if r.DanmakuCount != nil {
+		total += float64(*r.DanmakuCount) * 1.0
+	}
+	if total <= 0 {
+		return 10
+	}
+	return max(0.0, min(math.Log10(total+1)*20, 100))
+}
+
+func authorityScore(r domain.SearchResult) float64 {
+	if r.Author == nil {
+		return 20
+	}
+	score := 20.0
+	if r.Author.Verified {
+		score += 30
+	}
+	if r.Author.Followers > 0 {
+		score += max(0.0, min(math.Log10(float64(r.Author.Followers))*10, 50))
+	}
+	return max(0.0, min(score, 100))
+}
+
+func recencyScore(r domain.SearchResult) float64 {
+	if r.PublishedAt == nil {
+		return 30
+	}
+	hours := time.Since(*r.PublishedAt).Hours()
+	if hours < 0 {
+		hours = 0
+	}
+	return max(0.0, min(100*math.Exp(-hours/72), 100))
+}

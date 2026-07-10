@@ -7,28 +7,28 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	domain "wood-hot-monitor/internal/domain/hotspot"
 )
 
 const hnAlgoliaURL = "http://hn.algolia.com/api/v1/search"
 
-// HN Algolia API 响应结构
 type hnResponse struct {
 	Hits []hnHit `json:"hits"`
 }
 
 type hnHit struct {
-	ObjectID  string  `json:"objectID"`
-	Title     string  `json:"title"`
-	URL       string  `json:"url"`
-	Author    string  `json:"author"`
-	Points    int     `json:"points"`
-	NumComments int   `json:"num_comments"`
-	CreatedAt string  `json:"created_at"`
-	StoryText *string `json:"story_text"`
+	ObjectID    string  `json:"objectID"`
+	Title       string  `json:"title"`
+	URL         string  `json:"url"`
+	Author      string  `json:"author"`
+	Points      int     `json:"points"`
+	NumComments int     `json:"num_comments"`
+	CreatedAt   string  `json:"created_at"`
+	StoryText   *string `json:"story_text"`
 }
 
-// SearchHackerNews 通过 Algolia API 搜索 HackerNews 文章
-func SearchHackerNews(ctx context.Context, query string) ([]SearchResult, error) {
+func SearchHackerNews(ctx context.Context, query string) ([]domain.SearchResult, error) {
 	params := url.Values{
 		"query": {query},
 		"tags":  {"story"},
@@ -57,7 +57,7 @@ func SearchHackerNews(ctx context.Context, query string) ([]SearchResult, error)
 		return nil, fmt.Errorf("decode hn response: %w", err)
 	}
 
-	results := make([]SearchResult, 0, len(data.Hits))
+	results := make([]domain.SearchResult, 0, len(data.Hits))
 	for _, hit := range data.Hits {
 		itemURL := hit.URL
 		if itemURL == "" {
@@ -74,13 +74,13 @@ func SearchHackerNews(ctx context.Context, query string) ([]SearchResult, error)
 			published = TimePtr(t)
 		}
 
-		results = append(results, SearchResult{
+		results = append(results, domain.SearchResult{
 			Title:    hit.Title,
 			Content:  content,
 			URL:      itemURL,
 			Source:   "hackernews",
 			SourceID: hit.ObjectID,
-			Author: &Author{
+			Author: &domain.Author{
 				Name:     hit.Author,
 				Username: hit.Author,
 			},

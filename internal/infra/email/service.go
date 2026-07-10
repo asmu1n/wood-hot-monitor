@@ -7,7 +7,9 @@ import (
 	"log"
 	"net/http"
 	"time"
+
 	"wood-hot-monitor/internal/core/models"
+	domain "wood-hot-monitor/internal/domain/hotspot"
 )
 
 const resendAPIURL = "https://api.resend.com/emails"
@@ -28,7 +30,7 @@ type sendRequest struct {
 	HTML    string   `json:"html"`
 }
 
-func SendEmailAlert(cfg *models.AppConfig, r models.SearchResult, analysis *models.AnalysisResult) {
+func SendEmailAlert(cfg *models.AppConfig, r domain.SearchResult, analysis *domain.AnalysisResult) {
 	resendKey, _ := cfg.Settings["resendApiKey"].(string)
 	if resendKey == "" || cfg.EmailAddress == "" {
 		return
@@ -44,8 +46,7 @@ func SendEmailAlert(cfg *models.AppConfig, r models.SearchResult, analysis *mode
 	}
 }
 
-// sendHotspotAlert 发送热点告警邮件（仅 high/urgent 级别触发）
-func (s *Service) sendHotspotAlert(toEmail string, title string, source string, importance models.Importance, summary string, url string) error {
+func (s *Service) sendHotspotAlert(toEmail string, title string, source string, importance domain.Importance, summary string, url string) error {
 	if s.apiKey == "" || toEmail == "" {
 		return nil
 	}

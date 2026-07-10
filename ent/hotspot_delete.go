@@ -4,12 +4,13 @@ package ent
 
 import (
 	"context"
-	"wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+
+	enthotspot "wood-hot-monitor/ent/hotspot"
 )
 
 // HotspotDelete is the builder for deleting a Hotspot entity.
@@ -40,7 +41,7 @@ func (_d *HotspotDelete) ExecX(ctx context.Context) int {
 }
 
 func (_d *HotspotDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(hotspot.Table, sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString))
+	_spec := sqlgraph.NewDeleteSpec(enthotspot.Table, sqlgraph.NewFieldSpec(enthotspot.FieldID, field.TypeString))
 	if ps := _d.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -74,7 +75,7 @@ func (_d *HotspotDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{hotspot.Label}
+		return &NotFoundError{enthotspot.Label}
 	default:
 		return nil
 	}

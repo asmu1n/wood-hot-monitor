@@ -8,14 +8,17 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-	"wood-hot-monitor/internal/biz/hotspot"
-	"wood-hot-monitor/internal/biz/keyword"
+
+	appchecker "wood-hot-monitor/internal/application/checker"
+	apphotspot "wood-hot-monitor/internal/application/hotspot"
+	appkeyword "wood-hot-monitor/internal/application/keyword"
 	"wood-hot-monitor/internal/core/config"
 	"wood-hot-monitor/internal/core/models"
 	"wood-hot-monitor/internal/infra/database"
 	infraevent "wood-hot-monitor/internal/infra/event"
-	"wood-hot-monitor/internal/infra/llm"
-	"wood-hot-monitor/internal/worker/checker"
+	infrallm "wood-hot-monitor/internal/infra/llm"
+	entpersist "wood-hot-monitor/internal/infra/persistence/ent"
+	infrascraper "wood-hot-monitor/internal/infra/scraper"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -25,7 +28,6 @@ import (
 var assets embed.FS
 
 func main() {
-	// 1. 初始化数据库、本地配置文件
 	dataDir := defaultDataDir()
 
 	db, err := database.New(dataDir)
@@ -38,11 +40,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("load config: %v", err)
 	}
-	//  ----
 
-	// 2. 初始化 Wails 应用，注入相应服务
-	hotspotService := hotspot.NewService(db.Client)
-	keywordService := keyword.NewService(db.Client)
+	hotspotRepo := entpersist.NewHotspotRepository(db.Client)
+	keywordRepo := entpersist.NewKeywordRepository(db.Client)
+
+	hotspotService := apphotspot.NewService(hotspotRepo)
+	keywordService := appkeyword.NewService(keywordRepo)
 
 	app := application.New(application.Options{
 		Name:        "Wood Hot Monitor",
@@ -61,9 +64,9 @@ func main() {
 	})
 
 	notifier := infraevent.NewWailsNotifier(app)
-
-	llmService := llm.NewService(cfgService, db.Client)
-	checkerService := checker.NewService(keywordService, cfgService, llmService, hotspotService, notifier)
+	llmService := infrallm.NewService(cfgService, db.Client)
+	scraperService := infrascraper.NewService()
+	checkerService := appchecker.NewService(keywordService, cfgService, llmService, hotspotService, scraperService, notifier)
 	app.RegisterService(application.NewService(checkerService))
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
@@ -72,9 +75,7 @@ func main() {
 		Height: 860,
 		URL:    "/",
 	})
-	// ----
 
-	// 3.启动定时后台服务，并运行应用
 	scheduler, err := startScheduler(cfgService, checkerService)
 	if err != nil {
 		log.Printf("warning: scheduler start failed: %v", err)
@@ -85,10 +86,9 @@ func main() {
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
 	}
-
 }
 
-func startScheduler(cfgService *config.Service, checkerService *checker.Service) (gocron.Scheduler, error) {
+func startScheduler(cfgService *config.Service, checkerService *appchecker.Service) (gocron.Scheduler, error) {
 	cfg, err := cfgService.Get()
 	if err != nil {
 		return nil, fmt.Errorf("get config: %w", err)

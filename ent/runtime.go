@@ -3,7 +3,7 @@
 package ent
 
 import (
-	"wood-hot-monitor/ent/hotspot"
+	enthotspot "wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/keywordexpansion"
 	"wood-hot-monitor/ent/schema"
@@ -13,28 +13,28 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	hotspotFields := schema.Hotspot{}.Fields()
-	_ = hotspotFields
-	// hotspotDescIsReal is the schema descriptor for is_real field.
-	hotspotDescIsReal := hotspotFields[6].Descriptor()
-	// hotspot.DefaultIsReal holds the default value on creation for the is_real field.
-	hotspot.DefaultIsReal = hotspotDescIsReal.Default.(bool)
-	// hotspotDescRelevance is the schema descriptor for relevance field.
-	hotspotDescRelevance := hotspotFields[7].Descriptor()
-	// hotspot.DefaultRelevance holds the default value on creation for the relevance field.
-	hotspot.DefaultRelevance = hotspotDescRelevance.Default.(int)
-	// hotspotDescIsNotified is the schema descriptor for is_notified field.
-	hotspotDescIsNotified := hotspotFields[27].Descriptor()
-	// hotspot.DefaultIsNotified holds the default value on creation for the is_notified field.
-	hotspot.DefaultIsNotified = hotspotDescIsNotified.Default.(bool)
-	// hotspotDescIsRead is the schema descriptor for is_read field.
-	hotspotDescIsRead := hotspotFields[29].Descriptor()
-	// hotspot.DefaultIsRead holds the default value on creation for the is_read field.
-	hotspot.DefaultIsRead = hotspotDescIsRead.Default.(bool)
-	// hotspotDescID is the schema descriptor for id field.
-	hotspotDescID := hotspotFields[0].Descriptor()
-	// hotspot.DefaultID holds the default value on creation for the id field.
-	hotspot.DefaultID = hotspotDescID.Default.(func() string)
+	enthotspotFields := schema.Hotspot{}.Fields()
+	_ = enthotspotFields
+	// enthotspotDescIsReal is the schema descriptor for is_real field.
+	enthotspotDescIsReal := enthotspotFields[6].Descriptor()
+	// enthotspot.DefaultIsReal holds the default value on creation for the is_real field.
+	enthotspot.DefaultIsReal = enthotspotDescIsReal.Default.(bool)
+	// enthotspotDescRelevance is the schema descriptor for relevance field.
+	enthotspotDescRelevance := enthotspotFields[7].Descriptor()
+	// enthotspot.DefaultRelevance holds the default value on creation for the relevance field.
+	enthotspot.DefaultRelevance = enthotspotDescRelevance.Default.(int)
+	// enthotspotDescIsNotified is the schema descriptor for is_notified field.
+	enthotspotDescIsNotified := enthotspotFields[27].Descriptor()
+	// enthotspot.DefaultIsNotified holds the default value on creation for the is_notified field.
+	enthotspot.DefaultIsNotified = enthotspotDescIsNotified.Default.(bool)
+	// enthotspotDescIsRead is the schema descriptor for is_read field.
+	enthotspotDescIsRead := enthotspotFields[29].Descriptor()
+	// enthotspot.DefaultIsRead holds the default value on creation for the is_read field.
+	enthotspot.DefaultIsRead = enthotspotDescIsRead.Default.(bool)
+	// enthotspotDescID is the schema descriptor for id field.
+	enthotspotDescID := enthotspotFields[0].Descriptor()
+	// enthotspot.DefaultID holds the default value on creation for the id field.
+	enthotspot.DefaultID = enthotspotDescID.Default.(func() string)
 	keywordFields := schema.Keyword{}.Fields()
 	_ = keywordFields
 	// keywordDescText is the schema descriptor for text field.

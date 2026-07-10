@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	domain "wood-hot-monitor/internal/domain/hotspot"
 )
 
 const bilibiliSearchURL = "https://api.bilibili.com/x/web-interface/search/all/v2"
 
-// Bilibili API 响应结构
 type bilibiliResponse struct {
 	Code int `json:"code"`
 	Data struct {
@@ -40,8 +41,7 @@ type bilibiliResult struct {
 	ArcURL      string `json:"arcurl"`
 }
 
-// SearchBilibili 通过 API 搜索 Bilibili 视频
-func SearchBilibili(ctx context.Context, query string) ([]SearchResult, error) {
+func SearchBilibili(ctx context.Context, query string) ([]domain.SearchResult, error) {
 	params := url.Values{
 		"keyword":     {query},
 		"search_type": {"video"},
@@ -75,7 +75,7 @@ func SearchBilibili(ctx context.Context, query string) ([]SearchResult, error) {
 		return nil, fmt.Errorf("bilibili api error code %d", data.Code)
 	}
 
-	var results []SearchResult
+	var results []domain.SearchResult
 	for _, group := range data.Data.Result {
 		if group.ResultType != "video" {
 			continue
@@ -92,13 +92,13 @@ func SearchBilibili(ctx context.Context, query string) ([]SearchResult, error) {
 				published = &t
 			}
 
-			results = append(results, SearchResult{
+			results = append(results, domain.SearchResult{
 				Title:    stripHTMLTags(item.Title),
 				Content:  item.Description,
 				URL:      itemURL,
 				Source:   "bilibili",
 				SourceID: item.BVid,
-				Author: &Author{
+				Author: &domain.Author{
 					Name:     item.Author,
 					Username: fmt.Sprintf("%d", item.Mid),
 					Avatar:   item.Pic,
@@ -115,7 +115,6 @@ func SearchBilibili(ctx context.Context, query string) ([]SearchResult, error) {
 	return results, nil
 }
 
-// stripHTMLTags 移除 Bilibili 返回的高亮 HTML 标签（<em class="keyword">...</em>）
 func stripHTMLTags(s string) string {
 	var result []byte
 	inTag := false

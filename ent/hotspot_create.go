@@ -7,9 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	"wood-hot-monitor/ent/hotspot"
+	enthotspot "wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
-	"wood-hot-monitor/internal/core/models"
+	"wood-hot-monitor/internal/domain/hotspot"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -120,13 +120,13 @@ func (_c *HotspotCreate) SetNillableKeywordMentioned(v *bool) *HotspotCreate {
 }
 
 // SetImportance sets the "importance" field.
-func (_c *HotspotCreate) SetImportance(v models.Importance) *HotspotCreate {
+func (_c *HotspotCreate) SetImportance(v hotspot.Importance) *HotspotCreate {
 	_c.mutation.SetImportance(v)
 	return _c
 }
 
 // SetNillableImportance sets the "importance" field if the given value is not nil.
-func (_c *HotspotCreate) SetNillableImportance(v *models.Importance) *HotspotCreate {
+func (_c *HotspotCreate) SetNillableImportance(v *hotspot.Importance) *HotspotCreate {
 	if v != nil {
 		_c.SetImportance(*v)
 	}
@@ -446,27 +446,27 @@ func (_c *HotspotCreate) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (_c *HotspotCreate) defaults() {
 	if _, ok := _c.mutation.IsReal(); !ok {
-		v := hotspot.DefaultIsReal
+		v := enthotspot.DefaultIsReal
 		_c.mutation.SetIsReal(v)
 	}
 	if _, ok := _c.mutation.Relevance(); !ok {
-		v := hotspot.DefaultRelevance
+		v := enthotspot.DefaultRelevance
 		_c.mutation.SetRelevance(v)
 	}
 	if _, ok := _c.mutation.Importance(); !ok {
-		v := hotspot.DefaultImportance
+		v := enthotspot.DefaultImportance
 		_c.mutation.SetImportance(v)
 	}
 	if _, ok := _c.mutation.IsNotified(); !ok {
-		v := hotspot.DefaultIsNotified
+		v := enthotspot.DefaultIsNotified
 		_c.mutation.SetIsNotified(v)
 	}
 	if _, ok := _c.mutation.IsRead(); !ok {
-		v := hotspot.DefaultIsRead
+		v := enthotspot.DefaultIsRead
 		_c.mutation.SetIsRead(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
-		v := hotspot.DefaultID()
+		v := enthotspot.DefaultID()
 		_c.mutation.SetID(v)
 	}
 }
@@ -495,7 +495,7 @@ func (_c *HotspotCreate) check() error {
 		return &ValidationError{Name: "importance", err: errors.New(`ent: missing required field "Hotspot.importance"`)}
 	}
 	if v, ok := _c.mutation.Importance(); ok {
-		if err := hotspot.ImportanceValidator(v); err != nil {
+		if err := enthotspot.ImportanceValidator(v); err != nil {
 			return &ValidationError{Name: "importance", err: fmt.Errorf(`ent: validator failed for field "Hotspot.importance": %w`, err)}
 		}
 	}
@@ -537,7 +537,7 @@ func (_c *HotspotCreate) sqlSave(ctx context.Context) (*Hotspot, error) {
 func (_c *HotspotCreate) createSpec() (*Hotspot, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Hotspot{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(hotspot.Table, sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString))
+		_spec = sqlgraph.NewCreateSpec(enthotspot.Table, sqlgraph.NewFieldSpec(enthotspot.FieldID, field.TypeString))
 	)
 	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
@@ -545,123 +545,123 @@ func (_c *HotspotCreate) createSpec() (*Hotspot, *sqlgraph.CreateSpec) {
 		_spec.ID.Value = id
 	}
 	if value, ok := _c.mutation.Title(); ok {
-		_spec.SetField(hotspot.FieldTitle, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldTitle, field.TypeString, value)
 		_node.Title = value
 	}
 	if value, ok := _c.mutation.Content(); ok {
-		_spec.SetField(hotspot.FieldContent, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldContent, field.TypeString, value)
 		_node.Content = value
 	}
 	if value, ok := _c.mutation.URL(); ok {
-		_spec.SetField(hotspot.FieldURL, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldURL, field.TypeString, value)
 		_node.URL = value
 	}
 	if value, ok := _c.mutation.Source(); ok {
-		_spec.SetField(hotspot.FieldSource, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldSource, field.TypeString, value)
 		_node.Source = value
 	}
 	if value, ok := _c.mutation.SourceID(); ok {
-		_spec.SetField(hotspot.FieldSourceID, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldSourceID, field.TypeString, value)
 		_node.SourceID = &value
 	}
 	if value, ok := _c.mutation.IsReal(); ok {
-		_spec.SetField(hotspot.FieldIsReal, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldIsReal, field.TypeBool, value)
 		_node.IsReal = value
 	}
 	if value, ok := _c.mutation.Relevance(); ok {
-		_spec.SetField(hotspot.FieldRelevance, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldRelevance, field.TypeInt, value)
 		_node.Relevance = value
 	}
 	if value, ok := _c.mutation.RelevanceReason(); ok {
-		_spec.SetField(hotspot.FieldRelevanceReason, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldRelevanceReason, field.TypeString, value)
 		_node.RelevanceReason = &value
 	}
 	if value, ok := _c.mutation.KeywordMentioned(); ok {
-		_spec.SetField(hotspot.FieldKeywordMentioned, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldKeywordMentioned, field.TypeBool, value)
 		_node.KeywordMentioned = &value
 	}
 	if value, ok := _c.mutation.Importance(); ok {
-		_spec.SetField(hotspot.FieldImportance, field.TypeEnum, value)
+		_spec.SetField(enthotspot.FieldImportance, field.TypeEnum, value)
 		_node.Importance = value
 	}
 	if value, ok := _c.mutation.Summary(); ok {
-		_spec.SetField(hotspot.FieldSummary, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldSummary, field.TypeString, value)
 		_node.Summary = &value
 	}
 	if value, ok := _c.mutation.ViewCount(); ok {
-		_spec.SetField(hotspot.FieldViewCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldViewCount, field.TypeInt, value)
 		_node.ViewCount = &value
 	}
 	if value, ok := _c.mutation.LikeCount(); ok {
-		_spec.SetField(hotspot.FieldLikeCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldLikeCount, field.TypeInt, value)
 		_node.LikeCount = &value
 	}
 	if value, ok := _c.mutation.RetweetCount(); ok {
-		_spec.SetField(hotspot.FieldRetweetCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldRetweetCount, field.TypeInt, value)
 		_node.RetweetCount = &value
 	}
 	if value, ok := _c.mutation.ReplyCount(); ok {
-		_spec.SetField(hotspot.FieldReplyCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldReplyCount, field.TypeInt, value)
 		_node.ReplyCount = &value
 	}
 	if value, ok := _c.mutation.CommentCount(); ok {
-		_spec.SetField(hotspot.FieldCommentCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldCommentCount, field.TypeInt, value)
 		_node.CommentCount = &value
 	}
 	if value, ok := _c.mutation.QuoteCount(); ok {
-		_spec.SetField(hotspot.FieldQuoteCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldQuoteCount, field.TypeInt, value)
 		_node.QuoteCount = &value
 	}
 	if value, ok := _c.mutation.DanmakuCount(); ok {
-		_spec.SetField(hotspot.FieldDanmakuCount, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldDanmakuCount, field.TypeInt, value)
 		_node.DanmakuCount = &value
 	}
 	if value, ok := _c.mutation.AuthorName(); ok {
-		_spec.SetField(hotspot.FieldAuthorName, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldAuthorName, field.TypeString, value)
 		_node.AuthorName = &value
 	}
 	if value, ok := _c.mutation.AuthorUsername(); ok {
-		_spec.SetField(hotspot.FieldAuthorUsername, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldAuthorUsername, field.TypeString, value)
 		_node.AuthorUsername = &value
 	}
 	if value, ok := _c.mutation.AuthorAvatar(); ok {
-		_spec.SetField(hotspot.FieldAuthorAvatar, field.TypeString, value)
+		_spec.SetField(enthotspot.FieldAuthorAvatar, field.TypeString, value)
 		_node.AuthorAvatar = &value
 	}
 	if value, ok := _c.mutation.AuthorFollowers(); ok {
-		_spec.SetField(hotspot.FieldAuthorFollowers, field.TypeInt, value)
+		_spec.SetField(enthotspot.FieldAuthorFollowers, field.TypeInt, value)
 		_node.AuthorFollowers = &value
 	}
 	if value, ok := _c.mutation.AuthorVerified(); ok {
-		_spec.SetField(hotspot.FieldAuthorVerified, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldAuthorVerified, field.TypeBool, value)
 		_node.AuthorVerified = &value
 	}
 	if value, ok := _c.mutation.PublishedAt(); ok {
-		_spec.SetField(hotspot.FieldPublishedAt, field.TypeTime, value)
+		_spec.SetField(enthotspot.FieldPublishedAt, field.TypeTime, value)
 		_node.PublishedAt = &value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
-		_spec.SetField(hotspot.FieldCreatedAt, field.TypeTime, value)
+		_spec.SetField(enthotspot.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
 	}
 	if value, ok := _c.mutation.IsNotified(); ok {
-		_spec.SetField(hotspot.FieldIsNotified, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldIsNotified, field.TypeBool, value)
 		_node.IsNotified = value
 	}
 	if value, ok := _c.mutation.NotifiedAt(); ok {
-		_spec.SetField(hotspot.FieldNotifiedAt, field.TypeTime, value)
+		_spec.SetField(enthotspot.FieldNotifiedAt, field.TypeTime, value)
 		_node.NotifiedAt = &value
 	}
 	if value, ok := _c.mutation.IsRead(); ok {
-		_spec.SetField(hotspot.FieldIsRead, field.TypeBool, value)
+		_spec.SetField(enthotspot.FieldIsRead, field.TypeBool, value)
 		_node.IsRead = value
 	}
 	if nodes := _c.mutation.KeywordIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   hotspot.KeywordTable,
-			Columns: []string{hotspot.KeywordColumn},
+			Table:   enthotspot.KeywordTable,
+			Columns: []string{enthotspot.KeywordColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(keyword.FieldID, field.TypeString),
@@ -727,505 +727,505 @@ type (
 
 // SetTitle sets the "title" field.
 func (u *HotspotUpsert) SetTitle(v string) *HotspotUpsert {
-	u.Set(hotspot.FieldTitle, v)
+	u.Set(enthotspot.FieldTitle, v)
 	return u
 }
 
 // UpdateTitle sets the "title" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateTitle() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldTitle)
+	u.SetExcluded(enthotspot.FieldTitle)
 	return u
 }
 
 // SetContent sets the "content" field.
 func (u *HotspotUpsert) SetContent(v string) *HotspotUpsert {
-	u.Set(hotspot.FieldContent, v)
+	u.Set(enthotspot.FieldContent, v)
 	return u
 }
 
 // UpdateContent sets the "content" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateContent() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldContent)
+	u.SetExcluded(enthotspot.FieldContent)
 	return u
 }
 
 // SetURL sets the "url" field.
 func (u *HotspotUpsert) SetURL(v string) *HotspotUpsert {
-	u.Set(hotspot.FieldURL, v)
+	u.Set(enthotspot.FieldURL, v)
 	return u
 }
 
 // UpdateURL sets the "url" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateURL() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldURL)
+	u.SetExcluded(enthotspot.FieldURL)
 	return u
 }
 
 // SetSource sets the "source" field.
 func (u *HotspotUpsert) SetSource(v string) *HotspotUpsert {
-	u.Set(hotspot.FieldSource, v)
+	u.Set(enthotspot.FieldSource, v)
 	return u
 }
 
 // UpdateSource sets the "source" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateSource() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldSource)
+	u.SetExcluded(enthotspot.FieldSource)
 	return u
 }
 
 // SetSourceID sets the "source_id" field.
 func (u *HotspotUpsert) SetSourceID(v string) *HotspotUpsert {
-	u.Set(hotspot.FieldSourceID, v)
+	u.Set(enthotspot.FieldSourceID, v)
 	return u
 }
 
 // UpdateSourceID sets the "source_id" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateSourceID() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldSourceID)
+	u.SetExcluded(enthotspot.FieldSourceID)
 	return u
 }
 
 // ClearSourceID clears the value of the "source_id" field.
 func (u *HotspotUpsert) ClearSourceID() *HotspotUpsert {
-	u.SetNull(hotspot.FieldSourceID)
+	u.SetNull(enthotspot.FieldSourceID)
 	return u
 }
 
 // SetIsReal sets the "is_real" field.
 func (u *HotspotUpsert) SetIsReal(v bool) *HotspotUpsert {
-	u.Set(hotspot.FieldIsReal, v)
+	u.Set(enthotspot.FieldIsReal, v)
 	return u
 }
 
 // UpdateIsReal sets the "is_real" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateIsReal() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldIsReal)
+	u.SetExcluded(enthotspot.FieldIsReal)
 	return u
 }
 
 // SetRelevance sets the "relevance" field.
 func (u *HotspotUpsert) SetRelevance(v int) *HotspotUpsert {
-	u.Set(hotspot.FieldRelevance, v)
+	u.Set(enthotspot.FieldRelevance, v)
 	return u
 }
 
 // UpdateRelevance sets the "relevance" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateRelevance() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldRelevance)
+	u.SetExcluded(enthotspot.FieldRelevance)
 	return u
 }
 
 // AddRelevance adds v to the "relevance" field.
 func (u *HotspotUpsert) AddRelevance(v int) *HotspotUpsert {
-	u.Add(hotspot.FieldRelevance, v)
+	u.Add(enthotspot.FieldRelevance, v)
 	return u
 }
 
 // SetRelevanceReason sets the "relevance_reason" field.
 func (u *HotspotUpsert) SetRelevanceReason(v string) *HotspotUpsert {
-	u.Set(hotspot.FieldRelevanceReason, v)
+	u.Set(enthotspot.FieldRelevanceReason, v)
 	return u
 }
 
 // UpdateRelevanceReason sets the "relevance_reason" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateRelevanceReason() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldRelevanceReason)
+	u.SetExcluded(enthotspot.FieldRelevanceReason)
 	return u
 }
 
 // ClearRelevanceReason clears the value of the "relevance_reason" field.
 func (u *HotspotUpsert) ClearRelevanceReason() *HotspotUpsert {
-	u.SetNull(hotspot.FieldRelevanceReason)
+	u.SetNull(enthotspot.FieldRelevanceReason)
 	return u
 }
 
 // SetKeywordMentioned sets the "keyword_mentioned" field.
 func (u *HotspotUpsert) SetKeywordMentioned(v bool) *HotspotUpsert {
-	u.Set(hotspot.FieldKeywordMentioned, v)
+	u.Set(enthotspot.FieldKeywordMentioned, v)
 	return u
 }
 
 // UpdateKeywordMentioned sets the "keyword_mentioned" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateKeywordMentioned() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldKeywordMentioned)
+	u.SetExcluded(enthotspot.FieldKeywordMentioned)
 	return u
 }
 
 // ClearKeywordMentioned clears the value of the "keyword_mentioned" field.
 func (u *HotspotUpsert) ClearKeywordMentioned() *HotspotUpsert {
-	u.SetNull(hotspot.FieldKeywordMentioned)
+	u.SetNull(enthotspot.FieldKeywordMentioned)
 	return u
 }
 
 // SetImportance sets the "importance" field.
-func (u *HotspotUpsert) SetImportance(v models.Importance) *HotspotUpsert {
-	u.Set(hotspot.FieldImportance, v)
+func (u *HotspotUpsert) SetImportance(v hotspot.Importance) *HotspotUpsert {
+	u.Set(enthotspot.FieldImportance, v)
 	return u
 }
 
 // UpdateImportance sets the "importance" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateImportance() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldImportance)
+	u.SetExcluded(enthotspot.FieldImportance)
 	return u
 }
 
 // SetSummary sets the "summary" field.
 func (u *HotspotUpsert) SetSummary(v string) *HotspotUpsert {
-	u.Set(hotspot.FieldSummary, v)
+	u.Set(enthotspot.FieldSummary, v)
 	return u
 }
 
 // UpdateSummary sets the "summary" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateSummary() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldSummary)
+	u.SetExcluded(enthotspot.FieldSummary)
 	return u
 }
 
 // ClearSummary clears the value of the "summary" field.
 func (u *HotspotUpsert) ClearSummary() *HotspotUpsert {
-	u.SetNull(hotspot.FieldSummary)
+	u.SetNull(enthotspot.FieldSummary)
 	return u
 }
 
 // SetViewCount sets the "view_count" field.
 func (u *HotspotUpsert) SetViewCount(v int) *HotspotUpsert {
-	u.Set(hotspot.FieldViewCount, v)
+	u.Set(enthotspot.FieldViewCount, v)
 	return u
 }
 
 // UpdateViewCount sets the "view_count" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateViewCount() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldViewCount)
+	u.SetExcluded(enthotspot.FieldViewCount)
 	return u
 }
 
 // AddViewCount adds v to the "view_count" field.
 func (u *HotspotUpsert) AddViewCount(v int) *HotspotUpsert {
-	u.Add(hotspot.FieldViewCount, v)
+	u.Add(enthotspot.FieldViewCount, v)
 	return u
 }
 
 // ClearViewCount clears the value of the "view_count" field.
 func (u *HotspotUpsert) ClearViewCount() *HotspotUpsert {
-	u.SetNull(hotspot.FieldViewCount)
+	u.SetNull(enthotspot.FieldViewCount)
 	return u
 }
 
 // SetLikeCount sets the "like_count" field.
 func (u *HotspotUpsert) SetLikeCount(v int) *HotspotUpsert {
-	u.Set(hotspot.FieldLikeCount, v)
+	u.Set(enthotspot.FieldLikeCount, v)
 	return u
 }
 
 // UpdateLikeCount sets the "like_count" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateLikeCount() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldLikeCount)
+	u.SetExcluded(enthotspot.FieldLikeCount)
 	return u
 }
 
 // AddLikeCount adds v to the "like_count" field.
 func (u *HotspotUpsert) AddLikeCount(v int) *HotspotUpsert {
-	u.Add(hotspot.FieldLikeCount, v)
+	u.Add(enthotspot.FieldLikeCount, v)
 	return u
 }
 
 // ClearLikeCount clears the value of the "like_count" field.
 func (u *HotspotUpsert) ClearLikeCount() *HotspotUpsert {
-	u.SetNull(hotspot.FieldLikeCount)
+	u.SetNull(enthotspot.FieldLikeCount)
 	return u
 }
 
 // SetRetweetCount sets the "retweet_count" field.
 func (u *HotspotUpsert) SetRetweetCount(v int) *HotspotUpsert {
-	u.Set(hotspot.FieldRetweetCount, v)
+	u.Set(enthotspot.FieldRetweetCount, v)
 	return u
 }
 
 // UpdateRetweetCount sets the "retweet_count" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateRetweetCount() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldRetweetCount)
+	u.SetExcluded(enthotspot.FieldRetweetCount)
 	return u
 }
 
 // AddRetweetCount adds v to the "retweet_count" field.
 func (u *HotspotUpsert) AddRetweetCount(v int) *HotspotUpsert {
-	u.Add(hotspot.FieldRetweetCount, v)
+	u.Add(enthotspot.FieldRetweetCount, v)
 	return u
 }
 
 // ClearRetweetCount clears the value of the "retweet_count" field.
 func (u *HotspotUpsert) ClearRetweetCount() *HotspotUpsert {
-	u.SetNull(hotspot.FieldRetweetCount)
+	u.SetNull(enthotspot.FieldRetweetCount)
 	return u
 }
 
 // SetReplyCount sets the "reply_count" field.
 func (u *HotspotUpsert) SetReplyCount(v int) *HotspotUpsert {
-	u.Set(hotspot.FieldReplyCount, v)
+	u.Set(enthotspot.FieldReplyCount, v)
 	return u
 }
 
 // UpdateReplyCount sets the "reply_count" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateReplyCount() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldReplyCount)
+	u.SetExcluded(enthotspot.FieldReplyCount)
 	return u
 }
 
 // AddReplyCount adds v to the "reply_count" field.
 func (u *HotspotUpsert) AddReplyCount(v int) *HotspotUpsert {
-	u.Add(hotspot.FieldReplyCount, v)
+	u.Add(enthotspot.FieldReplyCount, v)
 	return u
 }
 
 // ClearReplyCount clears the value of the "reply_count" field.
 func (u *HotspotUpsert) ClearReplyCount() *HotspotUpsert {
-	u.SetNull(hotspot.FieldReplyCount)
+	u.SetNull(enthotspot.FieldReplyCount)
 	return u
 }
 
 // SetCommentCount sets the "comment_count" field.
 func (u *HotspotUpsert) SetCommentCount(v int) *HotspotUpsert {
-	u.Set(hotspot.FieldCommentCount, v)
+	u.Set(enthotspot.FieldCommentCount, v)
 	return u
 }
 
 // UpdateCommentCount sets the "comment_count" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateCommentCount() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldCommentCount)
+	u.SetExcluded(enthotspot.FieldCommentCount)
 	return u
 }
 
 // AddCommentCount adds v to the "comment_count" field.
 func (u *HotspotUpsert) AddCommentCount(v int) *HotspotUpsert {
-	u.Add(hotspot.FieldCommentCount, v)
+	u.Add(enthotspot.FieldCommentCount, v)
 	return u
 }
 
 // ClearCommentCount clears the value of the "comment_count" field.
 func (u *HotspotUpsert) ClearCommentCount() *HotspotUpsert {
-	u.SetNull(hotspot.FieldCommentCount)
+	u.SetNull(enthotspot.FieldCommentCount)
 	return u
 }
 
 // SetQuoteCount sets the "quote_count" field.
 func (u *HotspotUpsert) SetQuoteCount(v int) *HotspotUpsert {
-	u.Set(hotspot.FieldQuoteCount, v)
+	u.Set(enthotspot.FieldQuoteCount, v)
 	return u
 }
 
 // UpdateQuoteCount sets the "quote_count" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateQuoteCount() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldQuoteCount)
+	u.SetExcluded(enthotspot.FieldQuoteCount)
 	return u
 }
 
 // AddQuoteCount adds v to the "quote_count" field.
 func (u *HotspotUpsert) AddQuoteCount(v int) *HotspotUpsert {
-	u.Add(hotspot.FieldQuoteCount, v)
+	u.Add(enthotspot.FieldQuoteCount, v)
 	return u
 }
 
 // ClearQuoteCount clears the value of the "quote_count" field.
 func (u *HotspotUpsert) ClearQuoteCount() *HotspotUpsert {
-	u.SetNull(hotspot.FieldQuoteCount)
+	u.SetNull(enthotspot.FieldQuoteCount)
 	return u
 }
 
 // SetDanmakuCount sets the "danmaku_count" field.
 func (u *HotspotUpsert) SetDanmakuCount(v int) *HotspotUpsert {
-	u.Set(hotspot.FieldDanmakuCount, v)
+	u.Set(enthotspot.FieldDanmakuCount, v)
 	return u
 }
 
 // UpdateDanmakuCount sets the "danmaku_count" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateDanmakuCount() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldDanmakuCount)
+	u.SetExcluded(enthotspot.FieldDanmakuCount)
 	return u
 }
 
 // AddDanmakuCount adds v to the "danmaku_count" field.
 func (u *HotspotUpsert) AddDanmakuCount(v int) *HotspotUpsert {
-	u.Add(hotspot.FieldDanmakuCount, v)
+	u.Add(enthotspot.FieldDanmakuCount, v)
 	return u
 }
 
 // ClearDanmakuCount clears the value of the "danmaku_count" field.
 func (u *HotspotUpsert) ClearDanmakuCount() *HotspotUpsert {
-	u.SetNull(hotspot.FieldDanmakuCount)
+	u.SetNull(enthotspot.FieldDanmakuCount)
 	return u
 }
 
 // SetAuthorName sets the "author_name" field.
 func (u *HotspotUpsert) SetAuthorName(v string) *HotspotUpsert {
-	u.Set(hotspot.FieldAuthorName, v)
+	u.Set(enthotspot.FieldAuthorName, v)
 	return u
 }
 
 // UpdateAuthorName sets the "author_name" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateAuthorName() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldAuthorName)
+	u.SetExcluded(enthotspot.FieldAuthorName)
 	return u
 }
 
 // ClearAuthorName clears the value of the "author_name" field.
 func (u *HotspotUpsert) ClearAuthorName() *HotspotUpsert {
-	u.SetNull(hotspot.FieldAuthorName)
+	u.SetNull(enthotspot.FieldAuthorName)
 	return u
 }
 
 // SetAuthorUsername sets the "author_username" field.
 func (u *HotspotUpsert) SetAuthorUsername(v string) *HotspotUpsert {
-	u.Set(hotspot.FieldAuthorUsername, v)
+	u.Set(enthotspot.FieldAuthorUsername, v)
 	return u
 }
 
 // UpdateAuthorUsername sets the "author_username" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateAuthorUsername() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldAuthorUsername)
+	u.SetExcluded(enthotspot.FieldAuthorUsername)
 	return u
 }
 
 // ClearAuthorUsername clears the value of the "author_username" field.
 func (u *HotspotUpsert) ClearAuthorUsername() *HotspotUpsert {
-	u.SetNull(hotspot.FieldAuthorUsername)
+	u.SetNull(enthotspot.FieldAuthorUsername)
 	return u
 }
 
 // SetAuthorAvatar sets the "author_avatar" field.
 func (u *HotspotUpsert) SetAuthorAvatar(v string) *HotspotUpsert {
-	u.Set(hotspot.FieldAuthorAvatar, v)
+	u.Set(enthotspot.FieldAuthorAvatar, v)
 	return u
 }
 
 // UpdateAuthorAvatar sets the "author_avatar" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateAuthorAvatar() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldAuthorAvatar)
+	u.SetExcluded(enthotspot.FieldAuthorAvatar)
 	return u
 }
 
 // ClearAuthorAvatar clears the value of the "author_avatar" field.
 func (u *HotspotUpsert) ClearAuthorAvatar() *HotspotUpsert {
-	u.SetNull(hotspot.FieldAuthorAvatar)
+	u.SetNull(enthotspot.FieldAuthorAvatar)
 	return u
 }
 
 // SetAuthorFollowers sets the "author_followers" field.
 func (u *HotspotUpsert) SetAuthorFollowers(v int) *HotspotUpsert {
-	u.Set(hotspot.FieldAuthorFollowers, v)
+	u.Set(enthotspot.FieldAuthorFollowers, v)
 	return u
 }
 
 // UpdateAuthorFollowers sets the "author_followers" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateAuthorFollowers() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldAuthorFollowers)
+	u.SetExcluded(enthotspot.FieldAuthorFollowers)
 	return u
 }
 
 // AddAuthorFollowers adds v to the "author_followers" field.
 func (u *HotspotUpsert) AddAuthorFollowers(v int) *HotspotUpsert {
-	u.Add(hotspot.FieldAuthorFollowers, v)
+	u.Add(enthotspot.FieldAuthorFollowers, v)
 	return u
 }
 
 // ClearAuthorFollowers clears the value of the "author_followers" field.
 func (u *HotspotUpsert) ClearAuthorFollowers() *HotspotUpsert {
-	u.SetNull(hotspot.FieldAuthorFollowers)
+	u.SetNull(enthotspot.FieldAuthorFollowers)
 	return u
 }
 
 // SetAuthorVerified sets the "author_verified" field.
 func (u *HotspotUpsert) SetAuthorVerified(v bool) *HotspotUpsert {
-	u.Set(hotspot.FieldAuthorVerified, v)
+	u.Set(enthotspot.FieldAuthorVerified, v)
 	return u
 }
 
 // UpdateAuthorVerified sets the "author_verified" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateAuthorVerified() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldAuthorVerified)
+	u.SetExcluded(enthotspot.FieldAuthorVerified)
 	return u
 }
 
 // ClearAuthorVerified clears the value of the "author_verified" field.
 func (u *HotspotUpsert) ClearAuthorVerified() *HotspotUpsert {
-	u.SetNull(hotspot.FieldAuthorVerified)
+	u.SetNull(enthotspot.FieldAuthorVerified)
 	return u
 }
 
 // SetPublishedAt sets the "published_at" field.
 func (u *HotspotUpsert) SetPublishedAt(v time.Time) *HotspotUpsert {
-	u.Set(hotspot.FieldPublishedAt, v)
+	u.Set(enthotspot.FieldPublishedAt, v)
 	return u
 }
 
 // UpdatePublishedAt sets the "published_at" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdatePublishedAt() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldPublishedAt)
+	u.SetExcluded(enthotspot.FieldPublishedAt)
 	return u
 }
 
 // ClearPublishedAt clears the value of the "published_at" field.
 func (u *HotspotUpsert) ClearPublishedAt() *HotspotUpsert {
-	u.SetNull(hotspot.FieldPublishedAt)
+	u.SetNull(enthotspot.FieldPublishedAt)
 	return u
 }
 
 // SetKeywordID sets the "keyword_id" field.
 func (u *HotspotUpsert) SetKeywordID(v string) *HotspotUpsert {
-	u.Set(hotspot.FieldKeywordID, v)
+	u.Set(enthotspot.FieldKeywordID, v)
 	return u
 }
 
 // UpdateKeywordID sets the "keyword_id" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateKeywordID() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldKeywordID)
+	u.SetExcluded(enthotspot.FieldKeywordID)
 	return u
 }
 
 // ClearKeywordID clears the value of the "keyword_id" field.
 func (u *HotspotUpsert) ClearKeywordID() *HotspotUpsert {
-	u.SetNull(hotspot.FieldKeywordID)
+	u.SetNull(enthotspot.FieldKeywordID)
 	return u
 }
 
 // SetIsNotified sets the "is_notified" field.
 func (u *HotspotUpsert) SetIsNotified(v bool) *HotspotUpsert {
-	u.Set(hotspot.FieldIsNotified, v)
+	u.Set(enthotspot.FieldIsNotified, v)
 	return u
 }
 
 // UpdateIsNotified sets the "is_notified" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateIsNotified() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldIsNotified)
+	u.SetExcluded(enthotspot.FieldIsNotified)
 	return u
 }
 
 // SetNotifiedAt sets the "notified_at" field.
 func (u *HotspotUpsert) SetNotifiedAt(v time.Time) *HotspotUpsert {
-	u.Set(hotspot.FieldNotifiedAt, v)
+	u.Set(enthotspot.FieldNotifiedAt, v)
 	return u
 }
 
 // UpdateNotifiedAt sets the "notified_at" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateNotifiedAt() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldNotifiedAt)
+	u.SetExcluded(enthotspot.FieldNotifiedAt)
 	return u
 }
 
 // ClearNotifiedAt clears the value of the "notified_at" field.
 func (u *HotspotUpsert) ClearNotifiedAt() *HotspotUpsert {
-	u.SetNull(hotspot.FieldNotifiedAt)
+	u.SetNull(enthotspot.FieldNotifiedAt)
 	return u
 }
 
 // SetIsRead sets the "is_read" field.
 func (u *HotspotUpsert) SetIsRead(v bool) *HotspotUpsert {
-	u.Set(hotspot.FieldIsRead, v)
+	u.Set(enthotspot.FieldIsRead, v)
 	return u
 }
 
 // UpdateIsRead sets the "is_read" field to the value that was provided on create.
 func (u *HotspotUpsert) UpdateIsRead() *HotspotUpsert {
-	u.SetExcluded(hotspot.FieldIsRead)
+	u.SetExcluded(enthotspot.FieldIsRead)
 	return u
 }
 
@@ -1236,7 +1236,7 @@ func (u *HotspotUpsert) UpdateIsRead() *HotspotUpsert {
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
 //			sql.ResolveWith(func(u *sql.UpdateSet) {
-//				u.SetIgnore(hotspot.FieldID)
+//				u.SetIgnore(enthotspot.FieldID)
 //			}),
 //		).
 //		Exec(ctx)
@@ -1244,10 +1244,10 @@ func (u *HotspotUpsertOne) UpdateNewValues() *HotspotUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		if _, exists := u.create.mutation.ID(); exists {
-			s.SetIgnore(hotspot.FieldID)
+			s.SetIgnore(enthotspot.FieldID)
 		}
 		if _, exists := u.create.mutation.CreatedAt(); exists {
-			s.SetIgnore(hotspot.FieldCreatedAt)
+			s.SetIgnore(enthotspot.FieldCreatedAt)
 		}
 	}))
 	return u
@@ -1435,7 +1435,7 @@ func (u *HotspotUpsertOne) ClearKeywordMentioned() *HotspotUpsertOne {
 }
 
 // SetImportance sets the "importance" field.
-func (u *HotspotUpsertOne) SetImportance(v models.Importance) *HotspotUpsertOne {
+func (u *HotspotUpsertOne) SetImportance(v hotspot.Importance) *HotspotUpsertOne {
 	return u.Update(func(s *HotspotUpsert) {
 		s.SetImportance(v)
 	})
@@ -2040,7 +2040,7 @@ type HotspotUpsertBulk struct {
 //		OnConflict(
 //			sql.ResolveWithNewValues(),
 //			sql.ResolveWith(func(u *sql.UpdateSet) {
-//				u.SetIgnore(hotspot.FieldID)
+//				u.SetIgnore(enthotspot.FieldID)
 //			}),
 //		).
 //		Exec(ctx)
@@ -2049,10 +2049,10 @@ func (u *HotspotUpsertBulk) UpdateNewValues() *HotspotUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
 		for _, b := range u.create.builders {
 			if _, exists := b.mutation.ID(); exists {
-				s.SetIgnore(hotspot.FieldID)
+				s.SetIgnore(enthotspot.FieldID)
 			}
 			if _, exists := b.mutation.CreatedAt(); exists {
-				s.SetIgnore(hotspot.FieldCreatedAt)
+				s.SetIgnore(enthotspot.FieldCreatedAt)
 			}
 		}
 	}))
@@ -2241,7 +2241,7 @@ func (u *HotspotUpsertBulk) ClearKeywordMentioned() *HotspotUpsertBulk {
 }
 
 // SetImportance sets the "importance" field.
-func (u *HotspotUpsertBulk) SetImportance(v models.Importance) *HotspotUpsertBulk {
+func (u *HotspotUpsertBulk) SetImportance(v hotspot.Importance) *HotspotUpsertBulk {
 	return u.Update(func(s *HotspotUpsert) {
 		s.SetImportance(v)
 	})

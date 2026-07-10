@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"sync"
 	"time"
-	"wood-hot-monitor/ent/hotspot"
+	enthotspot "wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/keywordexpansion"
 	"wood-hot-monitor/ent/predicate"
-	"wood-hot-monitor/internal/core/models"
+	"wood-hot-monitor/internal/domain/hotspot"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -48,7 +48,7 @@ type HotspotMutation struct {
 	addrelevance        *int
 	relevance_reason    *string
 	keyword_mentioned   *bool
-	importance          *models.Importance
+	importance          *hotspot.Importance
 	summary             *string
 	view_count          *int
 	addview_count       *int
@@ -365,19 +365,19 @@ func (m *HotspotMutation) OldSourceID(ctx context.Context) (v *string, err error
 // ClearSourceID clears the value of the "source_id" field.
 func (m *HotspotMutation) ClearSourceID() {
 	m.source_id = nil
-	m.clearedFields[hotspot.FieldSourceID] = struct{}{}
+	m.clearedFields[enthotspot.FieldSourceID] = struct{}{}
 }
 
 // SourceIDCleared returns if the "source_id" field was cleared in this mutation.
 func (m *HotspotMutation) SourceIDCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldSourceID]
+	_, ok := m.clearedFields[enthotspot.FieldSourceID]
 	return ok
 }
 
 // ResetSourceID resets all changes to the "source_id" field.
 func (m *HotspotMutation) ResetSourceID() {
 	m.source_id = nil
-	delete(m.clearedFields, hotspot.FieldSourceID)
+	delete(m.clearedFields, enthotspot.FieldSourceID)
 }
 
 // SetIsReal sets the "is_real" field.
@@ -506,19 +506,19 @@ func (m *HotspotMutation) OldRelevanceReason(ctx context.Context) (v *string, er
 // ClearRelevanceReason clears the value of the "relevance_reason" field.
 func (m *HotspotMutation) ClearRelevanceReason() {
 	m.relevance_reason = nil
-	m.clearedFields[hotspot.FieldRelevanceReason] = struct{}{}
+	m.clearedFields[enthotspot.FieldRelevanceReason] = struct{}{}
 }
 
 // RelevanceReasonCleared returns if the "relevance_reason" field was cleared in this mutation.
 func (m *HotspotMutation) RelevanceReasonCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldRelevanceReason]
+	_, ok := m.clearedFields[enthotspot.FieldRelevanceReason]
 	return ok
 }
 
 // ResetRelevanceReason resets all changes to the "relevance_reason" field.
 func (m *HotspotMutation) ResetRelevanceReason() {
 	m.relevance_reason = nil
-	delete(m.clearedFields, hotspot.FieldRelevanceReason)
+	delete(m.clearedFields, enthotspot.FieldRelevanceReason)
 }
 
 // SetKeywordMentioned sets the "keyword_mentioned" field.
@@ -555,28 +555,28 @@ func (m *HotspotMutation) OldKeywordMentioned(ctx context.Context) (v *bool, err
 // ClearKeywordMentioned clears the value of the "keyword_mentioned" field.
 func (m *HotspotMutation) ClearKeywordMentioned() {
 	m.keyword_mentioned = nil
-	m.clearedFields[hotspot.FieldKeywordMentioned] = struct{}{}
+	m.clearedFields[enthotspot.FieldKeywordMentioned] = struct{}{}
 }
 
 // KeywordMentionedCleared returns if the "keyword_mentioned" field was cleared in this mutation.
 func (m *HotspotMutation) KeywordMentionedCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldKeywordMentioned]
+	_, ok := m.clearedFields[enthotspot.FieldKeywordMentioned]
 	return ok
 }
 
 // ResetKeywordMentioned resets all changes to the "keyword_mentioned" field.
 func (m *HotspotMutation) ResetKeywordMentioned() {
 	m.keyword_mentioned = nil
-	delete(m.clearedFields, hotspot.FieldKeywordMentioned)
+	delete(m.clearedFields, enthotspot.FieldKeywordMentioned)
 }
 
 // SetImportance sets the "importance" field.
-func (m *HotspotMutation) SetImportance(value models.Importance) {
-	m.importance = &value
+func (m *HotspotMutation) SetImportance(h hotspot.Importance) {
+	m.importance = &h
 }
 
 // Importance returns the value of the "importance" field in the mutation.
-func (m *HotspotMutation) Importance() (r models.Importance, exists bool) {
+func (m *HotspotMutation) Importance() (r hotspot.Importance, exists bool) {
 	v := m.importance
 	if v == nil {
 		return
@@ -587,7 +587,7 @@ func (m *HotspotMutation) Importance() (r models.Importance, exists bool) {
 // OldImportance returns the old "importance" field's value of the Hotspot entity.
 // If the Hotspot object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HotspotMutation) OldImportance(ctx context.Context) (v models.Importance, err error) {
+func (m *HotspotMutation) OldImportance(ctx context.Context) (v hotspot.Importance, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldImportance is only allowed on UpdateOne operations")
 	}
@@ -640,19 +640,19 @@ func (m *HotspotMutation) OldSummary(ctx context.Context) (v *string, err error)
 // ClearSummary clears the value of the "summary" field.
 func (m *HotspotMutation) ClearSummary() {
 	m.summary = nil
-	m.clearedFields[hotspot.FieldSummary] = struct{}{}
+	m.clearedFields[enthotspot.FieldSummary] = struct{}{}
 }
 
 // SummaryCleared returns if the "summary" field was cleared in this mutation.
 func (m *HotspotMutation) SummaryCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldSummary]
+	_, ok := m.clearedFields[enthotspot.FieldSummary]
 	return ok
 }
 
 // ResetSummary resets all changes to the "summary" field.
 func (m *HotspotMutation) ResetSummary() {
 	m.summary = nil
-	delete(m.clearedFields, hotspot.FieldSummary)
+	delete(m.clearedFields, enthotspot.FieldSummary)
 }
 
 // SetViewCount sets the "view_count" field.
@@ -709,12 +709,12 @@ func (m *HotspotMutation) AddedViewCount() (r int, exists bool) {
 func (m *HotspotMutation) ClearViewCount() {
 	m.view_count = nil
 	m.addview_count = nil
-	m.clearedFields[hotspot.FieldViewCount] = struct{}{}
+	m.clearedFields[enthotspot.FieldViewCount] = struct{}{}
 }
 
 // ViewCountCleared returns if the "view_count" field was cleared in this mutation.
 func (m *HotspotMutation) ViewCountCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldViewCount]
+	_, ok := m.clearedFields[enthotspot.FieldViewCount]
 	return ok
 }
 
@@ -722,7 +722,7 @@ func (m *HotspotMutation) ViewCountCleared() bool {
 func (m *HotspotMutation) ResetViewCount() {
 	m.view_count = nil
 	m.addview_count = nil
-	delete(m.clearedFields, hotspot.FieldViewCount)
+	delete(m.clearedFields, enthotspot.FieldViewCount)
 }
 
 // SetLikeCount sets the "like_count" field.
@@ -779,12 +779,12 @@ func (m *HotspotMutation) AddedLikeCount() (r int, exists bool) {
 func (m *HotspotMutation) ClearLikeCount() {
 	m.like_count = nil
 	m.addlike_count = nil
-	m.clearedFields[hotspot.FieldLikeCount] = struct{}{}
+	m.clearedFields[enthotspot.FieldLikeCount] = struct{}{}
 }
 
 // LikeCountCleared returns if the "like_count" field was cleared in this mutation.
 func (m *HotspotMutation) LikeCountCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldLikeCount]
+	_, ok := m.clearedFields[enthotspot.FieldLikeCount]
 	return ok
 }
 
@@ -792,7 +792,7 @@ func (m *HotspotMutation) LikeCountCleared() bool {
 func (m *HotspotMutation) ResetLikeCount() {
 	m.like_count = nil
 	m.addlike_count = nil
-	delete(m.clearedFields, hotspot.FieldLikeCount)
+	delete(m.clearedFields, enthotspot.FieldLikeCount)
 }
 
 // SetRetweetCount sets the "retweet_count" field.
@@ -849,12 +849,12 @@ func (m *HotspotMutation) AddedRetweetCount() (r int, exists bool) {
 func (m *HotspotMutation) ClearRetweetCount() {
 	m.retweet_count = nil
 	m.addretweet_count = nil
-	m.clearedFields[hotspot.FieldRetweetCount] = struct{}{}
+	m.clearedFields[enthotspot.FieldRetweetCount] = struct{}{}
 }
 
 // RetweetCountCleared returns if the "retweet_count" field was cleared in this mutation.
 func (m *HotspotMutation) RetweetCountCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldRetweetCount]
+	_, ok := m.clearedFields[enthotspot.FieldRetweetCount]
 	return ok
 }
 
@@ -862,7 +862,7 @@ func (m *HotspotMutation) RetweetCountCleared() bool {
 func (m *HotspotMutation) ResetRetweetCount() {
 	m.retweet_count = nil
 	m.addretweet_count = nil
-	delete(m.clearedFields, hotspot.FieldRetweetCount)
+	delete(m.clearedFields, enthotspot.FieldRetweetCount)
 }
 
 // SetReplyCount sets the "reply_count" field.
@@ -919,12 +919,12 @@ func (m *HotspotMutation) AddedReplyCount() (r int, exists bool) {
 func (m *HotspotMutation) ClearReplyCount() {
 	m.reply_count = nil
 	m.addreply_count = nil
-	m.clearedFields[hotspot.FieldReplyCount] = struct{}{}
+	m.clearedFields[enthotspot.FieldReplyCount] = struct{}{}
 }
 
 // ReplyCountCleared returns if the "reply_count" field was cleared in this mutation.
 func (m *HotspotMutation) ReplyCountCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldReplyCount]
+	_, ok := m.clearedFields[enthotspot.FieldReplyCount]
 	return ok
 }
 
@@ -932,7 +932,7 @@ func (m *HotspotMutation) ReplyCountCleared() bool {
 func (m *HotspotMutation) ResetReplyCount() {
 	m.reply_count = nil
 	m.addreply_count = nil
-	delete(m.clearedFields, hotspot.FieldReplyCount)
+	delete(m.clearedFields, enthotspot.FieldReplyCount)
 }
 
 // SetCommentCount sets the "comment_count" field.
@@ -989,12 +989,12 @@ func (m *HotspotMutation) AddedCommentCount() (r int, exists bool) {
 func (m *HotspotMutation) ClearCommentCount() {
 	m.comment_count = nil
 	m.addcomment_count = nil
-	m.clearedFields[hotspot.FieldCommentCount] = struct{}{}
+	m.clearedFields[enthotspot.FieldCommentCount] = struct{}{}
 }
 
 // CommentCountCleared returns if the "comment_count" field was cleared in this mutation.
 func (m *HotspotMutation) CommentCountCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldCommentCount]
+	_, ok := m.clearedFields[enthotspot.FieldCommentCount]
 	return ok
 }
 
@@ -1002,7 +1002,7 @@ func (m *HotspotMutation) CommentCountCleared() bool {
 func (m *HotspotMutation) ResetCommentCount() {
 	m.comment_count = nil
 	m.addcomment_count = nil
-	delete(m.clearedFields, hotspot.FieldCommentCount)
+	delete(m.clearedFields, enthotspot.FieldCommentCount)
 }
 
 // SetQuoteCount sets the "quote_count" field.
@@ -1059,12 +1059,12 @@ func (m *HotspotMutation) AddedQuoteCount() (r int, exists bool) {
 func (m *HotspotMutation) ClearQuoteCount() {
 	m.quote_count = nil
 	m.addquote_count = nil
-	m.clearedFields[hotspot.FieldQuoteCount] = struct{}{}
+	m.clearedFields[enthotspot.FieldQuoteCount] = struct{}{}
 }
 
 // QuoteCountCleared returns if the "quote_count" field was cleared in this mutation.
 func (m *HotspotMutation) QuoteCountCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldQuoteCount]
+	_, ok := m.clearedFields[enthotspot.FieldQuoteCount]
 	return ok
 }
 
@@ -1072,7 +1072,7 @@ func (m *HotspotMutation) QuoteCountCleared() bool {
 func (m *HotspotMutation) ResetQuoteCount() {
 	m.quote_count = nil
 	m.addquote_count = nil
-	delete(m.clearedFields, hotspot.FieldQuoteCount)
+	delete(m.clearedFields, enthotspot.FieldQuoteCount)
 }
 
 // SetDanmakuCount sets the "danmaku_count" field.
@@ -1129,12 +1129,12 @@ func (m *HotspotMutation) AddedDanmakuCount() (r int, exists bool) {
 func (m *HotspotMutation) ClearDanmakuCount() {
 	m.danmaku_count = nil
 	m.adddanmaku_count = nil
-	m.clearedFields[hotspot.FieldDanmakuCount] = struct{}{}
+	m.clearedFields[enthotspot.FieldDanmakuCount] = struct{}{}
 }
 
 // DanmakuCountCleared returns if the "danmaku_count" field was cleared in this mutation.
 func (m *HotspotMutation) DanmakuCountCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldDanmakuCount]
+	_, ok := m.clearedFields[enthotspot.FieldDanmakuCount]
 	return ok
 }
 
@@ -1142,7 +1142,7 @@ func (m *HotspotMutation) DanmakuCountCleared() bool {
 func (m *HotspotMutation) ResetDanmakuCount() {
 	m.danmaku_count = nil
 	m.adddanmaku_count = nil
-	delete(m.clearedFields, hotspot.FieldDanmakuCount)
+	delete(m.clearedFields, enthotspot.FieldDanmakuCount)
 }
 
 // SetAuthorName sets the "author_name" field.
@@ -1179,19 +1179,19 @@ func (m *HotspotMutation) OldAuthorName(ctx context.Context) (v *string, err err
 // ClearAuthorName clears the value of the "author_name" field.
 func (m *HotspotMutation) ClearAuthorName() {
 	m.author_name = nil
-	m.clearedFields[hotspot.FieldAuthorName] = struct{}{}
+	m.clearedFields[enthotspot.FieldAuthorName] = struct{}{}
 }
 
 // AuthorNameCleared returns if the "author_name" field was cleared in this mutation.
 func (m *HotspotMutation) AuthorNameCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldAuthorName]
+	_, ok := m.clearedFields[enthotspot.FieldAuthorName]
 	return ok
 }
 
 // ResetAuthorName resets all changes to the "author_name" field.
 func (m *HotspotMutation) ResetAuthorName() {
 	m.author_name = nil
-	delete(m.clearedFields, hotspot.FieldAuthorName)
+	delete(m.clearedFields, enthotspot.FieldAuthorName)
 }
 
 // SetAuthorUsername sets the "author_username" field.
@@ -1228,19 +1228,19 @@ func (m *HotspotMutation) OldAuthorUsername(ctx context.Context) (v *string, err
 // ClearAuthorUsername clears the value of the "author_username" field.
 func (m *HotspotMutation) ClearAuthorUsername() {
 	m.author_username = nil
-	m.clearedFields[hotspot.FieldAuthorUsername] = struct{}{}
+	m.clearedFields[enthotspot.FieldAuthorUsername] = struct{}{}
 }
 
 // AuthorUsernameCleared returns if the "author_username" field was cleared in this mutation.
 func (m *HotspotMutation) AuthorUsernameCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldAuthorUsername]
+	_, ok := m.clearedFields[enthotspot.FieldAuthorUsername]
 	return ok
 }
 
 // ResetAuthorUsername resets all changes to the "author_username" field.
 func (m *HotspotMutation) ResetAuthorUsername() {
 	m.author_username = nil
-	delete(m.clearedFields, hotspot.FieldAuthorUsername)
+	delete(m.clearedFields, enthotspot.FieldAuthorUsername)
 }
 
 // SetAuthorAvatar sets the "author_avatar" field.
@@ -1277,19 +1277,19 @@ func (m *HotspotMutation) OldAuthorAvatar(ctx context.Context) (v *string, err e
 // ClearAuthorAvatar clears the value of the "author_avatar" field.
 func (m *HotspotMutation) ClearAuthorAvatar() {
 	m.author_avatar = nil
-	m.clearedFields[hotspot.FieldAuthorAvatar] = struct{}{}
+	m.clearedFields[enthotspot.FieldAuthorAvatar] = struct{}{}
 }
 
 // AuthorAvatarCleared returns if the "author_avatar" field was cleared in this mutation.
 func (m *HotspotMutation) AuthorAvatarCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldAuthorAvatar]
+	_, ok := m.clearedFields[enthotspot.FieldAuthorAvatar]
 	return ok
 }
 
 // ResetAuthorAvatar resets all changes to the "author_avatar" field.
 func (m *HotspotMutation) ResetAuthorAvatar() {
 	m.author_avatar = nil
-	delete(m.clearedFields, hotspot.FieldAuthorAvatar)
+	delete(m.clearedFields, enthotspot.FieldAuthorAvatar)
 }
 
 // SetAuthorFollowers sets the "author_followers" field.
@@ -1346,12 +1346,12 @@ func (m *HotspotMutation) AddedAuthorFollowers() (r int, exists bool) {
 func (m *HotspotMutation) ClearAuthorFollowers() {
 	m.author_followers = nil
 	m.addauthor_followers = nil
-	m.clearedFields[hotspot.FieldAuthorFollowers] = struct{}{}
+	m.clearedFields[enthotspot.FieldAuthorFollowers] = struct{}{}
 }
 
 // AuthorFollowersCleared returns if the "author_followers" field was cleared in this mutation.
 func (m *HotspotMutation) AuthorFollowersCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldAuthorFollowers]
+	_, ok := m.clearedFields[enthotspot.FieldAuthorFollowers]
 	return ok
 }
 
@@ -1359,7 +1359,7 @@ func (m *HotspotMutation) AuthorFollowersCleared() bool {
 func (m *HotspotMutation) ResetAuthorFollowers() {
 	m.author_followers = nil
 	m.addauthor_followers = nil
-	delete(m.clearedFields, hotspot.FieldAuthorFollowers)
+	delete(m.clearedFields, enthotspot.FieldAuthorFollowers)
 }
 
 // SetAuthorVerified sets the "author_verified" field.
@@ -1396,19 +1396,19 @@ func (m *HotspotMutation) OldAuthorVerified(ctx context.Context) (v *bool, err e
 // ClearAuthorVerified clears the value of the "author_verified" field.
 func (m *HotspotMutation) ClearAuthorVerified() {
 	m.author_verified = nil
-	m.clearedFields[hotspot.FieldAuthorVerified] = struct{}{}
+	m.clearedFields[enthotspot.FieldAuthorVerified] = struct{}{}
 }
 
 // AuthorVerifiedCleared returns if the "author_verified" field was cleared in this mutation.
 func (m *HotspotMutation) AuthorVerifiedCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldAuthorVerified]
+	_, ok := m.clearedFields[enthotspot.FieldAuthorVerified]
 	return ok
 }
 
 // ResetAuthorVerified resets all changes to the "author_verified" field.
 func (m *HotspotMutation) ResetAuthorVerified() {
 	m.author_verified = nil
-	delete(m.clearedFields, hotspot.FieldAuthorVerified)
+	delete(m.clearedFields, enthotspot.FieldAuthorVerified)
 }
 
 // SetPublishedAt sets the "published_at" field.
@@ -1445,19 +1445,19 @@ func (m *HotspotMutation) OldPublishedAt(ctx context.Context) (v *time.Time, err
 // ClearPublishedAt clears the value of the "published_at" field.
 func (m *HotspotMutation) ClearPublishedAt() {
 	m.published_at = nil
-	m.clearedFields[hotspot.FieldPublishedAt] = struct{}{}
+	m.clearedFields[enthotspot.FieldPublishedAt] = struct{}{}
 }
 
 // PublishedAtCleared returns if the "published_at" field was cleared in this mutation.
 func (m *HotspotMutation) PublishedAtCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldPublishedAt]
+	_, ok := m.clearedFields[enthotspot.FieldPublishedAt]
 	return ok
 }
 
 // ResetPublishedAt resets all changes to the "published_at" field.
 func (m *HotspotMutation) ResetPublishedAt() {
 	m.published_at = nil
-	delete(m.clearedFields, hotspot.FieldPublishedAt)
+	delete(m.clearedFields, enthotspot.FieldPublishedAt)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -1530,19 +1530,19 @@ func (m *HotspotMutation) OldKeywordID(ctx context.Context) (v *string, err erro
 // ClearKeywordID clears the value of the "keyword_id" field.
 func (m *HotspotMutation) ClearKeywordID() {
 	m.keyword = nil
-	m.clearedFields[hotspot.FieldKeywordID] = struct{}{}
+	m.clearedFields[enthotspot.FieldKeywordID] = struct{}{}
 }
 
 // KeywordIDCleared returns if the "keyword_id" field was cleared in this mutation.
 func (m *HotspotMutation) KeywordIDCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldKeywordID]
+	_, ok := m.clearedFields[enthotspot.FieldKeywordID]
 	return ok
 }
 
 // ResetKeywordID resets all changes to the "keyword_id" field.
 func (m *HotspotMutation) ResetKeywordID() {
 	m.keyword = nil
-	delete(m.clearedFields, hotspot.FieldKeywordID)
+	delete(m.clearedFields, enthotspot.FieldKeywordID)
 }
 
 // SetIsNotified sets the "is_notified" field.
@@ -1615,19 +1615,19 @@ func (m *HotspotMutation) OldNotifiedAt(ctx context.Context) (v *time.Time, err 
 // ClearNotifiedAt clears the value of the "notified_at" field.
 func (m *HotspotMutation) ClearNotifiedAt() {
 	m.notified_at = nil
-	m.clearedFields[hotspot.FieldNotifiedAt] = struct{}{}
+	m.clearedFields[enthotspot.FieldNotifiedAt] = struct{}{}
 }
 
 // NotifiedAtCleared returns if the "notified_at" field was cleared in this mutation.
 func (m *HotspotMutation) NotifiedAtCleared() bool {
-	_, ok := m.clearedFields[hotspot.FieldNotifiedAt]
+	_, ok := m.clearedFields[enthotspot.FieldNotifiedAt]
 	return ok
 }
 
 // ResetNotifiedAt resets all changes to the "notified_at" field.
 func (m *HotspotMutation) ResetNotifiedAt() {
 	m.notified_at = nil
-	delete(m.clearedFields, hotspot.FieldNotifiedAt)
+	delete(m.clearedFields, enthotspot.FieldNotifiedAt)
 }
 
 // SetIsRead sets the "is_read" field.
@@ -1669,7 +1669,7 @@ func (m *HotspotMutation) ResetIsRead() {
 // ClearKeyword clears the "keyword" edge to the Keyword entity.
 func (m *HotspotMutation) ClearKeyword() {
 	m.clearedkeyword = true
-	m.clearedFields[hotspot.FieldKeywordID] = struct{}{}
+	m.clearedFields[enthotspot.FieldKeywordID] = struct{}{}
 }
 
 // KeywordCleared reports if the "keyword" edge to the Keyword entity was cleared.
@@ -1729,91 +1729,91 @@ func (m *HotspotMutation) Type() string {
 func (m *HotspotMutation) Fields() []string {
 	fields := make([]string, 0, 29)
 	if m.title != nil {
-		fields = append(fields, hotspot.FieldTitle)
+		fields = append(fields, enthotspot.FieldTitle)
 	}
 	if m.content != nil {
-		fields = append(fields, hotspot.FieldContent)
+		fields = append(fields, enthotspot.FieldContent)
 	}
 	if m.url != nil {
-		fields = append(fields, hotspot.FieldURL)
+		fields = append(fields, enthotspot.FieldURL)
 	}
 	if m.source != nil {
-		fields = append(fields, hotspot.FieldSource)
+		fields = append(fields, enthotspot.FieldSource)
 	}
 	if m.source_id != nil {
-		fields = append(fields, hotspot.FieldSourceID)
+		fields = append(fields, enthotspot.FieldSourceID)
 	}
 	if m.is_real != nil {
-		fields = append(fields, hotspot.FieldIsReal)
+		fields = append(fields, enthotspot.FieldIsReal)
 	}
 	if m.relevance != nil {
-		fields = append(fields, hotspot.FieldRelevance)
+		fields = append(fields, enthotspot.FieldRelevance)
 	}
 	if m.relevance_reason != nil {
-		fields = append(fields, hotspot.FieldRelevanceReason)
+		fields = append(fields, enthotspot.FieldRelevanceReason)
 	}
 	if m.keyword_mentioned != nil {
-		fields = append(fields, hotspot.FieldKeywordMentioned)
+		fields = append(fields, enthotspot.FieldKeywordMentioned)
 	}
 	if m.importance != nil {
-		fields = append(fields, hotspot.FieldImportance)
+		fields = append(fields, enthotspot.FieldImportance)
 	}
 	if m.summary != nil {
-		fields = append(fields, hotspot.FieldSummary)
+		fields = append(fields, enthotspot.FieldSummary)
 	}
 	if m.view_count != nil {
-		fields = append(fields, hotspot.FieldViewCount)
+		fields = append(fields, enthotspot.FieldViewCount)
 	}
 	if m.like_count != nil {
-		fields = append(fields, hotspot.FieldLikeCount)
+		fields = append(fields, enthotspot.FieldLikeCount)
 	}
 	if m.retweet_count != nil {
-		fields = append(fields, hotspot.FieldRetweetCount)
+		fields = append(fields, enthotspot.FieldRetweetCount)
 	}
 	if m.reply_count != nil {
-		fields = append(fields, hotspot.FieldReplyCount)
+		fields = append(fields, enthotspot.FieldReplyCount)
 	}
 	if m.comment_count != nil {
-		fields = append(fields, hotspot.FieldCommentCount)
+		fields = append(fields, enthotspot.FieldCommentCount)
 	}
 	if m.quote_count != nil {
-		fields = append(fields, hotspot.FieldQuoteCount)
+		fields = append(fields, enthotspot.FieldQuoteCount)
 	}
 	if m.danmaku_count != nil {
-		fields = append(fields, hotspot.FieldDanmakuCount)
+		fields = append(fields, enthotspot.FieldDanmakuCount)
 	}
 	if m.author_name != nil {
-		fields = append(fields, hotspot.FieldAuthorName)
+		fields = append(fields, enthotspot.FieldAuthorName)
 	}
 	if m.author_username != nil {
-		fields = append(fields, hotspot.FieldAuthorUsername)
+		fields = append(fields, enthotspot.FieldAuthorUsername)
 	}
 	if m.author_avatar != nil {
-		fields = append(fields, hotspot.FieldAuthorAvatar)
+		fields = append(fields, enthotspot.FieldAuthorAvatar)
 	}
 	if m.author_followers != nil {
-		fields = append(fields, hotspot.FieldAuthorFollowers)
+		fields = append(fields, enthotspot.FieldAuthorFollowers)
 	}
 	if m.author_verified != nil {
-		fields = append(fields, hotspot.FieldAuthorVerified)
+		fields = append(fields, enthotspot.FieldAuthorVerified)
 	}
 	if m.published_at != nil {
-		fields = append(fields, hotspot.FieldPublishedAt)
+		fields = append(fields, enthotspot.FieldPublishedAt)
 	}
 	if m.created_at != nil {
-		fields = append(fields, hotspot.FieldCreatedAt)
+		fields = append(fields, enthotspot.FieldCreatedAt)
 	}
 	if m.keyword != nil {
-		fields = append(fields, hotspot.FieldKeywordID)
+		fields = append(fields, enthotspot.FieldKeywordID)
 	}
 	if m.is_notified != nil {
-		fields = append(fields, hotspot.FieldIsNotified)
+		fields = append(fields, enthotspot.FieldIsNotified)
 	}
 	if m.notified_at != nil {
-		fields = append(fields, hotspot.FieldNotifiedAt)
+		fields = append(fields, enthotspot.FieldNotifiedAt)
 	}
 	if m.is_read != nil {
-		fields = append(fields, hotspot.FieldIsRead)
+		fields = append(fields, enthotspot.FieldIsRead)
 	}
 	return fields
 }
@@ -1823,63 +1823,63 @@ func (m *HotspotMutation) Fields() []string {
 // schema.
 func (m *HotspotMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case hotspot.FieldTitle:
+	case enthotspot.FieldTitle:
 		return m.Title()
-	case hotspot.FieldContent:
+	case enthotspot.FieldContent:
 		return m.Content()
-	case hotspot.FieldURL:
+	case enthotspot.FieldURL:
 		return m.URL()
-	case hotspot.FieldSource:
+	case enthotspot.FieldSource:
 		return m.Source()
-	case hotspot.FieldSourceID:
+	case enthotspot.FieldSourceID:
 		return m.SourceID()
-	case hotspot.FieldIsReal:
+	case enthotspot.FieldIsReal:
 		return m.IsReal()
-	case hotspot.FieldRelevance:
+	case enthotspot.FieldRelevance:
 		return m.Relevance()
-	case hotspot.FieldRelevanceReason:
+	case enthotspot.FieldRelevanceReason:
 		return m.RelevanceReason()
-	case hotspot.FieldKeywordMentioned:
+	case enthotspot.FieldKeywordMentioned:
 		return m.KeywordMentioned()
-	case hotspot.FieldImportance:
+	case enthotspot.FieldImportance:
 		return m.Importance()
-	case hotspot.FieldSummary:
+	case enthotspot.FieldSummary:
 		return m.Summary()
-	case hotspot.FieldViewCount:
+	case enthotspot.FieldViewCount:
 		return m.ViewCount()
-	case hotspot.FieldLikeCount:
+	case enthotspot.FieldLikeCount:
 		return m.LikeCount()
-	case hotspot.FieldRetweetCount:
+	case enthotspot.FieldRetweetCount:
 		return m.RetweetCount()
-	case hotspot.FieldReplyCount:
+	case enthotspot.FieldReplyCount:
 		return m.ReplyCount()
-	case hotspot.FieldCommentCount:
+	case enthotspot.FieldCommentCount:
 		return m.CommentCount()
-	case hotspot.FieldQuoteCount:
+	case enthotspot.FieldQuoteCount:
 		return m.QuoteCount()
-	case hotspot.FieldDanmakuCount:
+	case enthotspot.FieldDanmakuCount:
 		return m.DanmakuCount()
-	case hotspot.FieldAuthorName:
+	case enthotspot.FieldAuthorName:
 		return m.AuthorName()
-	case hotspot.FieldAuthorUsername:
+	case enthotspot.FieldAuthorUsername:
 		return m.AuthorUsername()
-	case hotspot.FieldAuthorAvatar:
+	case enthotspot.FieldAuthorAvatar:
 		return m.AuthorAvatar()
-	case hotspot.FieldAuthorFollowers:
+	case enthotspot.FieldAuthorFollowers:
 		return m.AuthorFollowers()
-	case hotspot.FieldAuthorVerified:
+	case enthotspot.FieldAuthorVerified:
 		return m.AuthorVerified()
-	case hotspot.FieldPublishedAt:
+	case enthotspot.FieldPublishedAt:
 		return m.PublishedAt()
-	case hotspot.FieldCreatedAt:
+	case enthotspot.FieldCreatedAt:
 		return m.CreatedAt()
-	case hotspot.FieldKeywordID:
+	case enthotspot.FieldKeywordID:
 		return m.KeywordID()
-	case hotspot.FieldIsNotified:
+	case enthotspot.FieldIsNotified:
 		return m.IsNotified()
-	case hotspot.FieldNotifiedAt:
+	case enthotspot.FieldNotifiedAt:
 		return m.NotifiedAt()
-	case hotspot.FieldIsRead:
+	case enthotspot.FieldIsRead:
 		return m.IsRead()
 	}
 	return nil, false
@@ -1890,63 +1890,63 @@ func (m *HotspotMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *HotspotMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case hotspot.FieldTitle:
+	case enthotspot.FieldTitle:
 		return m.OldTitle(ctx)
-	case hotspot.FieldContent:
+	case enthotspot.FieldContent:
 		return m.OldContent(ctx)
-	case hotspot.FieldURL:
+	case enthotspot.FieldURL:
 		return m.OldURL(ctx)
-	case hotspot.FieldSource:
+	case enthotspot.FieldSource:
 		return m.OldSource(ctx)
-	case hotspot.FieldSourceID:
+	case enthotspot.FieldSourceID:
 		return m.OldSourceID(ctx)
-	case hotspot.FieldIsReal:
+	case enthotspot.FieldIsReal:
 		return m.OldIsReal(ctx)
-	case hotspot.FieldRelevance:
+	case enthotspot.FieldRelevance:
 		return m.OldRelevance(ctx)
-	case hotspot.FieldRelevanceReason:
+	case enthotspot.FieldRelevanceReason:
 		return m.OldRelevanceReason(ctx)
-	case hotspot.FieldKeywordMentioned:
+	case enthotspot.FieldKeywordMentioned:
 		return m.OldKeywordMentioned(ctx)
-	case hotspot.FieldImportance:
+	case enthotspot.FieldImportance:
 		return m.OldImportance(ctx)
-	case hotspot.FieldSummary:
+	case enthotspot.FieldSummary:
 		return m.OldSummary(ctx)
-	case hotspot.FieldViewCount:
+	case enthotspot.FieldViewCount:
 		return m.OldViewCount(ctx)
-	case hotspot.FieldLikeCount:
+	case enthotspot.FieldLikeCount:
 		return m.OldLikeCount(ctx)
-	case hotspot.FieldRetweetCount:
+	case enthotspot.FieldRetweetCount:
 		return m.OldRetweetCount(ctx)
-	case hotspot.FieldReplyCount:
+	case enthotspot.FieldReplyCount:
 		return m.OldReplyCount(ctx)
-	case hotspot.FieldCommentCount:
+	case enthotspot.FieldCommentCount:
 		return m.OldCommentCount(ctx)
-	case hotspot.FieldQuoteCount:
+	case enthotspot.FieldQuoteCount:
 		return m.OldQuoteCount(ctx)
-	case hotspot.FieldDanmakuCount:
+	case enthotspot.FieldDanmakuCount:
 		return m.OldDanmakuCount(ctx)
-	case hotspot.FieldAuthorName:
+	case enthotspot.FieldAuthorName:
 		return m.OldAuthorName(ctx)
-	case hotspot.FieldAuthorUsername:
+	case enthotspot.FieldAuthorUsername:
 		return m.OldAuthorUsername(ctx)
-	case hotspot.FieldAuthorAvatar:
+	case enthotspot.FieldAuthorAvatar:
 		return m.OldAuthorAvatar(ctx)
-	case hotspot.FieldAuthorFollowers:
+	case enthotspot.FieldAuthorFollowers:
 		return m.OldAuthorFollowers(ctx)
-	case hotspot.FieldAuthorVerified:
+	case enthotspot.FieldAuthorVerified:
 		return m.OldAuthorVerified(ctx)
-	case hotspot.FieldPublishedAt:
+	case enthotspot.FieldPublishedAt:
 		return m.OldPublishedAt(ctx)
-	case hotspot.FieldCreatedAt:
+	case enthotspot.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
-	case hotspot.FieldKeywordID:
+	case enthotspot.FieldKeywordID:
 		return m.OldKeywordID(ctx)
-	case hotspot.FieldIsNotified:
+	case enthotspot.FieldIsNotified:
 		return m.OldIsNotified(ctx)
-	case hotspot.FieldNotifiedAt:
+	case enthotspot.FieldNotifiedAt:
 		return m.OldNotifiedAt(ctx)
-	case hotspot.FieldIsRead:
+	case enthotspot.FieldIsRead:
 		return m.OldIsRead(ctx)
 	}
 	return nil, fmt.Errorf("unknown Hotspot field %s", name)
@@ -1957,203 +1957,203 @@ func (m *HotspotMutation) OldField(ctx context.Context, name string) (ent.Value,
 // type.
 func (m *HotspotMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case hotspot.FieldTitle:
+	case enthotspot.FieldTitle:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTitle(v)
 		return nil
-	case hotspot.FieldContent:
+	case enthotspot.FieldContent:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetContent(v)
 		return nil
-	case hotspot.FieldURL:
+	case enthotspot.FieldURL:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetURL(v)
 		return nil
-	case hotspot.FieldSource:
+	case enthotspot.FieldSource:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSource(v)
 		return nil
-	case hotspot.FieldSourceID:
+	case enthotspot.FieldSourceID:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSourceID(v)
 		return nil
-	case hotspot.FieldIsReal:
+	case enthotspot.FieldIsReal:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsReal(v)
 		return nil
-	case hotspot.FieldRelevance:
+	case enthotspot.FieldRelevance:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRelevance(v)
 		return nil
-	case hotspot.FieldRelevanceReason:
+	case enthotspot.FieldRelevanceReason:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRelevanceReason(v)
 		return nil
-	case hotspot.FieldKeywordMentioned:
+	case enthotspot.FieldKeywordMentioned:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetKeywordMentioned(v)
 		return nil
-	case hotspot.FieldImportance:
-		v, ok := value.(models.Importance)
+	case enthotspot.FieldImportance:
+		v, ok := value.(hotspot.Importance)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetImportance(v)
 		return nil
-	case hotspot.FieldSummary:
+	case enthotspot.FieldSummary:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSummary(v)
 		return nil
-	case hotspot.FieldViewCount:
+	case enthotspot.FieldViewCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetViewCount(v)
 		return nil
-	case hotspot.FieldLikeCount:
+	case enthotspot.FieldLikeCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLikeCount(v)
 		return nil
-	case hotspot.FieldRetweetCount:
+	case enthotspot.FieldRetweetCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRetweetCount(v)
 		return nil
-	case hotspot.FieldReplyCount:
+	case enthotspot.FieldReplyCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetReplyCount(v)
 		return nil
-	case hotspot.FieldCommentCount:
+	case enthotspot.FieldCommentCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCommentCount(v)
 		return nil
-	case hotspot.FieldQuoteCount:
+	case enthotspot.FieldQuoteCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetQuoteCount(v)
 		return nil
-	case hotspot.FieldDanmakuCount:
+	case enthotspot.FieldDanmakuCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDanmakuCount(v)
 		return nil
-	case hotspot.FieldAuthorName:
+	case enthotspot.FieldAuthorName:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAuthorName(v)
 		return nil
-	case hotspot.FieldAuthorUsername:
+	case enthotspot.FieldAuthorUsername:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAuthorUsername(v)
 		return nil
-	case hotspot.FieldAuthorAvatar:
+	case enthotspot.FieldAuthorAvatar:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAuthorAvatar(v)
 		return nil
-	case hotspot.FieldAuthorFollowers:
+	case enthotspot.FieldAuthorFollowers:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAuthorFollowers(v)
 		return nil
-	case hotspot.FieldAuthorVerified:
+	case enthotspot.FieldAuthorVerified:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAuthorVerified(v)
 		return nil
-	case hotspot.FieldPublishedAt:
+	case enthotspot.FieldPublishedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPublishedAt(v)
 		return nil
-	case hotspot.FieldCreatedAt:
+	case enthotspot.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
 		return nil
-	case hotspot.FieldKeywordID:
+	case enthotspot.FieldKeywordID:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetKeywordID(v)
 		return nil
-	case hotspot.FieldIsNotified:
+	case enthotspot.FieldIsNotified:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsNotified(v)
 		return nil
-	case hotspot.FieldNotifiedAt:
+	case enthotspot.FieldNotifiedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNotifiedAt(v)
 		return nil
-	case hotspot.FieldIsRead:
+	case enthotspot.FieldIsRead:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -2169,31 +2169,31 @@ func (m *HotspotMutation) SetField(name string, value ent.Value) error {
 func (m *HotspotMutation) AddedFields() []string {
 	var fields []string
 	if m.addrelevance != nil {
-		fields = append(fields, hotspot.FieldRelevance)
+		fields = append(fields, enthotspot.FieldRelevance)
 	}
 	if m.addview_count != nil {
-		fields = append(fields, hotspot.FieldViewCount)
+		fields = append(fields, enthotspot.FieldViewCount)
 	}
 	if m.addlike_count != nil {
-		fields = append(fields, hotspot.FieldLikeCount)
+		fields = append(fields, enthotspot.FieldLikeCount)
 	}
 	if m.addretweet_count != nil {
-		fields = append(fields, hotspot.FieldRetweetCount)
+		fields = append(fields, enthotspot.FieldRetweetCount)
 	}
 	if m.addreply_count != nil {
-		fields = append(fields, hotspot.FieldReplyCount)
+		fields = append(fields, enthotspot.FieldReplyCount)
 	}
 	if m.addcomment_count != nil {
-		fields = append(fields, hotspot.FieldCommentCount)
+		fields = append(fields, enthotspot.FieldCommentCount)
 	}
 	if m.addquote_count != nil {
-		fields = append(fields, hotspot.FieldQuoteCount)
+		fields = append(fields, enthotspot.FieldQuoteCount)
 	}
 	if m.adddanmaku_count != nil {
-		fields = append(fields, hotspot.FieldDanmakuCount)
+		fields = append(fields, enthotspot.FieldDanmakuCount)
 	}
 	if m.addauthor_followers != nil {
-		fields = append(fields, hotspot.FieldAuthorFollowers)
+		fields = append(fields, enthotspot.FieldAuthorFollowers)
 	}
 	return fields
 }
@@ -2203,23 +2203,23 @@ func (m *HotspotMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *HotspotMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case hotspot.FieldRelevance:
+	case enthotspot.FieldRelevance:
 		return m.AddedRelevance()
-	case hotspot.FieldViewCount:
+	case enthotspot.FieldViewCount:
 		return m.AddedViewCount()
-	case hotspot.FieldLikeCount:
+	case enthotspot.FieldLikeCount:
 		return m.AddedLikeCount()
-	case hotspot.FieldRetweetCount:
+	case enthotspot.FieldRetweetCount:
 		return m.AddedRetweetCount()
-	case hotspot.FieldReplyCount:
+	case enthotspot.FieldReplyCount:
 		return m.AddedReplyCount()
-	case hotspot.FieldCommentCount:
+	case enthotspot.FieldCommentCount:
 		return m.AddedCommentCount()
-	case hotspot.FieldQuoteCount:
+	case enthotspot.FieldQuoteCount:
 		return m.AddedQuoteCount()
-	case hotspot.FieldDanmakuCount:
+	case enthotspot.FieldDanmakuCount:
 		return m.AddedDanmakuCount()
-	case hotspot.FieldAuthorFollowers:
+	case enthotspot.FieldAuthorFollowers:
 		return m.AddedAuthorFollowers()
 	}
 	return nil, false
@@ -2230,63 +2230,63 @@ func (m *HotspotMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *HotspotMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case hotspot.FieldRelevance:
+	case enthotspot.FieldRelevance:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddRelevance(v)
 		return nil
-	case hotspot.FieldViewCount:
+	case enthotspot.FieldViewCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddViewCount(v)
 		return nil
-	case hotspot.FieldLikeCount:
+	case enthotspot.FieldLikeCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddLikeCount(v)
 		return nil
-	case hotspot.FieldRetweetCount:
+	case enthotspot.FieldRetweetCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddRetweetCount(v)
 		return nil
-	case hotspot.FieldReplyCount:
+	case enthotspot.FieldReplyCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddReplyCount(v)
 		return nil
-	case hotspot.FieldCommentCount:
+	case enthotspot.FieldCommentCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddCommentCount(v)
 		return nil
-	case hotspot.FieldQuoteCount:
+	case enthotspot.FieldQuoteCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddQuoteCount(v)
 		return nil
-	case hotspot.FieldDanmakuCount:
+	case enthotspot.FieldDanmakuCount:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddDanmakuCount(v)
 		return nil
-	case hotspot.FieldAuthorFollowers:
+	case enthotspot.FieldAuthorFollowers:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -2301,62 +2301,62 @@ func (m *HotspotMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *HotspotMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(hotspot.FieldSourceID) {
-		fields = append(fields, hotspot.FieldSourceID)
+	if m.FieldCleared(enthotspot.FieldSourceID) {
+		fields = append(fields, enthotspot.FieldSourceID)
 	}
-	if m.FieldCleared(hotspot.FieldRelevanceReason) {
-		fields = append(fields, hotspot.FieldRelevanceReason)
+	if m.FieldCleared(enthotspot.FieldRelevanceReason) {
+		fields = append(fields, enthotspot.FieldRelevanceReason)
 	}
-	if m.FieldCleared(hotspot.FieldKeywordMentioned) {
-		fields = append(fields, hotspot.FieldKeywordMentioned)
+	if m.FieldCleared(enthotspot.FieldKeywordMentioned) {
+		fields = append(fields, enthotspot.FieldKeywordMentioned)
 	}
-	if m.FieldCleared(hotspot.FieldSummary) {
-		fields = append(fields, hotspot.FieldSummary)
+	if m.FieldCleared(enthotspot.FieldSummary) {
+		fields = append(fields, enthotspot.FieldSummary)
 	}
-	if m.FieldCleared(hotspot.FieldViewCount) {
-		fields = append(fields, hotspot.FieldViewCount)
+	if m.FieldCleared(enthotspot.FieldViewCount) {
+		fields = append(fields, enthotspot.FieldViewCount)
 	}
-	if m.FieldCleared(hotspot.FieldLikeCount) {
-		fields = append(fields, hotspot.FieldLikeCount)
+	if m.FieldCleared(enthotspot.FieldLikeCount) {
+		fields = append(fields, enthotspot.FieldLikeCount)
 	}
-	if m.FieldCleared(hotspot.FieldRetweetCount) {
-		fields = append(fields, hotspot.FieldRetweetCount)
+	if m.FieldCleared(enthotspot.FieldRetweetCount) {
+		fields = append(fields, enthotspot.FieldRetweetCount)
 	}
-	if m.FieldCleared(hotspot.FieldReplyCount) {
-		fields = append(fields, hotspot.FieldReplyCount)
+	if m.FieldCleared(enthotspot.FieldReplyCount) {
+		fields = append(fields, enthotspot.FieldReplyCount)
 	}
-	if m.FieldCleared(hotspot.FieldCommentCount) {
-		fields = append(fields, hotspot.FieldCommentCount)
+	if m.FieldCleared(enthotspot.FieldCommentCount) {
+		fields = append(fields, enthotspot.FieldCommentCount)
 	}
-	if m.FieldCleared(hotspot.FieldQuoteCount) {
-		fields = append(fields, hotspot.FieldQuoteCount)
+	if m.FieldCleared(enthotspot.FieldQuoteCount) {
+		fields = append(fields, enthotspot.FieldQuoteCount)
 	}
-	if m.FieldCleared(hotspot.FieldDanmakuCount) {
-		fields = append(fields, hotspot.FieldDanmakuCount)
+	if m.FieldCleared(enthotspot.FieldDanmakuCount) {
+		fields = append(fields, enthotspot.FieldDanmakuCount)
 	}
-	if m.FieldCleared(hotspot.FieldAuthorName) {
-		fields = append(fields, hotspot.FieldAuthorName)
+	if m.FieldCleared(enthotspot.FieldAuthorName) {
+		fields = append(fields, enthotspot.FieldAuthorName)
 	}
-	if m.FieldCleared(hotspot.FieldAuthorUsername) {
-		fields = append(fields, hotspot.FieldAuthorUsername)
+	if m.FieldCleared(enthotspot.FieldAuthorUsername) {
+		fields = append(fields, enthotspot.FieldAuthorUsername)
 	}
-	if m.FieldCleared(hotspot.FieldAuthorAvatar) {
-		fields = append(fields, hotspot.FieldAuthorAvatar)
+	if m.FieldCleared(enthotspot.FieldAuthorAvatar) {
+		fields = append(fields, enthotspot.FieldAuthorAvatar)
 	}
-	if m.FieldCleared(hotspot.FieldAuthorFollowers) {
-		fields = append(fields, hotspot.FieldAuthorFollowers)
+	if m.FieldCleared(enthotspot.FieldAuthorFollowers) {
+		fields = append(fields, enthotspot.FieldAuthorFollowers)
 	}
-	if m.FieldCleared(hotspot.FieldAuthorVerified) {
-		fields = append(fields, hotspot.FieldAuthorVerified)
+	if m.FieldCleared(enthotspot.FieldAuthorVerified) {
+		fields = append(fields, enthotspot.FieldAuthorVerified)
 	}
-	if m.FieldCleared(hotspot.FieldPublishedAt) {
-		fields = append(fields, hotspot.FieldPublishedAt)
+	if m.FieldCleared(enthotspot.FieldPublishedAt) {
+		fields = append(fields, enthotspot.FieldPublishedAt)
 	}
-	if m.FieldCleared(hotspot.FieldKeywordID) {
-		fields = append(fields, hotspot.FieldKeywordID)
+	if m.FieldCleared(enthotspot.FieldKeywordID) {
+		fields = append(fields, enthotspot.FieldKeywordID)
 	}
-	if m.FieldCleared(hotspot.FieldNotifiedAt) {
-		fields = append(fields, hotspot.FieldNotifiedAt)
+	if m.FieldCleared(enthotspot.FieldNotifiedAt) {
+		fields = append(fields, enthotspot.FieldNotifiedAt)
 	}
 	return fields
 }
@@ -2372,61 +2372,61 @@ func (m *HotspotMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *HotspotMutation) ClearField(name string) error {
 	switch name {
-	case hotspot.FieldSourceID:
+	case enthotspot.FieldSourceID:
 		m.ClearSourceID()
 		return nil
-	case hotspot.FieldRelevanceReason:
+	case enthotspot.FieldRelevanceReason:
 		m.ClearRelevanceReason()
 		return nil
-	case hotspot.FieldKeywordMentioned:
+	case enthotspot.FieldKeywordMentioned:
 		m.ClearKeywordMentioned()
 		return nil
-	case hotspot.FieldSummary:
+	case enthotspot.FieldSummary:
 		m.ClearSummary()
 		return nil
-	case hotspot.FieldViewCount:
+	case enthotspot.FieldViewCount:
 		m.ClearViewCount()
 		return nil
-	case hotspot.FieldLikeCount:
+	case enthotspot.FieldLikeCount:
 		m.ClearLikeCount()
 		return nil
-	case hotspot.FieldRetweetCount:
+	case enthotspot.FieldRetweetCount:
 		m.ClearRetweetCount()
 		return nil
-	case hotspot.FieldReplyCount:
+	case enthotspot.FieldReplyCount:
 		m.ClearReplyCount()
 		return nil
-	case hotspot.FieldCommentCount:
+	case enthotspot.FieldCommentCount:
 		m.ClearCommentCount()
 		return nil
-	case hotspot.FieldQuoteCount:
+	case enthotspot.FieldQuoteCount:
 		m.ClearQuoteCount()
 		return nil
-	case hotspot.FieldDanmakuCount:
+	case enthotspot.FieldDanmakuCount:
 		m.ClearDanmakuCount()
 		return nil
-	case hotspot.FieldAuthorName:
+	case enthotspot.FieldAuthorName:
 		m.ClearAuthorName()
 		return nil
-	case hotspot.FieldAuthorUsername:
+	case enthotspot.FieldAuthorUsername:
 		m.ClearAuthorUsername()
 		return nil
-	case hotspot.FieldAuthorAvatar:
+	case enthotspot.FieldAuthorAvatar:
 		m.ClearAuthorAvatar()
 		return nil
-	case hotspot.FieldAuthorFollowers:
+	case enthotspot.FieldAuthorFollowers:
 		m.ClearAuthorFollowers()
 		return nil
-	case hotspot.FieldAuthorVerified:
+	case enthotspot.FieldAuthorVerified:
 		m.ClearAuthorVerified()
 		return nil
-	case hotspot.FieldPublishedAt:
+	case enthotspot.FieldPublishedAt:
 		m.ClearPublishedAt()
 		return nil
-	case hotspot.FieldKeywordID:
+	case enthotspot.FieldKeywordID:
 		m.ClearKeywordID()
 		return nil
-	case hotspot.FieldNotifiedAt:
+	case enthotspot.FieldNotifiedAt:
 		m.ClearNotifiedAt()
 		return nil
 	}
@@ -2437,91 +2437,91 @@ func (m *HotspotMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *HotspotMutation) ResetField(name string) error {
 	switch name {
-	case hotspot.FieldTitle:
+	case enthotspot.FieldTitle:
 		m.ResetTitle()
 		return nil
-	case hotspot.FieldContent:
+	case enthotspot.FieldContent:
 		m.ResetContent()
 		return nil
-	case hotspot.FieldURL:
+	case enthotspot.FieldURL:
 		m.ResetURL()
 		return nil
-	case hotspot.FieldSource:
+	case enthotspot.FieldSource:
 		m.ResetSource()
 		return nil
-	case hotspot.FieldSourceID:
+	case enthotspot.FieldSourceID:
 		m.ResetSourceID()
 		return nil
-	case hotspot.FieldIsReal:
+	case enthotspot.FieldIsReal:
 		m.ResetIsReal()
 		return nil
-	case hotspot.FieldRelevance:
+	case enthotspot.FieldRelevance:
 		m.ResetRelevance()
 		return nil
-	case hotspot.FieldRelevanceReason:
+	case enthotspot.FieldRelevanceReason:
 		m.ResetRelevanceReason()
 		return nil
-	case hotspot.FieldKeywordMentioned:
+	case enthotspot.FieldKeywordMentioned:
 		m.ResetKeywordMentioned()
 		return nil
-	case hotspot.FieldImportance:
+	case enthotspot.FieldImportance:
 		m.ResetImportance()
 		return nil
-	case hotspot.FieldSummary:
+	case enthotspot.FieldSummary:
 		m.ResetSummary()
 		return nil
-	case hotspot.FieldViewCount:
+	case enthotspot.FieldViewCount:
 		m.ResetViewCount()
 		return nil
-	case hotspot.FieldLikeCount:
+	case enthotspot.FieldLikeCount:
 		m.ResetLikeCount()
 		return nil
-	case hotspot.FieldRetweetCount:
+	case enthotspot.FieldRetweetCount:
 		m.ResetRetweetCount()
 		return nil
-	case hotspot.FieldReplyCount:
+	case enthotspot.FieldReplyCount:
 		m.ResetReplyCount()
 		return nil
-	case hotspot.FieldCommentCount:
+	case enthotspot.FieldCommentCount:
 		m.ResetCommentCount()
 		return nil
-	case hotspot.FieldQuoteCount:
+	case enthotspot.FieldQuoteCount:
 		m.ResetQuoteCount()
 		return nil
-	case hotspot.FieldDanmakuCount:
+	case enthotspot.FieldDanmakuCount:
 		m.ResetDanmakuCount()
 		return nil
-	case hotspot.FieldAuthorName:
+	case enthotspot.FieldAuthorName:
 		m.ResetAuthorName()
 		return nil
-	case hotspot.FieldAuthorUsername:
+	case enthotspot.FieldAuthorUsername:
 		m.ResetAuthorUsername()
 		return nil
-	case hotspot.FieldAuthorAvatar:
+	case enthotspot.FieldAuthorAvatar:
 		m.ResetAuthorAvatar()
 		return nil
-	case hotspot.FieldAuthorFollowers:
+	case enthotspot.FieldAuthorFollowers:
 		m.ResetAuthorFollowers()
 		return nil
-	case hotspot.FieldAuthorVerified:
+	case enthotspot.FieldAuthorVerified:
 		m.ResetAuthorVerified()
 		return nil
-	case hotspot.FieldPublishedAt:
+	case enthotspot.FieldPublishedAt:
 		m.ResetPublishedAt()
 		return nil
-	case hotspot.FieldCreatedAt:
+	case enthotspot.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
-	case hotspot.FieldKeywordID:
+	case enthotspot.FieldKeywordID:
 		m.ResetKeywordID()
 		return nil
-	case hotspot.FieldIsNotified:
+	case enthotspot.FieldIsNotified:
 		m.ResetIsNotified()
 		return nil
-	case hotspot.FieldNotifiedAt:
+	case enthotspot.FieldNotifiedAt:
 		m.ResetNotifiedAt()
 		return nil
-	case hotspot.FieldIsRead:
+	case enthotspot.FieldIsRead:
 		m.ResetIsRead()
 		return nil
 	}
@@ -2532,7 +2532,7 @@ func (m *HotspotMutation) ResetField(name string) error {
 func (m *HotspotMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
 	if m.keyword != nil {
-		edges = append(edges, hotspot.EdgeKeyword)
+		edges = append(edges, enthotspot.EdgeKeyword)
 	}
 	return edges
 }
@@ -2541,7 +2541,7 @@ func (m *HotspotMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *HotspotMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case hotspot.EdgeKeyword:
+	case enthotspot.EdgeKeyword:
 		if id := m.keyword; id != nil {
 			return []ent.Value{*id}
 		}
@@ -2565,7 +2565,7 @@ func (m *HotspotMutation) RemovedIDs(name string) []ent.Value {
 func (m *HotspotMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
 	if m.clearedkeyword {
-		edges = append(edges, hotspot.EdgeKeyword)
+		edges = append(edges, enthotspot.EdgeKeyword)
 	}
 	return edges
 }
@@ -2574,7 +2574,7 @@ func (m *HotspotMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *HotspotMutation) EdgeCleared(name string) bool {
 	switch name {
-	case hotspot.EdgeKeyword:
+	case enthotspot.EdgeKeyword:
 		return m.clearedkeyword
 	}
 	return false
@@ -2584,7 +2584,7 @@ func (m *HotspotMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *HotspotMutation) ClearEdge(name string) error {
 	switch name {
-	case hotspot.EdgeKeyword:
+	case enthotspot.EdgeKeyword:
 		m.ClearKeyword()
 		return nil
 	}
@@ -2595,7 +2595,7 @@ func (m *HotspotMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *HotspotMutation) ResetEdge(name string) error {
 	switch name {
-	case hotspot.EdgeKeyword:
+	case enthotspot.EdgeKeyword:
 		m.ResetKeyword()
 		return nil
 	}
