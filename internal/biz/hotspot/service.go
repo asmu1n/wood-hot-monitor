@@ -2,12 +2,10 @@ package hotspot
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"wood-hot-monitor/ent"
 	hsmodel "wood-hot-monitor/ent/hotspot"
-	"wood-hot-monitor/ent/predicate"
 	"wood-hot-monitor/internal/core/models"
 
 	"github.com/google/uuid"
@@ -23,47 +21,9 @@ func NewService(client *ent.Client) *Service {
 	return &Service{client: client}
 }
 
-type GetAllParams struct {
-	Page       int                `json:"page"`
-	Limit      int                `json:"limit"`
-	Source     *string            `json:"source"`
-	Importance *models.Importance `json:"importance"`
-	KeywordID  *string            `json:"keywordId"`
-	IsReal     *bool              `json:"isReal"`
-	TimeRange  *string            `json:"timeRange"`
-	TimeFrom   *string            `json:"timeFrom"`
-	TimeTo     *string            `json:"timeTo"`
-	SortBy     *string            `json:"sortBy"`
-	SortOrder  *string            `json:"sortOrder"`
-}
-
-type SearchParams struct {
-	Page    int      `json:"page"`
-	Limit   int      `json:"limit"`
-	Query   string   `json:"query"`
-	Sources []string `json:"sources"`
-}
-
-var allowedSortFields = map[string]string{
-	"createdAt":   hsmodel.FieldCreatedAt,
-	"relevance":   hsmodel.FieldRelevance,
-	"importance":  hsmodel.FieldImportance,
-	"publishedAt": hsmodel.FieldPublishedAt,
-	"likeCount":   hsmodel.FieldLikeCount,
-	"viewCount":   hsmodel.FieldViewCount,
-}
-
 func (s *Service) GetAll(ctx context.Context, params GetAllParams) (*models.PaginatedResult[models.Hotspot], error) {
-	var preds []predicate.Hotspot
 
-	timeFrom, timeTo := resolveTimeRange(params.TimeRange, params.TimeFrom, params.TimeTo)
-
-	preds = append(preds, optionalVal(params.Source, hsmodel.SourceEQ)...)
-	preds = append(preds, optionalVal(params.Importance, hsmodel.ImportanceEQ)...)
-	preds = append(preds, optionalVal(params.KeywordID, hsmodel.KeywordIDEQ)...)
-	preds = append(preds, optionalVal(params.IsReal, hsmodel.IsRealEQ)...)
-	preds = append(preds, optionalVal(timeFrom, hsmodel.CreatedAtGTE)...)
-	preds = append(preds, optionalVal(timeTo, hsmodel.CreatedAtLTE)...)
+	preds := params.Predicates()
 
 	query := s.client.Hotspot.Query()
 	if len(preds) > 0 {
@@ -75,22 +35,10 @@ func (s *Service) GetAll(ctx context.Context, params GetAllParams) (*models.Pagi
 		return nil, err
 	}
 
-	orderField := hsmodel.FieldCreatedAt
-	if params.SortBy != nil {
-		if f, ok := allowedSortFields[*params.SortBy]; ok {
-			orderField = f
-		}
-	}
-	orderFn := ent.Desc(orderField)
-	if params.SortOrder != nil && strings.ToUpper(*params.SortOrder) == "ASC" {
-		orderFn = ent.Asc(orderField)
-	}
-
-	offset := (params.Page - 1) * params.Limit
 	rows, err := query.
-		Order(orderFn).
+		Order(params.OrderBy()).
 		Limit(params.Limit).
-		Offset(offset).
+		Offset(params.Offset()).
 		WithKeyword().
 		All(ctx)
 	if err != nil {
@@ -130,14 +78,7 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 }
 
 func (s *Service) Search(ctx context.Context, params SearchParams) (*models.PaginatedResult[models.Hotspot], error) {
-	var preds []predicate.Hotspot
-	preds = append(preds, hsmodel.Or(
-		hsmodel.TitleContains(params.Query),
-		hsmodel.ContentContains(params.Query),
-	))
-	if len(params.Sources) > 0 {
-		preds = append(preds, hsmodel.SourceIn(params.Sources...))
-	}
+	preds := params.Predicates()
 
 	query := s.client.Hotspot.Query().Where(preds...)
 
@@ -146,12 +87,10 @@ func (s *Service) Search(ctx context.Context, params SearchParams) (*models.Pagi
 		return nil, err
 	}
 
-	offset := (params.Page - 1) * params.Limit
-
 	rows, err := query.
-		Order(ent.Desc(hsmodel.FieldRelevance), ent.Desc(hsmodel.FieldCreatedAt)).
+		Order(params.OrderBy()...).
 		Limit(params.Limit).
-		Offset(offset).
+		Offset(params.Offset()).
 		WithKeyword().
 		All(ctx)
 	if err != nil {
@@ -301,62 +240,9 @@ func resolveTimeRange(timeRange, timeFrom, timeTo *string) (*time.Time, *time.Ti
 	}
 }
 
-func mapHotspot(h *ent.Hotspot) models.Hotspot {
-	m := models.Hotspot{
-		ID:               h.ID,
-		Title:            h.Title,
-		Content:          h.Content,
-		URL:              h.URL,
-		Source:           h.Source,
-		SourceID:         h.SourceID,
-		IsReal:           h.IsReal,
-		Relevance:        h.Relevance,
-		RelevanceReason:  h.RelevanceReason,
-		KeywordMentioned: h.KeywordMentioned,
-		Importance:       h.Importance,
-		Summary:          h.Summary,
-		ViewCount:        h.ViewCount,
-		LikeCount:        h.LikeCount,
-		RetweetCount:     h.RetweetCount,
-		ReplyCount:       h.ReplyCount,
-		CommentCount:     h.CommentCount,
-		QuoteCount:       h.QuoteCount,
-		DanmakuCount:     h.DanmakuCount,
-		AuthorName:       h.AuthorName,
-		AuthorUsername:   h.AuthorUsername,
-		AuthorAvatar:     h.AuthorAvatar,
-		AuthorFollowers:  h.AuthorFollowers,
-		AuthorVerified:   h.AuthorVerified,
-		KeywordID:        h.KeywordID,
-		IsNotified:       h.IsNotified,
-		IsRead:           h.IsRead,
-		CreatedAt:        h.CreatedAt.Format(time.DateTime),
-	}
-	if h.NotifiedAt != nil {
-		s := h.NotifiedAt.Format(time.DateTime)
-		m.NotifiedAt = &s
-	}
-	if h.PublishedAt != nil {
-		s := h.PublishedAt.Format(time.DateTime)
-		m.PublishedAt = &s
-	}
-	if h.Edges.Keyword != nil {
-		kw := h.Edges.Keyword
-		m.Keyword = &models.HotspotKeyword{ID: kw.ID, Text: kw.Text, Category: kw.Category}
-	}
-	return m
-}
-
 func strPtr(s string) *string {
 	if s == "" {
 		return nil
 	}
 	return &s
-}
-
-func optionalVal[T any, P any](val *T, fn func(T) P) []P {
-	if val == nil {
-		return nil
-	}
-	return []P{fn(*val)}
 }

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowUpDown, Filter, X, Clock, Flame, TrendingUp, Target, ChevronDown, Check, RotateCcw } from 'lucide-react';
+import { ArrowUpDown, Filter, X, Clock, Flame, Target, ChevronDown, Check, RotateCcw, Eye, Heart, Book } from 'lucide-react';
 import { cn } from '@/lib/ui';
 import { Importance, Keyword } from '@wails/core/models';
-import type { GetAllParams } from '@wails/biz/hotspot';
+import { SortBy, type GetAllParams } from '@wails/biz/hotspot';
 
 export type FilterState = Pick<GetAllParams, 'source' | 'importance' | 'keywordId' | 'timeRange' | 'isReal' | 'sortBy' | 'sortOrder'>;
 
@@ -13,7 +13,7 @@ export const defaultFilterState: FilterState = {
     keywordId: null,
     timeRange: null,
     isReal: null,
-    sortBy: 'createdAt',
+    sortBy: SortBy.SortByCreatedAt,
     sortOrder: 'desc'
 };
 
@@ -25,11 +25,13 @@ interface FilterSortBarProps {
 }
 
 const SORT_OPTIONS = [
-    { value: 'createdAt', label: '最新发现', icon: Clock },
-    { value: 'publishedAt', label: '最新发布', icon: Clock },
-    { value: 'importance', label: '重要程度', icon: Flame },
-    { value: 'relevance', label: '相关性', icon: Target },
-    { value: 'hot', label: '热度综合', icon: TrendingUp }
+    { value: null, label: '默认排序', icon: Clock },
+    { value: SortBy.SortByCreatedAt, label: '最新发现', icon: Clock },
+    { value: SortBy.SortByPublishedAt, label: '最新发布', icon: Book },
+    { value: SortBy.SortByImportance, label: '重要程度', icon: Flame },
+    { value: SortBy.SortByRelevance, label: '相关性', icon: Target },
+    { value: SortBy.SortByLikeCount, label: '最受喜爱', icon: Heart },
+    { value: SortBy.SortByViewCount, label: '浏览最多', icon: Eye }
 ];
 
 const SOURCE_OPTIONS = [
@@ -134,11 +136,11 @@ function Dropdown<T = any>({
 export default function FilterSortBar({ className, filters, keywords, onChange }: FilterSortBarProps) {
     const [showFilters, setShowFilters] = useState(false);
 
-    const activeFilterCount = [filters.source, filters.importance, filters.keywordId, filters.timeRange, filters.isReal].filter(v => v !== '').length;
+    const activeFilterCount = [filters.source, filters.importance, filters.keywordId, filters.timeRange, filters.isReal, filters.sortBy].filter(
+        v => v !== null
+    ).length;
 
-    const hasNonDefaultSort = filters.sortBy !== 'createdAt';
-
-    const update = (key: keyof FilterState, value: FilterState[keyof FilterState]) => {
+    const update = <T extends keyof FilterState>(key: T, value: FilterState[T]) => {
         onChange({ ...filters, [key]: value });
     };
 
@@ -146,7 +148,7 @@ export default function FilterSortBar({ className, filters, keywords, onChange }
         onChange({ ...defaultFilterState });
     };
 
-    const keywordOptions = [{ value: '', label: '全部关键词' }, ...keywords.filter(k => k.isActive).map(k => ({ value: k.id, label: k.text }))];
+    const keywordOptions = [{ value: null, label: '全部关键词' }, ...keywords.filter(k => k.isActive).map(k => ({ value: k.id, label: k.text }))];
 
     return (
         <div className={cn('space-y-3', className)}>
@@ -194,7 +196,7 @@ export default function FilterSortBar({ className, filters, keywords, onChange }
                 </button>
 
                 {/* Reset */}
-                {(activeFilterCount > 0 || hasNonDefaultSort) && (
+                {activeFilterCount > 0 && (
                     <button
                         onClick={resetFilters}
                         className="text-muted-foreground hover:text-foreground flex items-center gap-1 rounded-xl px-2.5 py-2 text-xs transition-colors">
@@ -209,25 +211,25 @@ export default function FilterSortBar({ className, filters, keywords, onChange }
                         {filters.source && (
                             <FilterTag
                                 label={SOURCE_OPTIONS.find(o => o.value === filters.source)?.label || filters.source}
-                                onRemove={() => update('source', '')}
+                                onRemove={() => update('source', null)}
                             />
                         )}
                         {filters.importance && (
                             <FilterTag
                                 label={IMPORTANCE_OPTIONS.find(o => o.value === filters.importance)?.label || filters.importance}
-                                onRemove={() => update('importance', '')}
+                                onRemove={() => update('importance', null)}
                             />
                         )}
                         {filters.keywordId && (
                             <FilterTag
                                 label={keywords.find(k => k.id === filters.keywordId)?.text || '关键词'}
-                                onRemove={() => update('keywordId', '')}
+                                onRemove={() => update('keywordId', null)}
                             />
                         )}
                         {filters.timeRange && (
                             <FilterTag
                                 label={TIME_RANGE_OPTIONS.find(o => o.value === filters.timeRange)?.label || filters.timeRange}
-                                onRemove={() => update('timeRange', '')}
+                                onRemove={() => update('timeRange', null)}
                             />
                         )}
                         {filters.isReal && (
