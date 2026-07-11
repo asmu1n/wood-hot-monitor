@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"wood-hot-monitor/internal/config"
-	"wood-hot-monitor/internal/hotspot"
+	"wood-hot-monitor/internal/domain/hotspot"
 )
 
 const resendAPIURL = "https://api.resend.com/emails"

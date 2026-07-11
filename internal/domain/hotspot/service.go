@@ -16,8 +16,8 @@ func NewService(repo Repository) *Service {
 }
 
 func (s *Service) GetAll(ctx context.Context, params GetAllParams) (*shared.PaginatedResult[Hotspot], error) {
-	filter := params.ToFilter()
-	data, total, err := s.repo.FindAll(ctx, filter)
+	params.Resolve()
+	data, total, err := s.repo.FindAll(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -38,13 +38,7 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 }
 
 func (s *Service) Search(ctx context.Context, params SearchParams) (*shared.PaginatedResult[Hotspot], error) {
-	filter := SearchFilter{
-		Query:   params.Query,
-		Sources: params.Sources,
-		Page:    params.Page,
-		Limit:   params.Limit,
-	}
-	data, total, err := s.repo.Search(ctx, filter)
+	data, total, err := s.repo.Search(ctx, params)
 	if err != nil {
 		return nil, err
 	}

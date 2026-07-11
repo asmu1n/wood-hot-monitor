@@ -11,11 +11,11 @@ import (
 
 	"wood-hot-monitor/internal/checker"
 	"wood-hot-monitor/internal/config"
-	"wood-hot-monitor/internal/hotspot"
-	"wood-hot-monitor/internal/keyword"
+	"wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/domain/keyword"
 
-	hspersist "wood-hot-monitor/internal/hotspot/persist"
-	kwpersist "wood-hot-monitor/internal/keyword/persist"
+	hspersist "wood-hot-monitor/internal/domain/hotspot/persist"
+	kwpersist "wood-hot-monitor/internal/domain/keyword/persist"
 
 	"wood-hot-monitor/internal/infra/database"
 	"wood-hot-monitor/internal/infra/llm"
@@ -65,9 +65,9 @@ func main() {
 		},
 	})
 
+	scraperService := scraper.NewService()
 	notifier := notify.NewWailsNotifier(app)
 	llmService := llm.NewService(cfgService, db.Client)
-	scraperService := scraper.NewService()
 	checkerService := checker.NewService(keywordService, cfgService, llmService, hotspotService, scraperService, notifier)
 	app.RegisterService(application.NewService(checkerService))
 

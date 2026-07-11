@@ -6,7 +6,7 @@ import (
 
 	"wood-hot-monitor/ent"
 	kwmodel "wood-hot-monitor/ent/keyword"
-	"wood-hot-monitor/internal/keyword"
+	"wood-hot-monitor/internal/domain/keyword"
 
 	"github.com/google/uuid"
 )

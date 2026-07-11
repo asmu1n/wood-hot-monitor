@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"wood-hot-monitor/internal/hotspot"
+	"wood-hot-monitor/internal/domain/hotspot"
 )
 
 var sourcePriority = map[string]int{
@@ -140,7 +140,7 @@ func priorityOf(source string) int {
 	return 99
 }
 
-func IntPtr(v int) *int            { return &v }
+func IntPtr(v int) *int              { return &v }
 func TimePtr(t time.Time) *time.Time { return &t }
 
 type PlatformWeights struct {

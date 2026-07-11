@@ -25,27 +25,64 @@ Wood Hot Monitor 是基于 Wails v3 构建的桌面热点监控应用。该程�
 ## 项目结构
 
 ```
-├── main.go              # Wails 应用入口
-├── ent/schema/          # Ent ORM schema (keyword, hotspot, keyword_expansion)
+├── main.go                        # Wails 应用入口 (组合根，依赖注入)
+├── ent/schema/                    # Ent ORM schema (keyword, hotspot, keyword_expansion)
 ├── internal/
-│   ├── checker/         # 定时检查调度，处理热点抓取、LLM 评估与入库
-│   ├── config/          # 本地 JSON 配置管理，路径为 ~/.wood-hot-monitor/config.json
-│   ├── database/        # SQLite 数据库初始化
-│   ├── email/           # 邮件通知模块
-│   ├── hotspot/         # 热点 CRUD 与通知查询 (GetNotifications, UnreadCount, MarkRead, MarkAllRead)
-│   ├── keyword/         # 关键词管理
-│   ├── llm/             # LLM 调用实现，支持自定义 BaseURL
-│   ├── models/          # Wails 绑定的数据模型，定义 API 契约层
-│   ├── quality/         # 热点质量评估逻辑
-│   └── scraper/         # 多平台爬虫 (Bilibili, Bing, HackerNews, Twitter)
+│   ├── domain/                    # 业务域模块
+│   │   ├── hotspot/               #   热点监控 (实体、接口、服务、参数)
+│   │   │   └── persist/           #     Ent 仓储实现
+│   │   └── keyword/               #   关键词管理 (实体、接口、服务)
+│   │       └── persist/           #     Ent 仓储实现
+│   ├── checker/                   # 业务编排 (定时抓取 → LLM 评估 → 入库 → 通知)
+│   ├── infra/                     # 基础设施
+│   │   ├── database/              #   SQLite 连接初始化
+│   │   ├── scraper/               #   多平台爬虫 (Bilibili, Bing, HackerNews, Twitter)
+│   │   ├── llm/                   #   LLM 调用 (OpenAI 兼容接口)
+│   │   └── notify/                #   通知 (Wails 事件推送 + 邮件告警)
+│   ├── config/                    # 本地 JSON 配置管理
+│   └── shared/                    # 跨模块共享类型 (分页)
 └── frontend/
-    ├── bindings/        # Wails 自动生成的 Go 与 JS 交互绑定
+    ├── bindings/                  # Wails 自动生成的 Go ↔ JS 绑定
     └── src/
-        ├── routes/      # TanStack Router 页面路由 (热点雷达、监控词、搜索、设置)
-        ├── features/    # 按功能域组织的代码 (hotspot, keyword, settings)
-        ├── components/  # 共享 UI 组件 (Sidebar, ContentHeader, StatusCards 等)
-        └── hooks/       # 业务逻辑 hook (useAppLogic)
+        ├── routes/                # TanStack Router 页面路由
+        ├── features/              # 按功能域组织 (hotspot, keyword, settings)
+        ├── components/            # 共享 UI 组件
+        └── hooks/                 # 业务逻辑 hook
 ```
+
+## 架构设计
+
+### 模块化分层
+
+项目采用按业务域划分的模块化架构：
+
+- **业务域** (`domain/`) — 每个模块自包含实体、接口、服务和持久化实现
+- **基础设施** (`infra/`) — 为业务模块提供的技术能力 (爬虫、LLM、通知、数据库)
+- **编排层** (`checker/`) — 串联业务模块与基础设施，定时执行完整流程
+
+### 依赖方向
+
+```
+main.go (组合根)
+   │
+   ├─→ domain/hotspot    (业务接口 + 服务)
+   ├─→ domain/keyword    (业务接口 + 服务)
+   ├─→ checker           (编排，依赖业务接口)
+   └─→ infra/*           (实现业务接口)
+        │
+        └─→ domain/*     (引用实体和接口类型)
+```
+
+业务模块定义接口，基础设施实现接口，main.go 完成注入。
+
+### 关键设计决策
+
+- **后端与客户端一体化**：Go 后端通过 Wails 绑定机制直接暴露给前端，不走 HTTP API。
+- **仓储跟随业务**：每个业务模块自带 `persist/` 子包存放 Ent 仓储实现，开发时在同一目录树下查看全貌。
+- **配置存储**：程序配置保存在 `~/.wood-hot-monitor/config.json`，未存入数据库。
+- **通知模型**：通知状态 (`is_read`) 直接记录在 Hotspot 表中，无独立通知表。
+- **数据库**：SQLite 纯 Go 驱动 (modernc.org/sqlite)，schema 通过 Ent 自动迁移。
+- **LLM 接口**：通用 OpenAI 兼容接口，支持用户配置自定义 BaseURL。
 
 ## 开发
 
@@ -67,14 +104,6 @@ go generate ./ent             # 重新生成 Ent 代码
 
 cd frontend && bun dev        # 前端独立开发
 ```
-
-## 架构说明
-
-- 后端与客户端一体化：应用不采用传统的 C/S 架构，Go 后端逻辑通过 Wails 绑定机制直接暴露给前端使用。
-- 配置存储：程序配置保存在本地 JSON 文件中，未存储于数据库。
-- 通知模型：通知状态 (is_read) 直接记录在 Hotspot 数据表中，未设立独立的通知表。
-- 数据库设计：选用 SQLite 纯 Go 驱动以规避 CGO 编译问题，schema 变更通过 Ent 自动迁移完成。
-- LLM 接口：提供通用的 OpenAI 兼容接口，支持用户配置自定义 BaseURL。
 
 ## 许可证
 

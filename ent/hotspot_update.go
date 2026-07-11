@@ -10,7 +10,7 @@ import (
 	enthotspot "wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/predicate"
-	"wood-hot-monitor/internal/hotspot"
+	"wood-hot-monitor/internal/domain/hotspot"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

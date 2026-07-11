@@ -7,7 +7,7 @@ import (
 	"wood-hot-monitor/ent"
 	hsmodel "wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/predicate"
-	"wood-hot-monitor/internal/hotspot"
+	"wood-hot-monitor/internal/domain/hotspot"
 
 	"github.com/google/uuid"
 )
@@ -20,8 +20,8 @@ func NewHotspotRepository(client *ent.Client) *HotspotRepository {
 	return &HotspotRepository{client: client}
 }
 
-func (r *HotspotRepository) FindAll(ctx context.Context, filter hotspot.Filter) ([]hotspot.Hotspot, int, error) {
-	preds := r.buildPredicates(filter)
+func (r *HotspotRepository) FindAll(ctx context.Context, params hotspot.GetAllParams) ([]hotspot.Hotspot, int, error) {
+	preds := r.buildPredicates(params)
 
 	query := r.client.Hotspot.Query()
 	if len(preds) > 0 {
@@ -33,11 +33,11 @@ func (r *HotspotRepository) FindAll(ctx context.Context, filter hotspot.Filter) 
 		return nil, 0, err
 	}
 
-	orderFunc := r.buildOrder(filter)
+	orderFunc := r.buildOrder(params)
 	rows, err := query.
 		Order(orderFunc).
-		Limit(filter.Limit).
-		Offset(filter.Offset()).
+		Limit(params.Limit).
+		Offset(params.Offset()).
 		WithKeyword().
 		All(ctx)
 	if err != nil {
@@ -66,15 +66,15 @@ func (r *HotspotRepository) FindByID(ctx context.Context, id string) (*hotspot.H
 	return &h, nil
 }
 
-func (r *HotspotRepository) Search(ctx context.Context, filter hotspot.SearchFilter) ([]hotspot.Hotspot, int, error) {
+func (r *HotspotRepository) Search(ctx context.Context, params hotspot.SearchParams) ([]hotspot.Hotspot, int, error) {
 	preds := []predicate.Hotspot{
 		hsmodel.Or(
-			hsmodel.TitleContains(filter.Query),
-			hsmodel.ContentContains(filter.Query),
+			hsmodel.TitleContains(params.Query),
+			hsmodel.ContentContains(params.Query),
 		),
 	}
-	if len(filter.Sources) > 0 {
-		preds = append(preds, hsmodel.SourceIn(filter.Sources...))
+	if len(params.Sources) > 0 {
+		preds = append(preds, hsmodel.SourceIn(params.Sources...))
 	}
 
 	query := r.client.Hotspot.Query().Where(preds...)
@@ -86,8 +86,8 @@ func (r *HotspotRepository) Search(ctx context.Context, filter hotspot.SearchFil
 
 	rows, err := query.
 		Order(ent.Desc(hsmodel.FieldRelevance), ent.Desc(hsmodel.FieldCreatedAt)).
-		Limit(filter.Limit).
-		Offset(filter.Offset()).
+		Limit(params.Limit).
+		Offset(params.Offset()).
 		WithKeyword().
 		All(ctx)
 	if err != nil {
@@ -290,7 +290,7 @@ func (r *HotspotRepository) MarkAllRead(ctx context.Context) error {
 		Exec(ctx)
 }
 
-var sortFieldMap = map[hotspot.SortField]string{
+var sortFieldColumn = map[hotspot.SortField]string{
 	hotspot.SortByCreatedAt:   hsmodel.FieldCreatedAt,
 	hotspot.SortByRelevance:   hsmodel.FieldRelevance,
 	hotspot.SortByImportance:  hsmodel.FieldImportance,
@@ -299,37 +299,37 @@ var sortFieldMap = map[hotspot.SortField]string{
 	hotspot.SortByViewCount:   hsmodel.FieldViewCount,
 }
 
-func (r *HotspotRepository) buildOrder(filter hotspot.Filter) hsmodel.OrderOption {
+func (r *HotspotRepository) buildOrder(params hotspot.GetAllParams) hsmodel.OrderOption {
 	field := hsmodel.FieldCreatedAt
-	if f, ok := sortFieldMap[filter.SortBy]; ok {
+	if f, ok := sortFieldColumn[params.SortBy]; ok {
 		field = f
 	}
-	if filter.SortOrder == hotspot.SortAsc {
+	if params.SortOrder == hotspot.SortAsc {
 		return ent.Asc(field)
 	}
 	return ent.Desc(field)
 }
 
-func (r *HotspotRepository) buildPredicates(filter hotspot.Filter) []predicate.Hotspot {
+func (r *HotspotRepository) buildPredicates(params hotspot.GetAllParams) []predicate.Hotspot {
 	var preds []predicate.Hotspot
 
-	if filter.Source != nil {
-		preds = append(preds, hsmodel.SourceEQ(*filter.Source))
+	if params.Source != nil {
+		preds = append(preds, hsmodel.SourceEQ(*params.Source))
 	}
-	if filter.Importance != nil {
-		preds = append(preds, hsmodel.ImportanceEQ(*filter.Importance))
+	if params.Importance != nil {
+		preds = append(preds, hsmodel.ImportanceEQ(*params.Importance))
 	}
-	if filter.KeywordID != nil {
-		preds = append(preds, hsmodel.KeywordIDEQ(*filter.KeywordID))
+	if params.KeywordID != nil {
+		preds = append(preds, hsmodel.KeywordIDEQ(*params.KeywordID))
 	}
-	if filter.IsReal != nil {
-		preds = append(preds, hsmodel.IsRealEQ(*filter.IsReal))
+	if params.IsReal != nil {
+		preds = append(preds, hsmodel.IsRealEQ(*params.IsReal))
 	}
-	if filter.TimeFrom != nil {
-		preds = append(preds, hsmodel.CreatedAtGTE(*filter.TimeFrom))
+	if params.TimeFrom != nil {
+		preds = append(preds, hsmodel.CreatedAtGTE(*params.TimeFrom))
 	}
-	if filter.TimeTo != nil {
-		preds = append(preds, hsmodel.CreatedAtLTE(*filter.TimeTo))
+	if params.TimeTo != nil {
+		preds = append(preds, hsmodel.CreatedAtLTE(*params.TimeTo))
 	}
 
 	return preds

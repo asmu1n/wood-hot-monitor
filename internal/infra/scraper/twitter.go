@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"wood-hot-monitor/internal/hotspot"
+	"wood-hot-monitor/internal/domain/hotspot"
 )
 
 const twitterAPIURL = "https://api.twitterapi.io/twitter/tweet/advanced_search"

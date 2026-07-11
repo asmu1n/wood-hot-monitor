@@ -29,17 +29,17 @@ func (i Importance) IsValid() bool {
 type SortField string
 
 const (
-	SortByCreatedAt   SortField = "created_at"
+	SortByCreatedAt   SortField = "createdAt"
 	SortByRelevance   SortField = "relevance"
 	SortByImportance  SortField = "importance"
-	SortByPublishedAt SortField = "published_at"
-	SortByLikeCount   SortField = "like_count"
-	SortByViewCount   SortField = "view_count"
+	SortByPublishedAt SortField = "publishedAt"
+	SortByLikeCount   SortField = "likeCount"
+	SortByViewCount   SortField = "viewCount"
 )
 
 type SortOrder string
 
 const (
-	SortAsc  SortOrder = "ASC"
-	SortDesc SortOrder = "DESC"
+	SortAsc  SortOrder = "asc"
+	SortDesc SortOrder = "desc"
 )

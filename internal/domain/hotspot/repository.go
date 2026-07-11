@@ -3,9 +3,9 @@ package hotspot
 import "context"
 
 type Repository interface {
-	FindAll(ctx context.Context, filter Filter) ([]Hotspot, int, error)
+	FindAll(ctx context.Context, params GetAllParams) ([]Hotspot, int, error)
 	FindByID(ctx context.Context, id string) (*Hotspot, error)
-	Search(ctx context.Context, filter SearchFilter) ([]Hotspot, int, error)
+	Search(ctx context.Context, params SearchParams) ([]Hotspot, int, error)
 	Upsert(ctx context.Context, h Hotspot) (id string, isNew bool, err error)
 	Delete(ctx context.Context, id string) error
 

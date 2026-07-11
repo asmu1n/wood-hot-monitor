@@ -12,7 +12,7 @@ import (
 	"wood-hot-monitor/ent"
 	"wood-hot-monitor/ent/keywordexpansion"
 	"wood-hot-monitor/internal/config"
-	"wood-hot-monitor/internal/hotspot"
+	"wood-hot-monitor/internal/domain/hotspot"
 
 	"github.com/google/uuid"
 	"github.com/sashabaranov/go-openai"
@@ -146,12 +146,12 @@ func (s *Service) AnalyzeContent(ctx context.Context, content, keyword string, e
 	}
 
 	var raw struct {
-		IsReal           bool              `json:"isReal"`
-		Relevance        int               `json:"relevance"`
-		RelevanceReason  string            `json:"relevanceReason"`
-		KeywordMentioned bool              `json:"keywordMentioned"`
+		IsReal           bool               `json:"isReal"`
+		Relevance        int                `json:"relevance"`
+		RelevanceReason  string             `json:"relevanceReason"`
+		KeywordMentioned bool               `json:"keywordMentioned"`
 		Importance       hotspot.Importance `json:"importance"`
-		Summary          string            `json:"summary"`
+		Summary          string             `json:"summary"`
 	}
 	if err := json.Unmarshal([]byte(jsonStr), &raw); err != nil {
 		return fallbackAnalysisError(match, content), nil
