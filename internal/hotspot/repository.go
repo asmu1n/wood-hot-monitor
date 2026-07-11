@@ -2,7 +2,6 @@ package hotspot
 
 import "context"
 
-// Repository 热点持久化接口
 type Repository interface {
 	FindAll(ctx context.Context, filter Filter) ([]Hotspot, int, error)
 	FindByID(ctx context.Context, id string) (*Hotspot, error)

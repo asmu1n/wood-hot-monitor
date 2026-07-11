@@ -1,4 +1,4 @@
-package ent
+package persist
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"wood-hot-monitor/ent"
 	hsmodel "wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/predicate"
-	domain "wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/hotspot"
 
 	"github.com/google/uuid"
 )
@@ -20,7 +20,7 @@ func NewHotspotRepository(client *ent.Client) *HotspotRepository {
 	return &HotspotRepository{client: client}
 }
 
-func (r *HotspotRepository) FindAll(ctx context.Context, filter domain.Filter) ([]domain.Hotspot, int, error) {
+func (r *HotspotRepository) FindAll(ctx context.Context, filter hotspot.Filter) ([]hotspot.Hotspot, int, error) {
 	preds := r.buildPredicates(filter)
 
 	query := r.client.Hotspot.Query()
@@ -44,14 +44,14 @@ func (r *HotspotRepository) FindAll(ctx context.Context, filter domain.Filter) (
 		return nil, 0, err
 	}
 
-	result := make([]domain.Hotspot, len(rows))
+	result := make([]hotspot.Hotspot, len(rows))
 	for i, row := range rows {
 		result[i] = mapToDomain(row)
 	}
 	return result, total, nil
 }
 
-func (r *HotspotRepository) FindByID(ctx context.Context, id string) (*domain.Hotspot, error) {
+func (r *HotspotRepository) FindByID(ctx context.Context, id string) (*hotspot.Hotspot, error) {
 	row, err := r.client.Hotspot.Query().
 		Where(hsmodel.IDEQ(id)).
 		WithKeyword().
@@ -66,7 +66,7 @@ func (r *HotspotRepository) FindByID(ctx context.Context, id string) (*domain.Ho
 	return &h, nil
 }
 
-func (r *HotspotRepository) Search(ctx context.Context, filter domain.SearchFilter) ([]domain.Hotspot, int, error) {
+func (r *HotspotRepository) Search(ctx context.Context, filter hotspot.SearchFilter) ([]hotspot.Hotspot, int, error) {
 	preds := []predicate.Hotspot{
 		hsmodel.Or(
 			hsmodel.TitleContains(filter.Query),
@@ -94,14 +94,14 @@ func (r *HotspotRepository) Search(ctx context.Context, filter domain.SearchFilt
 		return nil, 0, err
 	}
 
-	result := make([]domain.Hotspot, len(rows))
+	result := make([]hotspot.Hotspot, len(rows))
 	for i, row := range rows {
 		result[i] = mapToDomain(row)
 	}
 	return result, total, nil
 }
 
-func (r *HotspotRepository) Upsert(ctx context.Context, h domain.Hotspot) (string, bool, error) {
+func (r *HotspotRepository) Upsert(ctx context.Context, h hotspot.Hotspot) (string, bool, error) {
 	now := time.Now().UTC()
 
 	existing, err := r.client.Hotspot.Query().
@@ -216,7 +216,7 @@ func (r *HotspotRepository) Delete(ctx context.Context, id string) error {
 	return r.client.Hotspot.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *HotspotRepository) GetStatus(ctx context.Context) (*domain.Status, error) {
+func (r *HotspotRepository) GetStatus(ctx context.Context) (*hotspot.Status, error) {
 	total, _ := r.client.Hotspot.Query().Count(ctx)
 
 	todayStart := time.Now().UTC().Truncate(24 * time.Hour)
@@ -241,7 +241,7 @@ func (r *HotspotRepository) GetStatus(ctx context.Context) (*domain.Status, erro
 		}
 	}
 
-	return &domain.Status{
+	return &hotspot.Status{
 		Total:    total,
 		Today:    today,
 		Urgent:   urgent,
@@ -249,7 +249,7 @@ func (r *HotspotRepository) GetStatus(ctx context.Context) (*domain.Status, erro
 	}, nil
 }
 
-func (r *HotspotRepository) GetNotifications(ctx context.Context, limit int) ([]domain.Hotspot, error) {
+func (r *HotspotRepository) GetNotifications(ctx context.Context, limit int) ([]hotspot.Hotspot, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -264,7 +264,7 @@ func (r *HotspotRepository) GetNotifications(ctx context.Context, limit int) ([]
 		return nil, err
 	}
 
-	result := make([]domain.Hotspot, len(rows))
+	result := make([]hotspot.Hotspot, len(rows))
 	for i, row := range rows {
 		result[i] = mapToDomain(row)
 	}
@@ -290,27 +290,27 @@ func (r *HotspotRepository) MarkAllRead(ctx context.Context) error {
 		Exec(ctx)
 }
 
-var sortFieldMap = map[domain.SortField]string{
-	domain.SortByCreatedAt:   hsmodel.FieldCreatedAt,
-	domain.SortByRelevance:   hsmodel.FieldRelevance,
-	domain.SortByImportance:  hsmodel.FieldImportance,
-	domain.SortByPublishedAt: hsmodel.FieldPublishedAt,
-	domain.SortByLikeCount:   hsmodel.FieldLikeCount,
-	domain.SortByViewCount:   hsmodel.FieldViewCount,
+var sortFieldMap = map[hotspot.SortField]string{
+	hotspot.SortByCreatedAt:   hsmodel.FieldCreatedAt,
+	hotspot.SortByRelevance:   hsmodel.FieldRelevance,
+	hotspot.SortByImportance:  hsmodel.FieldImportance,
+	hotspot.SortByPublishedAt: hsmodel.FieldPublishedAt,
+	hotspot.SortByLikeCount:   hsmodel.FieldLikeCount,
+	hotspot.SortByViewCount:   hsmodel.FieldViewCount,
 }
 
-func (r *HotspotRepository) buildOrder(filter domain.Filter) hsmodel.OrderOption {
+func (r *HotspotRepository) buildOrder(filter hotspot.Filter) hsmodel.OrderOption {
 	field := hsmodel.FieldCreatedAt
 	if f, ok := sortFieldMap[filter.SortBy]; ok {
 		field = f
 	}
-	if filter.SortOrder == domain.SortAsc {
+	if filter.SortOrder == hotspot.SortAsc {
 		return ent.Asc(field)
 	}
 	return ent.Desc(field)
 }
 
-func (r *HotspotRepository) buildPredicates(filter domain.Filter) []predicate.Hotspot {
+func (r *HotspotRepository) buildPredicates(filter hotspot.Filter) []predicate.Hotspot {
 	var preds []predicate.Hotspot
 
 	if filter.Source != nil {
@@ -340,4 +340,65 @@ func strPtr(s string) *string {
 		return nil
 	}
 	return &s
+}
+
+func mapToDomain(row *ent.Hotspot) hotspot.Hotspot {
+	h := hotspot.Hotspot{
+		ID:               row.ID,
+		Title:            row.Title,
+		Content:          row.Content,
+		URL:              row.URL,
+		Source:           row.Source,
+		SourceID:         row.SourceID,
+		IsReal:           row.IsReal,
+		Relevance:        row.Relevance,
+		RelevanceReason:  row.RelevanceReason,
+		KeywordMentioned: row.KeywordMentioned,
+		Importance:       row.Importance,
+		Summary:          row.Summary,
+		ViewCount:        row.ViewCount,
+		LikeCount:        row.LikeCount,
+		RetweetCount:     row.RetweetCount,
+		ReplyCount:       row.ReplyCount,
+		CommentCount:     row.CommentCount,
+		QuoteCount:       row.QuoteCount,
+		DanmakuCount:     row.DanmakuCount,
+		KeywordID:        row.KeywordID,
+		IsNotified:       row.IsNotified,
+		IsRead:           row.IsRead,
+		CreatedAt:        row.CreatedAt,
+		PublishedAt:      row.PublishedAt,
+		NotifiedAt:       row.NotifiedAt,
+	}
+
+	if row.AuthorName != nil || row.AuthorUsername != nil {
+		h.Author = &hotspot.Author{
+			Name:     deref(row.AuthorName),
+			Username: deref(row.AuthorUsername),
+			Avatar:   deref(row.AuthorAvatar),
+		}
+		if row.AuthorFollowers != nil {
+			h.Author.Followers = *row.AuthorFollowers
+		}
+		if row.AuthorVerified != nil {
+			h.Author.Verified = *row.AuthorVerified
+		}
+	}
+
+	if row.Edges.Keyword != nil {
+		kw := row.Edges.Keyword
+		h.Keyword = &hotspot.HotspotKeyword{
+			ID:       kw.ID,
+			Text:     kw.Text,
+			Category: kw.Category,
+		}
+	}
+	return h
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
 }

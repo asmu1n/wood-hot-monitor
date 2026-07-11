@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	domain "wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/hotspot"
 )
 
 const hnAlgoliaURL = "http://hn.algolia.com/api/v1/search"
@@ -28,7 +28,7 @@ type hnHit struct {
 	StoryText   *string `json:"story_text"`
 }
 
-func SearchHackerNews(ctx context.Context, query string) ([]domain.SearchResult, error) {
+func SearchHackerNews(ctx context.Context, query string) ([]hotspot.SearchResult, error) {
 	params := url.Values{
 		"query": {query},
 		"tags":  {"story"},
@@ -57,7 +57,7 @@ func SearchHackerNews(ctx context.Context, query string) ([]domain.SearchResult,
 		return nil, fmt.Errorf("decode hn response: %w", err)
 	}
 
-	results := make([]domain.SearchResult, 0, len(data.Hits))
+	results := make([]hotspot.SearchResult, 0, len(data.Hits))
 	for _, hit := range data.Hits {
 		itemURL := hit.URL
 		if itemURL == "" {
@@ -74,13 +74,13 @@ func SearchHackerNews(ctx context.Context, query string) ([]domain.SearchResult,
 			published = TimePtr(t)
 		}
 
-		results = append(results, domain.SearchResult{
+		results = append(results, hotspot.SearchResult{
 			Title:    hit.Title,
 			Content:  content,
 			URL:      itemURL,
 			Source:   "hackernews",
 			SourceID: hit.ObjectID,
-			Author: &domain.Author{
+			Author: &hotspot.Author{
 				Name:     hit.Author,
 				Username: hit.Author,
 			},

@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	domain "wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/hotspot"
 )
 
 const twitterAPIURL = "https://api.twitterapi.io/twitter/tweet/advanced_search"
@@ -38,7 +38,7 @@ type twitterTweet struct {
 	ViewCount    int `json:"viewCount"`
 }
 
-func SearchTwitter(ctx context.Context, query, apiKey string) ([]domain.SearchResult, error) {
+func SearchTwitter(ctx context.Context, query, apiKey string) ([]hotspot.SearchResult, error) {
 	if apiKey == "" {
 		return nil, nil
 	}
@@ -72,7 +72,7 @@ func SearchTwitter(ctx context.Context, query, apiKey string) ([]domain.SearchRe
 		return nil, fmt.Errorf("decode twitter response: %w", err)
 	}
 
-	results := make([]domain.SearchResult, 0, len(data.Tweets))
+	results := make([]hotspot.SearchResult, 0, len(data.Tweets))
 	for _, tweet := range data.Tweets {
 		tweetURL := tweet.URL
 		if tweetURL == "" {
@@ -81,19 +81,18 @@ func SearchTwitter(ctx context.Context, query, apiKey string) ([]domain.SearchRe
 
 		var published *time.Time
 		if tweet.CreatedAt != "" {
-			// Twitter 时间格式: "Mon Jan 02 15:04:05 +0000 2006"
 			if t, err := time.Parse("Mon Jan 02 15:04:05 +0000 2006", tweet.CreatedAt); err == nil {
 				published = TimePtr(t)
 			}
 		}
 
-		results = append(results, domain.SearchResult{
+		results = append(results, hotspot.SearchResult{
 			Title:    truncate(tweet.Text, 100),
 			Content:  tweet.Text,
 			URL:      tweetURL,
 			Source:   "twitter",
 			SourceID: tweet.ID,
-			Author: &domain.Author{
+			Author: &hotspot.Author{
 				Name:      tweet.Author.Name,
 				Username:  tweet.Author.UserName,
 				Avatar:    tweet.Author.ProfilePicture,

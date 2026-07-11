@@ -1,4 +1,4 @@
-package event
+package notify
 
 type Notifier interface {
 	Emit(eventName string, data any)

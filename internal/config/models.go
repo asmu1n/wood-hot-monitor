@@ -1,4 +1,4 @@
-package models
+package config
 
 type AppConfig struct {
 	EmailAddress  string         `json:"emailAddress"`

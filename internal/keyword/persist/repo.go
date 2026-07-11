@@ -1,4 +1,4 @@
-package ent
+package persist
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"wood-hot-monitor/ent"
 	kwmodel "wood-hot-monitor/ent/keyword"
-	domain "wood-hot-monitor/internal/domain/keyword"
+	"wood-hot-monitor/internal/keyword"
 
 	"github.com/google/uuid"
 )
@@ -19,7 +19,7 @@ func NewKeywordRepository(client *ent.Client) *KeywordRepository {
 	return &KeywordRepository{client: client}
 }
 
-func (r *KeywordRepository) FindAll(ctx context.Context, activeOnly bool) ([]domain.Keyword, error) {
+func (r *KeywordRepository) FindAll(ctx context.Context, activeOnly bool) ([]keyword.Keyword, error) {
 	query := r.client.Keyword.Query().Order(ent.Desc(kwmodel.FieldCreatedAt))
 	if activeOnly {
 		query = query.Where(kwmodel.IsActive(true))
@@ -30,7 +30,7 @@ func (r *KeywordRepository) FindAll(ctx context.Context, activeOnly bool) ([]dom
 		return nil, err
 	}
 
-	result := make([]domain.Keyword, len(rows))
+	result := make([]keyword.Keyword, len(rows))
 	for i, row := range rows {
 		hCount, _ := row.QueryHotspots().Count(ctx)
 		result[i] = mapKeywordToDomain(row, &hCount)
@@ -38,7 +38,7 @@ func (r *KeywordRepository) FindAll(ctx context.Context, activeOnly bool) ([]dom
 	return result, nil
 }
 
-func (r *KeywordRepository) FindByID(ctx context.Context, id string) (*domain.Keyword, error) {
+func (r *KeywordRepository) FindByID(ctx context.Context, id string) (*keyword.Keyword, error) {
 	row, err := r.client.Keyword.Get(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -50,7 +50,7 @@ func (r *KeywordRepository) FindByID(ctx context.Context, id string) (*domain.Ke
 	return &kw, nil
 }
 
-func (r *KeywordRepository) Create(ctx context.Context, text string, category *string) (*domain.Keyword, error) {
+func (r *KeywordRepository) Create(ctx context.Context, text string, category *string) (*keyword.Keyword, error) {
 	now := time.Now().UTC()
 	builder := r.client.Keyword.Create().
 		SetID(uuid.NewString()).
@@ -70,7 +70,7 @@ func (r *KeywordRepository) Create(ctx context.Context, text string, category *s
 	return &result, nil
 }
 
-func (r *KeywordRepository) Update(ctx context.Context, id string, text *string, category *string) (*domain.Keyword, error) {
+func (r *KeywordRepository) Update(ctx context.Context, id string, text *string, category *string) (*keyword.Keyword, error) {
 	now := time.Now().UTC()
 	builder := r.client.Keyword.UpdateOneID(id).SetUpdatedAt(now)
 	if text != nil {
@@ -90,7 +90,7 @@ func (r *KeywordRepository) Delete(ctx context.Context, id string) error {
 	return r.client.Keyword.DeleteOneID(id).Exec(ctx)
 }
 
-func (r *KeywordRepository) Toggle(ctx context.Context, id string) (*domain.Keyword, error) {
+func (r *KeywordRepository) Toggle(ctx context.Context, id string) (*keyword.Keyword, error) {
 	row, err := r.client.Keyword.Get(ctx, id)
 	if err != nil {
 		return nil, err
@@ -107,8 +107,8 @@ func (r *KeywordRepository) Toggle(ctx context.Context, id string) (*domain.Keyw
 	return &result, nil
 }
 
-func mapKeywordToDomain(row *ent.Keyword, hotspotCount *int) domain.Keyword {
-	return domain.Keyword{
+func mapKeywordToDomain(row *ent.Keyword, hotspotCount *int) keyword.Keyword {
+	return keyword.Keyword{
 		ID:           row.ID,
 		Text:         row.Text,
 		Category:     row.Category,

@@ -11,8 +11,8 @@ import (
 
 	"wood-hot-monitor/ent"
 	"wood-hot-monitor/ent/keywordexpansion"
-	"wood-hot-monitor/internal/core/config"
-	domain "wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/config"
+	"wood-hot-monitor/internal/hotspot"
 
 	"github.com/google/uuid"
 	"github.com/sashabaranov/go-openai"
@@ -29,11 +29,11 @@ var (
 	reArray  = regexp.MustCompile(`(?s)\[.*\]`)
 	reObject = regexp.MustCompile(`(?s)\{.*\}`)
 
-	validImportances = map[domain.Importance]bool{
-		domain.ImportanceLow:    true,
-		domain.ImportanceMedium: true,
-		domain.ImportanceHigh:   true,
-		domain.ImportanceUrgent: true,
+	validImportances = map[hotspot.Importance]bool{
+		hotspot.ImportanceLow:    true,
+		hotspot.ImportanceMedium: true,
+		hotspot.ImportanceHigh:   true,
+		hotspot.ImportanceUrgent: true,
 	}
 )
 
@@ -113,7 +113,7 @@ func PreMatchKeyword(text string, expandedKeywords []string) PreMatchResult {
 	return PreMatchResult{Matched: len(matched) > 0, MatchedTerms: matched}
 }
 
-func (s *Service) AnalyzeContent(ctx context.Context, content, keyword string, expandedKeywords []string) (*domain.AnalysisResult, error) {
+func (s *Service) AnalyzeContent(ctx context.Context, content, keyword string, expandedKeywords []string) (*hotspot.AnalysisResult, error) {
 	var pm *PreMatchResult
 	if len(expandedKeywords) > 0 {
 		m := PreMatchKeyword(content, expandedKeywords)
@@ -146,18 +146,18 @@ func (s *Service) AnalyzeContent(ctx context.Context, content, keyword string, e
 	}
 
 	var raw struct {
-		IsReal           bool             `json:"isReal"`
-		Relevance        int              `json:"relevance"`
-		RelevanceReason  string           `json:"relevanceReason"`
-		KeywordMentioned bool             `json:"keywordMentioned"`
-		Importance       domain.Importance `json:"importance"`
-		Summary          string           `json:"summary"`
+		IsReal           bool              `json:"isReal"`
+		Relevance        int               `json:"relevance"`
+		RelevanceReason  string            `json:"relevanceReason"`
+		KeywordMentioned bool              `json:"keywordMentioned"`
+		Importance       hotspot.Importance `json:"importance"`
+		Summary          string            `json:"summary"`
 	}
 	if err := json.Unmarshal([]byte(jsonStr), &raw); err != nil {
 		return fallbackAnalysisError(match, content), nil
 	}
 
-	result := &domain.AnalysisResult{
+	result := &hotspot.AnalysisResult{
 		IsReal:           raw.IsReal,
 		Relevance:        max(0, min(raw.Relevance, 100)),
 		RelevanceReason:  truncateRunes(raw.RelevanceReason, 200),
@@ -167,14 +167,14 @@ func (s *Service) AnalyzeContent(ctx context.Context, content, keyword string, e
 	}
 
 	if !validImportances[result.Importance] {
-		result.Importance = domain.ImportanceLow
+		result.Importance = hotspot.ImportanceLow
 	}
 
 	return result, nil
 }
 
-func (s *Service) BatchAnalyze(ctx context.Context, contents []string, keyword string, expandedKeywords []string) ([]*domain.AnalysisResult, error) {
-	results := make([]*domain.AnalysisResult, len(contents))
+func (s *Service) BatchAnalyze(ctx context.Context, contents []string, keyword string, expandedKeywords []string) ([]*hotspot.AnalysisResult, error) {
+	results := make([]*hotspot.AnalysisResult, len(contents))
 	var wg sync.WaitGroup
 
 	for i, content := range contents {
@@ -304,32 +304,32 @@ func dedupWithLeader(leader string, items []string) []string {
 	return result
 }
 
-func fallbackAnalysis(match PreMatchResult, content string) *domain.AnalysisResult {
+func fallbackAnalysis(match PreMatchResult, content string) *hotspot.AnalysisResult {
 	relevance := 20
 	if match.Matched {
 		relevance = 50
 	}
-	return &domain.AnalysisResult{
+	return &hotspot.AnalysisResult{
 		IsReal:           true,
 		Relevance:        relevance,
 		RelevanceReason:  "未配置 AI 服务，使用默认分数",
 		KeywordMentioned: match.Matched,
-		Importance:       domain.ImportanceLow,
+		Importance:       hotspot.ImportanceLow,
 		Summary:          truncateRunes(content, 50) + "...",
 	}
 }
 
-func fallbackAnalysisError(match PreMatchResult, content string) *domain.AnalysisResult {
+func fallbackAnalysisError(match PreMatchResult, content string) *hotspot.AnalysisResult {
 	relevance := 10
 	if match.Matched {
 		relevance = 30
 	}
-	return &domain.AnalysisResult{
+	return &hotspot.AnalysisResult{
 		IsReal:           true,
 		Relevance:        relevance,
 		RelevanceReason:  "AI 分析失败，使用默认分数",
 		KeywordMentioned: match.Matched,
-		Importance:       domain.ImportanceLow,
+		Importance:       hotspot.ImportanceLow,
 		Summary:          truncateRunes(content, 50) + "...",
 	}
 }

@@ -2,7 +2,6 @@ package keyword
 
 import "context"
 
-// Repository 关键词持久化接口
 type Repository interface {
 	FindAll(ctx context.Context, activeOnly bool) ([]Keyword, error)
 	FindByID(ctx context.Context, id string) (*Keyword, error)

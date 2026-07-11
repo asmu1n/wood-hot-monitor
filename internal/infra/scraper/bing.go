@@ -10,12 +10,12 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	domain "wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/hotspot"
 )
 
 const bingSearchURL = "https://www.bing.com/search"
 
-func SearchBing(ctx context.Context, query string) ([]domain.SearchResult, error) {
+func SearchBing(ctx context.Context, query string) ([]hotspot.SearchResult, error) {
 	params := url.Values{"q": {query}}
 	reqURL := fmt.Sprintf("%s?%s", bingSearchURL, params.Encode())
 
@@ -41,7 +41,7 @@ func SearchBing(ctx context.Context, query string) ([]domain.SearchResult, error
 		return nil, fmt.Errorf("parse bing html: %w", err)
 	}
 
-	var results []domain.SearchResult
+	var results []hotspot.SearchResult
 	doc.Find("li.b_algo").Each(func(i int, s *goquery.Selection) {
 		titleEl := s.Find("h2 a")
 		title := strings.TrimSpace(titleEl.Text())
@@ -55,7 +55,7 @@ func SearchBing(ctx context.Context, query string) ([]domain.SearchResult, error
 			snippet = strings.TrimSpace(s.Find(".b_caption .b_algoSlug").Text())
 		}
 
-		results = append(results, domain.SearchResult{
+		results = append(results, hotspot.SearchResult{
 			Title:   title,
 			Content: snippet,
 			URL:     href,

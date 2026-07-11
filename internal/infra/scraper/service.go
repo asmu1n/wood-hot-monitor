@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	domain "wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/hotspot"
 )
 
 var sourcePriority = map[string]int{
@@ -51,9 +51,9 @@ func NewService() *Service {
 	return &Service{}
 }
 
-func (s *Service) SearchAll(ctx context.Context, query string, config domain.ScraperConfig) []domain.SearchResult {
+func (s *Service) SearchAll(ctx context.Context, query string, config hotspot.ScraperConfig) []hotspot.SearchResult {
 	type sourceResult struct {
-		results []domain.SearchResult
+		results []hotspot.SearchResult
 		source  string
 		err     error
 	}
@@ -61,7 +61,7 @@ func (s *Service) SearchAll(ctx context.Context, query string, config domain.Scr
 	ch := make(chan sourceResult, 4)
 	var wg sync.WaitGroup
 
-	search := func(name string, fn func() ([]domain.SearchResult, error)) {
+	search := func(name string, fn func() ([]hotspot.SearchResult, error)) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -70,16 +70,16 @@ func (s *Service) SearchAll(ctx context.Context, query string, config domain.Scr
 		}()
 	}
 
-	search("hackernews", func() ([]domain.SearchResult, error) {
+	search("hackernews", func() ([]hotspot.SearchResult, error) {
 		return SearchHackerNews(ctx, query)
 	})
-	search("bing", func() ([]domain.SearchResult, error) {
+	search("bing", func() ([]hotspot.SearchResult, error) {
 		return SearchBing(ctx, query)
 	})
-	search("bilibili", func() ([]domain.SearchResult, error) {
+	search("bilibili", func() ([]hotspot.SearchResult, error) {
 		return SearchBilibili(ctx, query)
 	})
-	search("twitter", func() ([]domain.SearchResult, error) {
+	search("twitter", func() ([]hotspot.SearchResult, error) {
 		return SearchTwitter(ctx, query, config.TwitterAPIKey)
 	})
 
@@ -88,7 +88,7 @@ func (s *Service) SearchAll(ctx context.Context, query string, config domain.Scr
 		close(ch)
 	}()
 
-	var all []domain.SearchResult
+	var all []hotspot.SearchResult
 	for sr := range ch {
 		if sr.err != nil {
 			log.Printf("scraper: %s search failed: %v", sr.source, sr.err)
@@ -101,9 +101,9 @@ func (s *Service) SearchAll(ctx context.Context, query string, config domain.Scr
 	return all
 }
 
-func DeduplicateByURL(results []domain.SearchResult) []domain.SearchResult {
+func DeduplicateByURL(results []hotspot.SearchResult) []hotspot.SearchResult {
 	seen := make(map[string]bool, len(results))
-	out := make([]domain.SearchResult, 0, len(results))
+	out := make([]hotspot.SearchResult, 0, len(results))
 	for _, r := range results {
 		if r.URL == "" || seen[r.URL] {
 			continue
@@ -114,9 +114,9 @@ func DeduplicateByURL(results []domain.SearchResult) []domain.SearchResult {
 	return out
 }
 
-func FilterByFreshness(results []domain.SearchResult, maxAge time.Duration) []domain.SearchResult {
+func FilterByFreshness(results []hotspot.SearchResult, maxAge time.Duration) []hotspot.SearchResult {
 	cutoff := time.Now().Add(-maxAge)
-	out := make([]domain.SearchResult, 0, len(results))
+	out := make([]hotspot.SearchResult, 0, len(results))
 	for _, r := range results {
 		if r.PublishedAt == nil || r.PublishedAt.After(cutoff) {
 			out = append(out, r)
@@ -125,7 +125,7 @@ func FilterByFreshness(results []domain.SearchResult, maxAge time.Duration) []do
 	return out
 }
 
-func SortByPriority(results []domain.SearchResult) {
+func SortByPriority(results []hotspot.SearchResult) {
 	sort.SliceStable(results, func(i, j int) bool {
 		pi := priorityOf(results[i].Source)
 		pj := priorityOf(results[j].Source)
@@ -140,7 +140,7 @@ func priorityOf(source string) int {
 	return 99
 }
 
-func IntPtr(v int) *int       { return &v }
+func IntPtr(v int) *int            { return &v }
 func TimePtr(t time.Time) *time.Time { return &t }
 
 type PlatformWeights struct {
@@ -150,7 +150,7 @@ type PlatformWeights struct {
 }
 
 type ScoredResult struct {
-	domain.SearchResult
+	hotspot.SearchResult
 	QualityScore float64
 }
 
@@ -178,7 +178,7 @@ var platformThresholds = map[string]float64{
 
 var defaultWeights = PlatformWeights{Engagement: 0.3, Authority: 0.3, Recency: 0.4}
 
-func ScoreResult(r domain.SearchResult) float64 {
+func ScoreResult(r hotspot.SearchResult) float64 {
 	w := defaultWeights
 	if pw, ok := platformWeights[r.Source]; ok {
 		w = pw
@@ -189,7 +189,7 @@ func ScoreResult(r domain.SearchResult) float64 {
 	return max(0, min(eng*w.Engagement+auth*w.Authority+rec*w.Recency, 100))
 }
 
-func FilterAndSort(results []domain.SearchResult) []ScoredResult {
+func FilterAndSort(results []hotspot.SearchResult) []ScoredResult {
 	var scored []ScoredResult
 	for _, r := range results {
 		score := ScoreResult(r)
@@ -207,7 +207,7 @@ func FilterAndSort(results []domain.SearchResult) []ScoredResult {
 	return scored
 }
 
-func engagementScore(r domain.SearchResult) float64 {
+func engagementScore(r hotspot.SearchResult) float64 {
 	total := 0.0
 	if r.LikeCount != nil {
 		total += float64(*r.LikeCount) * 1.0
@@ -236,7 +236,7 @@ func engagementScore(r domain.SearchResult) float64 {
 	return max(0.0, min(math.Log10(total+1)*20, 100))
 }
 
-func authorityScore(r domain.SearchResult) float64 {
+func authorityScore(r hotspot.SearchResult) float64 {
 	if r.Author == nil {
 		return 20
 	}
@@ -250,7 +250,7 @@ func authorityScore(r domain.SearchResult) float64 {
 	return max(0.0, min(score, 100))
 }
 
-func recencyScore(r domain.SearchResult) float64 {
+func recencyScore(r hotspot.SearchResult) float64 {
 	if r.PublishedAt == nil {
 		return 30
 	}

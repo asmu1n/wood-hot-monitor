@@ -1,6 +1,5 @@
 package hotspot
 
-// Importance 热点重要度值对象
 type Importance string
 
 const (
@@ -27,7 +26,6 @@ func (i Importance) IsValid() bool {
 	return false
 }
 
-// SortField 排序字段
 type SortField string
 
 const (
@@ -39,7 +37,6 @@ const (
 	SortByViewCount   SortField = "view_count"
 )
 
-// SortOrder 排序方向
 type SortOrder string
 
 const (

@@ -7,13 +7,11 @@ import (
 	"sync"
 	"time"
 
-	apphotspot "wood-hot-monitor/internal/application/hotspot"
-	appkeyword "wood-hot-monitor/internal/application/keyword"
-	"wood-hot-monitor/internal/core/config"
-	"wood-hot-monitor/internal/core/event"
-	domain "wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/config"
+	"wood-hot-monitor/internal/hotspot"
+	"wood-hot-monitor/internal/keyword"
+	"wood-hot-monitor/internal/infra/notify"
 	"wood-hot-monitor/internal/infra/scraper"
-	"wood-hot-monitor/internal/infra/email"
 )
 
 const (
@@ -23,35 +21,35 @@ const (
 )
 
 type Service struct {
-	keyword  *appkeyword.Service
+	keyword  *keyword.Service
 	cfg      *config.Service
-	analyzer domain.Analyzer
-	hotspot  *apphotspot.Service
-	scraper  domain.Scraper
-	notifier event.Notifier
+	analyzer hotspot.Analyzer
+	hotspot  *hotspot.Service
+	scraper  hotspot.Scraper
+	notifier notify.Notifier
 }
 
 func NewService(
-	keyword *appkeyword.Service,
+	kw *keyword.Service,
 	cfg *config.Service,
-	analyzer domain.Analyzer,
-	hotspot *apphotspot.Service,
-	scraperSvc domain.Scraper,
-	notifier event.Notifier,
+	analyzer hotspot.Analyzer,
+	hs *hotspot.Service,
+	scraperSvc hotspot.Scraper,
+	notifier notify.Notifier,
 ) *Service {
 	return &Service{
-		keyword:  keyword,
+		keyword:  kw,
 		cfg:      cfg,
 		analyzer: analyzer,
-		hotspot:  hotspot,
+		hotspot:  hs,
 		scraper:  scraperSvc,
 		notifier: notifier,
 	}
 }
 
 func (s *Service) Run(ctx context.Context) error {
-	s.notifier.Emit(event.EventCheckerStarted, nil)
-	defer s.notifier.Emit(event.EventCheckerCompleted, nil)
+	s.notifier.Emit(notify.EventCheckerStarted, nil)
+	defer s.notifier.Emit(notify.EventCheckerCompleted, nil)
 
 	keywords, err := s.keyword.GetAll(ctx, true)
 	if err != nil {
@@ -86,7 +84,7 @@ func (s *Service) Run(ctx context.Context) error {
 				expanded = []string{kw.Text}
 			}
 
-			allResults := s.scraper.SearchAll(ctx, kw.Text, domain.ScraperConfig{
+			allResults := s.scraper.SearchAll(ctx, kw.Text, hotspot.ScraperConfig{
 				TwitterAPIKey: twitterAPIKey,
 			})
 			allResults = scraper.DeduplicateByURL(allResults)
@@ -120,14 +118,14 @@ func (s *Service) Run(ctx context.Context) error {
 				}
 
 				if isNew {
-					s.notifier.Emit(event.EventHotspotNew, map[string]string{
+					s.notifier.Emit(notify.EventHotspotNew, map[string]string{
 						"id":     hotspotID,
 						"title":  targetSearchResult.Title,
 						"source": targetSearchResult.Source,
 					})
 					log.Printf("checker: new hotspot: %s", targetSearchResult.Title)
-					if ar.Importance == domain.ImportanceHigh || ar.Importance == domain.ImportanceUrgent {
-						email.SendEmailAlert(cfg, targetSearchResult, ar)
+					if ar.Importance == hotspot.ImportanceHigh || ar.Importance == hotspot.ImportanceUrgent {
+						notify.SendEmailAlert(cfg, targetSearchResult, ar)
 					}
 				}
 			}

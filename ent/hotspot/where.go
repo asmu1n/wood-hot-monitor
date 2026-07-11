@@ -5,7 +5,7 @@ package enthotspot
 import (
 	"time"
 	"wood-hot-monitor/ent/predicate"
-	"wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/hotspot"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

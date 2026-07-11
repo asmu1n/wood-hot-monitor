@@ -1,10 +1,6 @@
-package event
+package notify
 
-import (
-	corevent "wood-hot-monitor/internal/core/event"
-
-	"github.com/wailsapp/wails/v3/pkg/application"
-)
+import "github.com/wailsapp/wails/v3/pkg/application"
 
 type WailsNotifier struct {
 	app *application.App
@@ -19,6 +15,6 @@ func (w *WailsNotifier) Emit(eventName string, data any) {
 	}
 }
 
-func NewWailsNotifier(app *application.App) corevent.Notifier {
+func NewWailsNotifier(app *application.App) Notifier {
 	return &WailsNotifier{app: app}
 }

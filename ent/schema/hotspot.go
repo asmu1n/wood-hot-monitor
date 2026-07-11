@@ -1,7 +1,7 @@
 package schema
 
 import (
-	domain "wood-hot-monitor/internal/domain/hotspot"
+	domain "wood-hot-monitor/internal/hotspot"
 
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"

@@ -9,16 +9,18 @@ import (
 	"path/filepath"
 	"time"
 
-	appchecker "wood-hot-monitor/internal/application/checker"
-	apphotspot "wood-hot-monitor/internal/application/hotspot"
-	appkeyword "wood-hot-monitor/internal/application/keyword"
-	"wood-hot-monitor/internal/core/config"
-	"wood-hot-monitor/internal/core/models"
+	"wood-hot-monitor/internal/checker"
+	"wood-hot-monitor/internal/config"
+	"wood-hot-monitor/internal/hotspot"
+	"wood-hot-monitor/internal/keyword"
+
+	hspersist "wood-hot-monitor/internal/hotspot/persist"
+	kwpersist "wood-hot-monitor/internal/keyword/persist"
+
 	"wood-hot-monitor/internal/infra/database"
-	infraevent "wood-hot-monitor/internal/infra/event"
-	infrallm "wood-hot-monitor/internal/infra/llm"
-	entpersist "wood-hot-monitor/internal/infra/persistence/ent"
-	infrascraper "wood-hot-monitor/internal/infra/scraper"
+	"wood-hot-monitor/internal/infra/llm"
+	"wood-hot-monitor/internal/infra/notify"
+	"wood-hot-monitor/internal/infra/scraper"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -41,11 +43,11 @@ func main() {
 		log.Fatalf("load config: %v", err)
 	}
 
-	hotspotRepo := entpersist.NewHotspotRepository(db.Client)
-	keywordRepo := entpersist.NewKeywordRepository(db.Client)
+	hotspotRepo := hspersist.NewHotspotRepository(db.Client)
+	keywordRepo := kwpersist.NewKeywordRepository(db.Client)
 
-	hotspotService := apphotspot.NewService(hotspotRepo)
-	keywordService := appkeyword.NewService(keywordRepo)
+	hotspotService := hotspot.NewService(hotspotRepo)
+	keywordService := keyword.NewService(keywordRepo)
 
 	app := application.New(application.Options{
 		Name:        "Wood Hot Monitor",
@@ -63,10 +65,10 @@ func main() {
 		},
 	})
 
-	notifier := infraevent.NewWailsNotifier(app)
-	llmService := infrallm.NewService(cfgService, db.Client)
-	scraperService := infrascraper.NewService()
-	checkerService := appchecker.NewService(keywordService, cfgService, llmService, hotspotService, scraperService, notifier)
+	notifier := notify.NewWailsNotifier(app)
+	llmService := llm.NewService(cfgService, db.Client)
+	scraperService := scraper.NewService()
+	checkerService := checker.NewService(keywordService, cfgService, llmService, hotspotService, scraperService, notifier)
 	app.RegisterService(application.NewService(checkerService))
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
@@ -88,7 +90,7 @@ func main() {
 	}
 }
 
-func startScheduler(cfgService *config.Service, checkerService *appchecker.Service) (gocron.Scheduler, error) {
+func startScheduler(cfgService *config.Service, checkerService *checker.Service) (gocron.Scheduler, error) {
 	cfg, err := cfgService.Get()
 	if err != nil {
 		return nil, fmt.Errorf("get config: %w", err)
@@ -119,7 +121,7 @@ func startScheduler(cfgService *config.Service, checkerService *appchecker.Servi
 		return nil, fmt.Errorf("register job: %w", err)
 	}
 
-	cfgService.SubscribeUpdates(func(ac models.AppConfig) {
+	cfgService.SubscribeUpdates(func(ac config.AppConfig) {
 		updatedJob, err := s.Update(job.ID(), gocron.DurationJob(time.Duration(ac.CheckInterval)*time.Minute), gocron.NewTask(func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 			defer cancel()

@@ -1,4 +1,4 @@
-package email
+package notify
 
 import (
 	"bytes"
@@ -8,19 +8,15 @@ import (
 	"net/http"
 	"time"
 
-	"wood-hot-monitor/internal/core/models"
-	domain "wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/config"
+	"wood-hot-monitor/internal/hotspot"
 )
 
 const resendAPIURL = "https://api.resend.com/emails"
 
-type Service struct {
+type emailService struct {
 	apiKey    string
 	fromEmail string
-}
-
-func newService(apiKey, fromEmail string) *Service {
-	return &Service{apiKey: apiKey, fromEmail: fromEmail}
 }
 
 type sendRequest struct {
@@ -30,23 +26,23 @@ type sendRequest struct {
 	HTML    string   `json:"html"`
 }
 
-func SendEmailAlert(cfg *models.AppConfig, r domain.SearchResult, analysis *domain.AnalysisResult) {
+func SendEmailAlert(cfg *config.AppConfig, r hotspot.SearchResult, analysis *hotspot.AnalysisResult) {
 	resendKey, _ := cfg.Settings["resendApiKey"].(string)
 	if resendKey == "" || cfg.EmailAddress == "" {
 		return
 	}
 
-	emailSvc := newService(resendKey, "noreply@woodmonitor.app")
+	svc := &emailService{apiKey: resendKey, fromEmail: "noreply@woodmonitor.app"}
 	summary := analysis.Summary
 	if summary == "" {
 		summary = r.Content
 	}
-	if err := emailSvc.sendHotspotAlert(cfg.EmailAddress, r.Title, r.Source, analysis.Importance, summary, r.URL); err != nil {
+	if err := svc.sendHotspotAlert(cfg.EmailAddress, r.Title, r.Source, analysis.Importance, summary, r.URL); err != nil {
 		log.Printf("checker: send email failed: %v", err)
 	}
 }
 
-func (s *Service) sendHotspotAlert(toEmail string, title string, source string, importance domain.Importance, summary string, url string) error {
+func (s *emailService) sendHotspotAlert(toEmail string, title string, source string, importance hotspot.Importance, summary string, url string) error {
 	if s.apiKey == "" || toEmail == "" {
 		return nil
 	}

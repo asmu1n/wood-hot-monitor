@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	domain "wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/hotspot"
 )
 
 const bilibiliSearchURL = "https://api.bilibili.com/x/web-interface/search/all/v2"
@@ -41,7 +41,7 @@ type bilibiliResult struct {
 	ArcURL      string `json:"arcurl"`
 }
 
-func SearchBilibili(ctx context.Context, query string) ([]domain.SearchResult, error) {
+func SearchBilibili(ctx context.Context, query string) ([]hotspot.SearchResult, error) {
 	params := url.Values{
 		"keyword":     {query},
 		"search_type": {"video"},
@@ -75,7 +75,7 @@ func SearchBilibili(ctx context.Context, query string) ([]domain.SearchResult, e
 		return nil, fmt.Errorf("bilibili api error code %d", data.Code)
 	}
 
-	var results []domain.SearchResult
+	var results []hotspot.SearchResult
 	for _, group := range data.Data.Result {
 		if group.ResultType != "video" {
 			continue
@@ -92,13 +92,13 @@ func SearchBilibili(ctx context.Context, query string) ([]domain.SearchResult, e
 				published = &t
 			}
 
-			results = append(results, domain.SearchResult{
+			results = append(results, hotspot.SearchResult{
 				Title:    stripHTMLTags(item.Title),
 				Content:  item.Description,
 				URL:      itemURL,
 				Source:   "bilibili",
 				SourceID: item.BVid,
-				Author: &domain.Author{
+				Author: &hotspot.Author{
 					Name:     item.Author,
 					Username: fmt.Sprintf("%d", item.Mid),
 					Avatar:   item.Pic,
