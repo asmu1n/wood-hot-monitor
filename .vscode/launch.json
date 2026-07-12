@@ -5,9 +5,12 @@
             "name": "Wails3: Debug Go Backend",
             "type": "go",
             "request": "launch",
-            "mode": "auto",
+            "mode": "debug",
             "program": "${workspaceFolder}",
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "dev"
+            ]
         },
         {
             "type": "chrome",
