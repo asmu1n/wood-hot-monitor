@@ -14,8 +14,8 @@ import (
 	"wood-hot-monitor/internal/domain/hotspot"
 	"wood-hot-monitor/internal/domain/keyword"
 
-	hspersist "wood-hot-monitor/internal/domain/hotspot/persist"
-	kwpersist "wood-hot-monitor/internal/domain/keyword/persist"
+	hsrepo "wood-hot-monitor/internal/domain/hotspot/repository"
+	kwrepo "wood-hot-monitor/internal/domain/keyword/repository"
 
 	"wood-hot-monitor/internal/infra/database"
 	"wood-hot-monitor/internal/infra/llm"
@@ -43,8 +43,8 @@ func main() {
 		log.Fatalf("load config: %v", err)
 	}
 
-	hotspotRepo := hspersist.NewHotspotRepository(db.Client)
-	keywordRepo := kwpersist.NewKeywordRepository(db.Client)
+	hotspotRepo := hsrepo.NewHotspotRepository(db.Client)
+	keywordRepo := kwrepo.NewKeywordRepository(db.Client)
 
 	hotspotService := hotspot.NewService(hotspotRepo)
 	keywordService := keyword.NewService(keywordRepo)

@@ -43,6 +43,7 @@ type Service struct {
 	semaphore chan struct{}
 }
 
+// 通过 `semaphore` 信道 设置 `30` 的并发限制
 func NewService(cfg *config.Service, client *ent.Client) *Service {
 	return &Service{
 		cfg:       cfg,
@@ -51,6 +52,7 @@ func NewService(cfg *config.Service, client *ent.Client) *Service {
 	}
 }
 
+// 调用 LLM 服务
 func (s *Service) callLLM(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
 	cfg, err := s.cfg.Get()
 	if err != nil {
@@ -72,13 +74,21 @@ func (s *Service) callLLM(ctx context.Context, systemPrompt, userPrompt string) 
 
 	client := openai.NewClientWithConfig(clientCfg)
 
+	// select 多路判断实现并发限制（如果任务上下文还未结束时，会持续阻塞等待）
 	select {
 	case s.semaphore <- struct{}{}:
+		// 再判断一次 ctx 是否正常，避免两种 case 同时满足时随机进入正常分支
+		if err := ctx.Err(); err != nil {
+			<-s.semaphore // 释放刚才抢到的名额
+			return "", err
+		}
 		defer func() { <-s.semaphore }()
+
 	case <-ctx.Done():
 		return "", ctx.Err()
 	}
 
+	// 调用 LLM 服务，并设定参数
 	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
 		Model: model,
 		Messages: []openai.ChatCompletionMessage{

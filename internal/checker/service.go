@@ -48,9 +48,11 @@ func NewService(
 }
 
 func (s *Service) Run(ctx context.Context) error {
+	// emit 搜刮热点信息事件进度
 	s.notifier.Emit(notify.EventCheckerStarted, nil)
 	defer s.notifier.Emit(notify.EventCheckerCompleted, nil)
 
+	// 获取当前活跃监听的关键词
 	keywords, err := s.keyword.GetAll(ctx, true)
 	if err != nil {
 		return fmt.Errorf("list keywords: %w", err)
@@ -61,6 +63,7 @@ func (s *Service) Run(ctx context.Context) error {
 		return nil
 	}
 
+	// 获取当前本地设置快照
 	cfg, err := s.cfg.Get()
 	if err != nil {
 		return fmt.Errorf("get config: %w", err)
@@ -68,42 +71,56 @@ func (s *Service) Run(ctx context.Context) error {
 
 	twitterAPIKey, _ := cfg.Settings["twitterApiKey"].(string)
 
+	// 初始化等待锁，准备并发任务
 	var wg sync.WaitGroup
 	for _, kw := range keywords {
+		// 判断当前任务上下文状态，如果以及取消就主动退出
 		if ctx.Err() != nil {
 			break
 		}
 
+		// 协程任务计数（要在函数体外执行）
 		wg.Add(1)
 		go func() {
+			// 当前协程任务完成标记
 			defer wg.Done()
 
+			// 扩展关键词（服务异常就回退到原始关键词）
 			expanded, err := s.analyzer.ExpandKeyword(ctx, kw.Text)
 			if err != nil {
 				log.Printf("checker: expand keyword %q failed: %v", kw.Text, err)
 				expanded = []string{kw.Text}
 			}
 
+			// 开始爬取结果
 			allResults := s.scraper.SearchAll(ctx, kw.Text, hotspot.ScraperConfig{
 				TwitterAPIKey: twitterAPIKey,
 			})
+			// 来源 URL 去重过滤
 			allResults = scraper.DeduplicateByURL(allResults)
+			// 时间新鲜度过滤
 			allResults = scraper.FilterByFreshness(allResults, freshnessWindow)
+			// 信息来源权重排序
 			scraper.SortByPriority(allResults)
+			// 分析热点信息质量并过滤低质量信息(评判标准是作者信息和互动数据)
 			scored := scraper.FilterAndSort(allResults)
+			// 按来源配额限制再过滤一遍
 			limited := applySourceQuota(scored, maxResultsPerSource)
 
-			var contents []string
-			for _, sr := range limited {
-				contents = append(contents, sr.Title+" "+sr.Content)
+			// 整合热点标题和内容，准备内容分析
+			contents := make([]string, len(limited))
+			for i, sr := range limited {
+				contents[i] = sr.Title + " " + sr.Content
 			}
 
+			// 分析内容相关性
 			analysisResults, err := s.analyzer.BatchAnalyze(ctx, contents, kw.Text, expanded)
 			if err != nil {
 				log.Printf("checker: batch analyze failed: %v", err)
 				return
 			}
 
+			// 对分析结果进行筛选，相关性较高才录入数据库
 			for i, ar := range analysisResults {
 				if ar.Relevance < minRelevance {
 					continue
@@ -117,6 +134,7 @@ func (s *Service) Run(ctx context.Context) error {
 					continue
 				}
 
+				// 如果是从未出现的新热点信息且关联度高，emit 出现高质量热点信息
 				if isNew {
 					s.notifier.Emit(notify.EventHotspotNew, map[string]string{
 						"id":     hotspotID,
@@ -132,6 +150,7 @@ func (s *Service) Run(ctx context.Context) error {
 		}()
 	}
 
+	// 阻塞等待所有goroutine完成
 	wg.Wait()
 	return nil
 }
