@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math"
 	"math/rand"
@@ -58,30 +59,43 @@ func (s *Service) SearchAll(ctx context.Context, query string, config hotspot.Sc
 		err     error
 	}
 
-	ch := make(chan sourceResult, 4)
-	var wg sync.WaitGroup
-
-	search := func(name string, fn func() ([]hotspot.SearchResult, error)) {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			results, err := fn()
-			ch <- sourceResult{results: results, source: name, err: err}
-		}()
+	type searchTask struct {
+		name string
+		fn   func() ([]hotspot.SearchResult, error)
 	}
 
-	search("hackernews", func() ([]hotspot.SearchResult, error) {
-		return SearchHackerNews(ctx, query)
-	})
-	search("bing", func() ([]hotspot.SearchResult, error) {
-		return SearchBing(ctx, query)
-	})
-	search("bilibili", func() ([]hotspot.SearchResult, error) {
-		return SearchBilibili(ctx, query)
-	})
-	search("twitter", func() ([]hotspot.SearchResult, error) {
-		return SearchTwitter(ctx, query, config.TwitterAPIKey)
-	})
+	tasks := []searchTask{
+		{"hackernews", func() ([]hotspot.SearchResult, error) { return SearchHackerNews(ctx, query) }},
+		{"bing", func() ([]hotspot.SearchResult, error) { return SearchBing(ctx, query) }},
+		{"bilibili", func() ([]hotspot.SearchResult, error) { return SearchBilibili(ctx, query) }},
+		{"twitter", func() ([]hotspot.SearchResult, error) { return SearchTwitter(ctx, query, config.TwitterAPIKey) }},
+	}
+
+	ch := make(chan sourceResult, len(tasks))
+	var wg sync.WaitGroup
+
+	for _, t := range tasks {
+		wg.Add(1)
+
+		go func(name string, fn func() ([]hotspot.SearchResult, error)) {
+			defer wg.Done()
+
+			defer func() {
+				if r := recover(); r != nil {
+					ch <- sourceResult{
+						source: name,
+						err:    fmt.Errorf("panic recovered: %v", r),
+					}
+				}
+			}()
+			results, err := fn()
+			ch <- sourceResult{
+				results: results,
+				source:  name,
+				err:     err,
+			}
+		}(t.name, t.fn)
+	}
 
 	go func() {
 		wg.Wait()
@@ -89,13 +103,21 @@ func (s *Service) SearchAll(ctx context.Context, query string, config hotspot.Sc
 	}()
 
 	var all []hotspot.SearchResult
-	for sr := range ch {
-		if sr.err != nil {
-			log.Printf("scraper: %s search failed: %v", sr.source, sr.err)
-			continue
+	for i := 0; i < len(tasks); i++ {
+		select {
+		case sr := <-ch:
+			if sr.err != nil {
+				log.Printf("scraper: %s search failed: %v", sr.source, sr.err)
+				continue
+			}
+			log.Printf("scraper: %s search results: %d", sr.source, len(sr.results))
+			all = append(all, sr.results...)
+
+		case <-ctx.Done():
+			// 一旦上下文超时或被取消，立刻返回已有数据，不再等挂起的爬虫
+			log.Printf("scraper: search canceled or timed out: %v", ctx.Err())
+			return all
 		}
-		log.Printf("scraper: %s search results: %d", sr.source, len(sr.results))
-		all = append(all, sr.results...)
 	}
 
 	return all
