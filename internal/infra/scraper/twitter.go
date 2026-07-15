@@ -82,7 +82,7 @@ func SearchTwitter(ctx context.Context, query, apiKey string) ([]hotspot.SearchR
 		var published *time.Time
 		if tweet.CreatedAt != "" {
 			if t, err := time.Parse("Mon Jan 02 15:04:05 +0000 2006", tweet.CreatedAt); err == nil {
-				published = TimePtr(t)
+				published = new(t)
 			}
 		}
 
@@ -99,11 +99,11 @@ func SearchTwitter(ctx context.Context, query, apiKey string) ([]hotspot.SearchR
 				Followers: tweet.Author.Followers,
 				Verified:  tweet.Author.IsBlueVerified,
 			},
-			ViewCount:    IntPtr(tweet.ViewCount),
-			LikeCount:    IntPtr(tweet.LikeCount),
-			RetweetCount: IntPtr(tweet.RetweetCount),
-			ReplyCount:   IntPtr(tweet.ReplyCount),
-			QuoteCount:   IntPtr(tweet.QuoteCount),
+			ViewCount:    new(tweet.ViewCount),
+			LikeCount:    new(tweet.LikeCount),
+			RetweetCount: new(tweet.RetweetCount),
+			ReplyCount:   new(tweet.ReplyCount),
+			QuoteCount:   new(tweet.QuoteCount),
 			PublishedAt:  published,
 		})
 	}

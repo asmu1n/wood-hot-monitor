@@ -40,6 +40,7 @@ func NewHTTPClient(timeout time.Duration) *http.Client {
 	return &http.Client{Timeout: timeout}
 }
 
+// 模拟浏览器请求头
 func SetRequestHeaders(req *http.Request) {
 	req.Header.Set("User-Agent", RandomUA())
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
@@ -64,6 +65,7 @@ func (s *Service) SearchAll(ctx context.Context, query string, config hotspot.Sc
 		fn   func() ([]hotspot.SearchResult, error)
 	}
 
+	// 定义搜索任务
 	tasks := []searchTask{
 		{"hackernews", func() ([]hotspot.SearchResult, error) { return SearchHackerNews(ctx, query) }},
 		{"bing", func() ([]hotspot.SearchResult, error) { return SearchBing(ctx, query) }},
@@ -71,15 +73,18 @@ func (s *Service) SearchAll(ctx context.Context, query string, config hotspot.Sc
 		{"twitter", func() ([]hotspot.SearchResult, error) { return SearchTwitter(ctx, query, config.TwitterAPIKey) }},
 	}
 
+	// 创建通道和等待组
 	ch := make(chan sourceResult, len(tasks))
 	var wg sync.WaitGroup
 
+	// 启动所有搜索任务
 	for _, t := range tasks {
 		wg.Add(1)
 
 		go func(name string, fn func() ([]hotspot.SearchResult, error)) {
 			defer wg.Done()
 
+			// 错误捕获兜底
 			defer func() {
 				if r := recover(); r != nil {
 					ch <- sourceResult{
@@ -97,32 +102,35 @@ func (s *Service) SearchAll(ctx context.Context, query string, config hotspot.Sc
 		}(t.name, t.fn)
 	}
 
+	// 等待任务完成然后关闭信道，让接收端处理全部结果
 	go func() {
 		wg.Wait()
 		close(ch)
 	}()
 
-	var all []hotspot.SearchResult
-	for i := 0; i < len(tasks); i++ {
+	all := make([]hotspot.SearchResult, 20)
+
+	// for select 持续尝试接收任务结果，并且在ctx取消时返回已收集的结果
+	for {
 		select {
-		case sr := <-ch:
+		case sr, ok := <-ch:
+			if !ok {
+				return all
+			}
 			if sr.err != nil {
 				log.Printf("scraper: %s search failed: %v", sr.source, sr.err)
 				continue
 			}
-			log.Printf("scraper: %s search results: %d", sr.source, len(sr.results))
 			all = append(all, sr.results...)
 
 		case <-ctx.Done():
-			// 一旦上下文超时或被取消，立刻返回已有数据，不再等挂起的爬虫
-			log.Printf("scraper: search canceled or timed out: %v", ctx.Err())
 			return all
 		}
 	}
 
-	return all
 }
 
+// 根据URL去重
 func DeduplicateByURL(results []hotspot.SearchResult) []hotspot.SearchResult {
 	seen := make(map[string]bool, len(results))
 	out := make([]hotspot.SearchResult, 0, len(results))
@@ -136,6 +144,7 @@ func DeduplicateByURL(results []hotspot.SearchResult) []hotspot.SearchResult {
 	return out
 }
 
+// 根据时间过滤
 func FilterByFreshness(results []hotspot.SearchResult, maxAge time.Duration) []hotspot.SearchResult {
 	cutoff := time.Now().Add(-maxAge)
 	out := make([]hotspot.SearchResult, 0, len(results))
@@ -147,6 +156,7 @@ func FilterByFreshness(results []hotspot.SearchResult, maxAge time.Duration) []h
 	return out
 }
 
+// 根据信息来源权重排序
 func SortByPriority(results []hotspot.SearchResult) {
 	sort.SliceStable(results, func(i, j int) bool {
 		pi := priorityOf(results[i].Source)
@@ -162,9 +172,7 @@ func priorityOf(source string) int {
 	return 99
 }
 
-func IntPtr(v int) *int              { return &v }
-func TimePtr(t time.Time) *time.Time { return &t }
-
+// PlatformWeights 平台权重配置
 type PlatformWeights struct {
 	Engagement float64
 	Authority  float64

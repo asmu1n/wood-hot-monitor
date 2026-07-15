@@ -71,7 +71,7 @@ func SearchHackerNews(ctx context.Context, query string) ([]hotspot.SearchResult
 
 		var published *time.Time
 		if t, err := time.Parse(time.RFC3339, hit.CreatedAt); err == nil {
-			published = TimePtr(t)
+			published = new(t)
 		}
 
 		results = append(results, hotspot.SearchResult{
@@ -84,8 +84,8 @@ func SearchHackerNews(ctx context.Context, query string) ([]hotspot.SearchResult
 				Name:     hit.Author,
 				Username: hit.Author,
 			},
-			LikeCount:    IntPtr(hit.Points),
-			CommentCount: IntPtr(hit.NumComments),
+			LikeCount:    new(hit.Points),
+			CommentCount: new(hit.NumComments),
 			PublishedAt:  published,
 		})
 	}
