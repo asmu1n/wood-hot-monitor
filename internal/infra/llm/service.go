@@ -224,7 +224,7 @@ func (s *Service) ExpandKeyword(ctx context.Context, keyword string) ([]string, 
 
 	if respText != "" {
 		if jsonStr := reArray.FindString(respText); jsonStr != "" {
-			var parsed []string
+			parsed := make([]string, 0, 5)
 			if err := json.Unmarshal([]byte(jsonStr), &parsed); err == nil {
 				seen := make(map[string]bool, len(result))
 				for _, r := range result {
