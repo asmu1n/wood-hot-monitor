@@ -108,7 +108,7 @@ func (s *Service) SearchAll(ctx context.Context, query string, config hotspot.Sc
 		close(ch)
 	}()
 
-	all := make([]hotspot.SearchResult, 20)
+	all := make([]hotspot.SearchResult, 0, 20)
 
 	// for select 持续尝试接收任务结果，并且在ctx取消时返回已收集的结果
 	for {
