@@ -2,7 +2,7 @@ import { useRouterState } from '@tanstack/react-router';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Bell, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/ui';
-import type { Hotspot } from '@wails/module/hotspot';
+import type { Hotspot } from '@wails/internal/module/hotspot';
 
 const pageTitles: Record<string, string> = {
     '/': '热点雷达',

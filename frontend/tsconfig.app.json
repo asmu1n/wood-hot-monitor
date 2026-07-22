@@ -2,7 +2,11 @@
     "compilerOptions": {
         "target": "ES2022",
         "useDefineForClassFields": true,
-        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "lib": [
+            "ES2022",
+            "DOM",
+            "DOM.Iterable"
+        ],
         "module": "ESNext",
         "skipLibCheck": true,
         "moduleResolution": "bundler",
@@ -18,10 +22,22 @@
         "noFallthroughCasesInSwitch": true,
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./src/*"],
-            "@wails/*": ["./bindings/wood-hot-monitor/internal/*"]
+            "@/*": [
+                "./src/*"
+            ],
+            "@wails/*": [
+                "./bindings/wood-hot-monitor/*"
+            ]
         }
     },
-    "include": ["**/*.ts", "**/*.tsx", "types.d.ts", "eslint.config.ts"],
-    "exclude": ["node_modules", "dist"]
+    "include": [
+        "**/*.ts",
+        "**/*.tsx",
+        "types.d.ts",
+        "eslint.config.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }

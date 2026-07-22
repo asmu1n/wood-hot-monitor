@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { hotspotApi } from '@/features/hotspot/api';
 import { defaultFilterState, type FilterState } from '@/components/FilterSortBar';
-import type { GetAllParams } from '@wails/module/hotspot';
+import type { GetAllParams } from '@wails/internal/module/hotspot';
 
 const LIMIT_COUNT = 20;
 

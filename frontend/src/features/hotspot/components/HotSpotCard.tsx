@@ -26,7 +26,7 @@ import {
 import { relativeTime, formatDateTime } from '@/utils/relativeTime';
 import { calcHeatScore, getHeatLevel } from '../utils';
 import { cn } from '@/lib/ui';
-import type { Hotspot } from '@wails/module/hotspot';
+import type { Hotspot } from '@wails/internal/module/hotspot';
 
 interface HotSpotCardProps {
     hotspot: Hotspot;

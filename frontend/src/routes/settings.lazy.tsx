@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Save, Brain, Clock, Mail, Key, Loader2, Bell } from 'lucide-react';
 import { settingsApi } from '@/features/settings/api';
 import { useToast } from '@/hooks/useToast';
-import { Importance } from 'bindings/wood-hot-monitor/pkg/types';
+import { Importance } from '@wails/pkg/types';
 
 const IMPORTANCE_OPTIONS = [
     { value: Importance.ImportanceLow, label: '低（全部新热点）' },

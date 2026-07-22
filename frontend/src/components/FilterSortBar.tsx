@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpDown, Filter, X, Clock, Flame, Target, ChevronDown, Check, RotateCcw, Eye, Heart, Book } from 'lucide-react';
 import { cn } from '@/lib/ui';
-import type { GetAllParams } from '@wails/module/hotspot';
-import type { Keyword } from '@wails/module/keyword';
-import { SortField, SortOrder } from '@wails/module/hotspot';
+import type { GetAllParams } from '@wails/internal/module/hotspot';
+import type { Keyword } from '@wails/internal/module/keyword';
+import { SortField, SortOrder } from '@wails/internal/module/hotspot';
 import { Importance } from 'bindings/wood-hot-monitor/pkg/types';
 
 export type FilterState = Pick<GetAllParams, 'source' | 'importance' | 'keywordId' | 'timeRange' | 'isReal' | 'sortBy' | 'sortOrder'>;

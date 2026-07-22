@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
         resolve: {
             alias: {
                 '@': resolve(__dirname, './src'),
-                '@wails': resolve(__dirname, './bindings/wood-hot-monitor/internal')
+                '@wails': resolve(__dirname, './bindings/wood-hot-monitor')
             }
         },
         server: {
