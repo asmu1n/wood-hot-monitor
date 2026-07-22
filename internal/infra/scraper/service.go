@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/module/hotspot"
 )
 
 var sourcePriority = map[string]int{

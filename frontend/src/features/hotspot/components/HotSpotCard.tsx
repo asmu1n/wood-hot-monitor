@@ -26,7 +26,7 @@ import {
 import { relativeTime, formatDateTime } from '@/utils/relativeTime';
 import { calcHeatScore, getHeatLevel } from '../utils';
 import { cn } from '@/lib/ui';
-import type { Hotspot } from '@wails/core/models';
+import type { Hotspot } from '@wails/module/hotspot';
 
 interface HotSpotCardProps {
     hotspot: Hotspot;
@@ -174,20 +174,20 @@ function HotSpotCard({ hotspot, index, isExpandedReason, isExpandedContent, onTo
                     )}
 
                     {/* 作者信息 */}
-                    {hotspot.authorName && (
+                    {hotspot.author && (
                         <div className="mb-3 flex items-center gap-2">
-                            {hotspot.authorAvatar ? (
-                                <img src={hotspot.authorAvatar} alt="" className="border-border h-5 w-5 rounded-full border object-cover" />
+                            {hotspot.author.avatar ? (
+                                <img src={hotspot.author.avatar} alt="" className="border-border h-5 w-5 rounded-full border object-cover" />
                             ) : (
                                 <User className="text-muted-foreground h-4 w-4" />
                             )}
                             <span className="text-muted-foreground text-xs">
-                                {hotspot.authorName}
-                                {hotspot.authorUsername && <span className="text-muted-foreground/60 ml-1">@{hotspot.authorUsername}</span>}
+                                {hotspot.author.name}
+                                {hotspot.author.username && <span className="text-muted-foreground/60 ml-1">@{hotspot.author.username}</span>}
                             </span>
-                            {hotspot.authorVerified && <span className="bg-primary/15 text-primary rounded px-1.5 py-0.5 text-[10px]">✓ 认证</span>}
-                            {hotspot.authorFollowers != null && hotspot.authorFollowers > 0 && (
-                                <span className="text-muted-foreground/60 text-[10px]">{hotspot.authorFollowers.toLocaleString()} 粉丝</span>
+                            {hotspot.author.verified && <span className="bg-primary/15 text-primary rounded px-1.5 py-0.5 text-[10px]">✓ 认证</span>}
+                            {hotspot.author.followers != null && hotspot.author.followers > 0 && (
+                                <span className="text-muted-foreground/60 text-[10px]">{hotspot.author.followers.toLocaleString()} 粉丝</span>
                             )}
                         </div>
                     )}

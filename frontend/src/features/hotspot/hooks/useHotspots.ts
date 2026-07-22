@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { hotspotApi } from '@/features/hotspot/api';
 import { defaultFilterState, type FilterState } from '@/components/FilterSortBar';
-import type { GetAllParams } from '@wails/biz/hotspot';
+import type { GetAllParams } from '@wails/module/hotspot';
 
 const LIMIT_COUNT = 20;
 
@@ -13,8 +13,8 @@ export function useHotspots() {
 
     const hotspotParams: GetAllParams = useMemo(
         () => ({
-            limit: LIMIT_COUNT,
-            page: currentPage,
+            pageSize: LIMIT_COUNT,
+            pageNum: currentPage,
             timeFrom: null,
             timeTo: null,
             ...dashboardFilters
@@ -32,8 +32,8 @@ export function useHotspots() {
         queryFn: hotspotApi.getStatus
     });
 
-    const hotSpots = useMemo(() => hotspotsRes?.data ?? [], [hotspotsRes]);
-    const totalPages = useMemo(() => Math.ceil((hotspotsRes?.total ?? 1) / (hotspotsRes?.limit ?? LIMIT_COUNT)), [hotspotsRes]);
+    const hotSpots = useMemo(() => hotspotsRes?.records ?? [], [hotspotsRes]);
+    const totalPages = useMemo(() => Math.ceil((hotspotsRes?.total ?? 1) / (hotspotsRes?.pageSize ?? LIMIT_COUNT)), [hotspotsRes]);
 
     const handleDashboardFilterChange = useCallback((newFilters: FilterState) => {
         setDashboardFilters(newFilters);

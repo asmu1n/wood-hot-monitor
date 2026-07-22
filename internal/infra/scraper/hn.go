@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/module/hotspot"
 )
 
 const hnAlgoliaURL = "http://hn.algolia.com/api/v1/search"

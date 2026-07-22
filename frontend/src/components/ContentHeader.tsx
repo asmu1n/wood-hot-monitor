@@ -2,7 +2,7 @@ import { useRouterState } from '@tanstack/react-router';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Bell, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/ui';
-import type { Hotspot } from '@wails/core/models';
+import type { Hotspot } from '@wails/module/hotspot';
 
 const pageTitles: Record<string, string> = {
     '/': '热点雷达',
@@ -53,7 +53,7 @@ export function ContentHeader({
                     <button
                         onClick={() => setShowNotifications(!showNotifications)}
                         className="border-border hover:bg-muted relative rounded-lg border p-2 transition-colors">
-                        <Bell className="text-muted-foreground h-[18px] w-[18px]" />
+                        <Bell className="text-muted-foreground h-4.5 w-4.5" />
                         {unreadCount > 0 && (
                             <span className="bg-destructive text-destructive-foreground absolute -top-1 -right-1 flex h-4.5 w-4.5 items-center justify-center rounded-full text-[9px] font-bold">
                                 {unreadCount > 99 ? '99+' : unreadCount}

@@ -6,7 +6,7 @@ import (
 
 	"wood-hot-monitor/ent"
 	kwmodel "wood-hot-monitor/ent/keyword"
-	"wood-hot-monitor/internal/domain/keyword"
+	"wood-hot-monitor/internal/module/keyword"
 
 	"github.com/google/uuid"
 )
@@ -33,7 +33,7 @@ func (r *KeywordRepository) FindAll(ctx context.Context, activeOnly bool) ([]key
 	result := make([]keyword.Keyword, len(rows))
 	for i, row := range rows {
 		hCount, _ := row.QueryHotspots().Count(ctx)
-		result[i] = mapKeywordToDomain(row, &hCount)
+		result[i] = mapKeywordTomodule(row, &hCount)
 	}
 	return result, nil
 }
@@ -46,7 +46,7 @@ func (r *KeywordRepository) FindByID(ctx context.Context, id string) (*keyword.K
 		}
 		return nil, err
 	}
-	kw := mapKeywordToDomain(row, nil)
+	kw := mapKeywordTomodule(row, nil)
 	return &kw, nil
 }
 
@@ -66,7 +66,7 @@ func (r *KeywordRepository) Create(ctx context.Context, text string, category *s
 	if err != nil {
 		return nil, err
 	}
-	result := mapKeywordToDomain(row, nil)
+	result := mapKeywordTomodule(row, nil)
 	return &result, nil
 }
 
@@ -103,11 +103,11 @@ func (r *KeywordRepository) Toggle(ctx context.Context, id string) (*keyword.Key
 	if err != nil {
 		return nil, err
 	}
-	result := mapKeywordToDomain(row, nil)
+	result := mapKeywordTomodule(row, nil)
 	return &result, nil
 }
 
-func mapKeywordToDomain(row *ent.Keyword, hotspotCount *int) keyword.Keyword {
+func mapKeywordTomodule(row *ent.Keyword, hotspotCount *int) keyword.Keyword {
 	return keyword.Keyword{
 		ID:           row.ID,
 		Text:         row.Text,

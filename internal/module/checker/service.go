@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"wood-hot-monitor/internal/config"
-	"wood-hot-monitor/internal/domain/hotspot"
-	"wood-hot-monitor/internal/domain/keyword"
 	"wood-hot-monitor/internal/infra/notify"
 	"wood-hot-monitor/internal/infra/scraper"
+	"wood-hot-monitor/internal/module/hotspot"
+	"wood-hot-monitor/internal/module/keyword"
 )
 
 const (

@@ -1,10 +1,9 @@
-import { GetAll, GetByID, Create, Delete, Toggle } from '@wails/biz/keyword/service.js';
-import type { Keyword } from '@wails/core/models';
+import { GetAll, GetByID, Create, Delete, Toggle } from '@wails/module/keyword/service';
 
 export const keywordApi = {
-    getAll: () => GetAll(false) as Promise<Keyword[]>,
-    getById: (id: string) => GetByID(id) as Promise<Keyword | null>,
-    create: (text: string, category?: string) => Create(text, category ?? null) as Promise<Keyword | null>,
+    getAll: () => GetAll(false),
+    getById: (id: string) => GetByID(id),
+    create: (text: string, category?: string) => Create(text, category ?? null),
     delete: (id: string) => Delete(id),
-    toggle: (id: string) => Toggle(id) as Promise<Keyword | null>
+    toggle: (id: string) => Toggle(id)
 };

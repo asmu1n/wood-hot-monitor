@@ -10,7 +10,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/module/hotspot"
 )
 
 const bingSearchURL = "https://www.bing.com/search"

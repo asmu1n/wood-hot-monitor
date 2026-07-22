@@ -9,13 +9,13 @@ import (
 	"path/filepath"
 	"time"
 
-	"wood-hot-monitor/internal/checker"
 	"wood-hot-monitor/internal/config"
-	"wood-hot-monitor/internal/domain/hotspot"
-	"wood-hot-monitor/internal/domain/keyword"
+	"wood-hot-monitor/internal/module/checker"
+	"wood-hot-monitor/internal/module/hotspot"
+	"wood-hot-monitor/internal/module/keyword"
 
-	hsrepo "wood-hot-monitor/internal/domain/hotspot/repository"
-	kwrepo "wood-hot-monitor/internal/domain/keyword/repository"
+	hsrepo "wood-hot-monitor/internal/module/hotspot/repository"
+	kwrepo "wood-hot-monitor/internal/module/keyword/repository"
 
 	"wood-hot-monitor/internal/infra/database"
 	"wood-hot-monitor/internal/infra/llm"

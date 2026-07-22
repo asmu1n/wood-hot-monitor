@@ -4,7 +4,7 @@ package enthotspot
 
 import (
 	"fmt"
-	"wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/module/hotspot"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

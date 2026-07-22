@@ -7,7 +7,7 @@ import (
 	"wood-hot-monitor/ent"
 	hsmodel "wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/predicate"
-	"wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/module/hotspot"
 
 	"github.com/google/uuid"
 )
@@ -36,7 +36,7 @@ func (r *HotspotRepository) FindAll(ctx context.Context, params hotspot.GetAllPa
 	orderFunc := r.buildOrder(params)
 	rows, err := query.
 		Order(orderFunc).
-		Limit(params.Limit).
+		Limit(params.Limit()).
 		Offset(params.Offset()).
 		WithKeyword().
 		All(ctx)
@@ -46,7 +46,7 @@ func (r *HotspotRepository) FindAll(ctx context.Context, params hotspot.GetAllPa
 
 	result := make([]hotspot.Hotspot, len(rows))
 	for i, row := range rows {
-		result[i] = mapToDomain(row)
+		result[i] = mapTomodule(row)
 	}
 	return result, total, nil
 }
@@ -62,7 +62,7 @@ func (r *HotspotRepository) FindByID(ctx context.Context, id string) (*hotspot.H
 		}
 		return nil, err
 	}
-	h := mapToDomain(row)
+	h := mapTomodule(row)
 	return &h, nil
 }
 
@@ -86,7 +86,7 @@ func (r *HotspotRepository) Search(ctx context.Context, params hotspot.SearchPar
 
 	rows, err := query.
 		Order(ent.Desc(hsmodel.FieldRelevance), ent.Desc(hsmodel.FieldCreatedAt)).
-		Limit(params.Limit).
+		Limit(params.Limit()).
 		Offset(params.Offset()).
 		WithKeyword().
 		All(ctx)
@@ -96,7 +96,7 @@ func (r *HotspotRepository) Search(ctx context.Context, params hotspot.SearchPar
 
 	result := make([]hotspot.Hotspot, len(rows))
 	for i, row := range rows {
-		result[i] = mapToDomain(row)
+		result[i] = mapTomodule(row)
 	}
 	return result, total, nil
 }
@@ -266,7 +266,7 @@ func (r *HotspotRepository) GetNotifications(ctx context.Context, limit int) ([]
 
 	result := make([]hotspot.Hotspot, len(rows))
 	for i, row := range rows {
-		result[i] = mapToDomain(row)
+		result[i] = mapTomodule(row)
 	}
 	return result, nil
 }
@@ -342,7 +342,7 @@ func strPtr(s string) *string {
 	return &s
 }
 
-func mapToDomain(row *ent.Hotspot) hotspot.Hotspot {
+func mapTomodule(row *ent.Hotspot) hotspot.Hotspot {
 	h := hotspot.Hotspot{
 		ID:               row.ID,
 		Title:            row.Title,

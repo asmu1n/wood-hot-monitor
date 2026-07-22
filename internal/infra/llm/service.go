@@ -12,7 +12,7 @@ import (
 	"wood-hot-monitor/ent"
 	"wood-hot-monitor/ent/keywordexpansion"
 	"wood-hot-monitor/internal/config"
-	"wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/module/hotspot"
 
 	"github.com/google/uuid"
 	"github.com/sashabaranov/go-openai"

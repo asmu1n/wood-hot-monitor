@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import type { Status } from '@wails/core/models';
+import type { Status } from '@wails/module/hotspot';
 import { Activity, Target, Search, Settings, Flame } from 'lucide-react';
 
 const navItems = [
@@ -18,7 +18,7 @@ export function Sidebar({ status }: SidebarProps) {
         <aside className="bg-sidebar text-sidebar-foreground border-sidebar-border flex h-screen w-56 shrink-0 flex-col border-r">
             <div className="border-sidebar-border flex items-center gap-3 border-b px-5 py-3">
                 <div className="bg-sidebar-primary flex h-9 w-9 items-center justify-center rounded-lg">
-                    <Flame className="text-sidebar-primary-foreground h-[18px] w-[18px]" />
+                    <Flame className="text-sidebar-primary-foreground h-4.5 w-4.5" />
                 </div>
                 <div>
                     <h1 className="text-sm font-semibold tracking-tight">HotMonitor</h1>

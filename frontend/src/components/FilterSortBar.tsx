@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowUpDown, Filter, X, Clock, Flame, Target, ChevronDown, Check, RotateCcw, Eye, Heart, Book } from 'lucide-react';
 import { cn } from '@/lib/ui';
-import { Importance, Keyword } from '@wails/core/models';
-import { SortBy, type GetAllParams } from '@wails/biz/hotspot';
+import type { GetAllParams } from '@wails/module/hotspot';
+import type { Keyword } from '@wails/module/keyword';
+import { SortField, SortOrder, Importance } from '@wails/module/hotspot';
 
 export type FilterState = Pick<GetAllParams, 'source' | 'importance' | 'keywordId' | 'timeRange' | 'isReal' | 'sortBy' | 'sortOrder'>;
 
@@ -13,8 +14,8 @@ export const defaultFilterState: FilterState = {
     keywordId: null,
     timeRange: null,
     isReal: null,
-    sortBy: SortBy.SortByCreatedAt,
-    sortOrder: 'desc'
+    sortBy: SortField.SortByCreatedAt,
+    sortOrder: SortOrder.SortDesc
 };
 
 interface FilterSortBarProps {
@@ -25,13 +26,12 @@ interface FilterSortBarProps {
 }
 
 const SORT_OPTIONS = [
-    { value: null, label: '默认排序', icon: Clock },
-    { value: SortBy.SortByCreatedAt, label: '最新发现', icon: Clock },
-    { value: SortBy.SortByPublishedAt, label: '最新发布', icon: Book },
-    { value: SortBy.SortByImportance, label: '重要程度', icon: Flame },
-    { value: SortBy.SortByRelevance, label: '相关性', icon: Target },
-    { value: SortBy.SortByLikeCount, label: '最受喜爱', icon: Heart },
-    { value: SortBy.SortByViewCount, label: '浏览最多', icon: Eye }
+    { value: SortField.SortByCreatedAt, label: '最新发现', icon: Clock },
+    { value: SortField.SortByPublishedAt, label: '最新发布', icon: Book },
+    { value: SortField.SortByImportance, label: '重要程度', icon: Flame },
+    { value: SortField.SortByRelevance, label: '相关性', icon: Target },
+    { value: SortField.SortByLikeCount, label: '最受喜爱', icon: Heart },
+    { value: SortField.SortByViewCount, label: '浏览最多', icon: Eye }
 ];
 
 const SOURCE_OPTIONS = [
@@ -48,10 +48,10 @@ const SOURCE_OPTIONS = [
 
 const IMPORTANCE_OPTIONS = [
     { value: null, label: '全部等级' },
-    { value: Importance.UrgentImportance, label: '🔴 紧急', color: 'text-red-400' },
-    { value: Importance.HighImportance, label: '🟠 高', color: 'text-orange-400' },
-    { value: Importance.MediumImportance, label: '🟡 中', color: 'text-amber-400' },
-    { value: Importance.LowImportance, label: '🟢 低', color: 'text-emerald-400' }
+    { value: Importance.ImportanceUrgent, label: '🔴 紧急', color: 'text-red-400' },
+    { value: Importance.ImportanceHigh, label: '🟠 高', color: 'text-orange-400' },
+    { value: Importance.ImportanceMedium, label: '🟡 中', color: 'text-amber-400' },
+    { value: Importance.ImportanceLow, label: '🟢 低', color: 'text-emerald-400' }
 ];
 
 const TIME_RANGE_OPTIONS = [
@@ -107,7 +107,7 @@ function Dropdown<T = any>({
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 4, scale: 0.96 }}
                             transition={{ duration: 0.15 }}
-                            className="border-border bg-popover/98 absolute top-full left-0 z-50 mt-1 min-w-[160px] overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl">
+                            className="border-border bg-popover/98 absolute top-full left-0 z-50 mt-1 min-w-40 overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl">
                             {options.map(option => (
                                 <button
                                     key={String(option.value)}

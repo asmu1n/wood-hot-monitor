@@ -28,7 +28,7 @@ Wood Hot Monitor 是基于 Wails v3 构建的桌面热点监控应用。该程�
 ├── main.go                        # Wails 应用入口 (组合根，依赖注入)
 ├── ent/schema/                    # Ent ORM schema (keyword, hotspot, keyword_expansion)
 ├── internal/
-│   ├── domain/                    # 业务域模块
+│   ├── module/                    # 业务域模块
 │   │   ├── hotspot/               #   热点监控 (实体、接口、服务、参数)
 │   │   │   └── persist/           #     Ent 仓储实现
 │   │   └── keyword/               #   关键词管理 (实体、接口、服务)
@@ -56,7 +56,7 @@ Wood Hot Monitor 是基于 Wails v3 构建的桌面热点监控应用。该程�
 
 项目采用按业务域划分的模块化架构：
 
-- **业务域** (`domain/`) — 每个模块自包含实体、接口、服务和持久化实现
+- **业务域** (`module/`) — 每个模块自包含实体、接口、服务和持久化实现
 - **基础设施** (`infra/`) — 为业务模块提供的技术能力 (爬虫、LLM、通知、数据库)
 - **编排层** (`checker/`) — 串联业务模块与基础设施，定时执行完整流程
 
@@ -65,12 +65,12 @@ Wood Hot Monitor 是基于 Wails v3 构建的桌面热点监控应用。该程�
 ```
 main.go (组合根)
    │
-   ├─→ domain/hotspot    (业务接口 + 服务)
-   ├─→ domain/keyword    (业务接口 + 服务)
+   ├─→ module/hotspot    (业务接口 + 服务)
+   ├─→ module/keyword    (业务接口 + 服务)
    ├─→ checker           (编排，依赖业务接口)
    └─→ infra/*           (实现业务接口)
         │
-        └─→ domain/*     (引用实体和接口类型)
+        └─→ module/*     (引用实体和接口类型)
 ```
 
 业务模块定义接口，基础设施实现接口，main.go 完成注入。

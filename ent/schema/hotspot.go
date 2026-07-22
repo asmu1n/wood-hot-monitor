@@ -1,7 +1,7 @@
 package schema
 
 import (
-	domain "wood-hot-monitor/internal/domain/hotspot"
+	module "wood-hot-monitor/internal/module/hotspot"
 
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
@@ -38,8 +38,8 @@ func (Hotspot) Fields() []ent.Field {
 			Optional().
 			Nillable(),
 		field.Enum("importance").
-			GoType(domain.Importance("")).
-			Default(string(domain.ImportanceLow)),
+			GoType(module.Importance("")).
+			Default(string(module.ImportanceLow)),
 		field.String("summary").
 			Optional().
 			Nillable(),

@@ -1,11 +1,11 @@
-import { GetAll, GetByID, GetStatus, Search, Delete, GetNotifications, UnreadCount, MarkRead, MarkAllRead } from '@wails/biz/hotspot/service';
-import type { GetAllParams, SearchParams } from '@wails/biz/hotspot';
+import type { GetAllParams, SearchParams } from '@wails/module/hotspot';
+import { Delete, GetAll, GetByID, GetNotifications, GetStatus, MarkAllRead, MarkRead, Search, UnreadCount } from '@wails/module/hotspot/service';
 
 export const hotspotApi = {
     getAll: (params: GetAllParams) =>
         GetAll({
-            page: params.page ?? 1,
-            limit: params.limit ?? 20,
+            pageNum: params.pageNum ?? 1,
+            pageSize: params.pageSize ?? 20,
             source: params.source ?? null,
             importance: params.importance ?? null,
             keywordId: params.keywordId ?? null,

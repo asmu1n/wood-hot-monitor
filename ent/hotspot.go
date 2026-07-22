@@ -8,7 +8,7 @@ import (
 	"time"
 	enthotspot "wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
-	"wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/module/hotspot"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"

@@ -1,4 +1,4 @@
-import type { Hotspot } from '@wails/core/models';
+import type { Hotspot } from '@wails/module/hotspot';
 import { Events } from '@wailsio/runtime';
 
 /** 计算热度综合指标（归一化 0-100） */

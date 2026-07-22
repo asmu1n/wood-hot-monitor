@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { keywordApi } from '@/features/keyword/api';
 import { useToast } from '@/hooks/useToast';
-import type { Keyword } from '@wails/core/models';
+import type { Keyword } from '@wails/module/keyword';
 
 export function useKeywords() {
     const queryClient = useQueryClient();
@@ -66,7 +66,7 @@ export function useKeywords() {
     };
 
     return {
-        keywords,
+        keywords: keywords || [],
         newKeyword,
         setNewKeyword,
         handleAddKeyword,

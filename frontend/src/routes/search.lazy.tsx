@@ -24,17 +24,17 @@ function SearchPage() {
         isFetching
     } = useQuery({
         queryKey: ['search', submittedQuery, currentPage],
-        queryFn: () => hotspotApi.search({ query: submittedQuery, page: currentPage, limit: LIMIT_COUNT, sources: [] }),
+        queryFn: () => hotspotApi.search({ query: submittedQuery, pageNum: currentPage, pageSize: LIMIT_COUNT, sources: [] }),
         enabled: !!submittedQuery
     });
 
-    const searchResults = useMemo(() => searchRes?.data ?? [], [searchRes]);
+    const searchResults = useMemo(() => searchRes?.records ?? [], [searchRes]);
     const totalPages = useMemo(() => {
         if (!searchRes) {
             return 1;
         }
 
-        return Math.ceil(searchRes.total / searchRes.limit) || 1;
+        return Math.ceil(searchRes.total / searchRes.pageSize) || 1;
     }, [searchRes]);
 
     const handleSearch = (e: React.FormEvent) => {

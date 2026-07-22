@@ -12,7 +12,7 @@ import (
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/keywordexpansion"
 	"wood-hot-monitor/ent/predicate"
-	"wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/module/hotspot"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"

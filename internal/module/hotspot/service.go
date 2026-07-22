@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"wood-hot-monitor/internal/shared"
+	"wood-hot-monitor/pkg/page"
 )
 
 type Service struct {
@@ -15,18 +15,20 @@ func NewService(repo Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) GetAll(ctx context.Context, params GetAllParams) (*shared.PaginatedResult[Hotspot], error) {
-	params.Resolve()
+func (s *Service) GetAll(ctx context.Context, params GetAllParams) (*page.PageResponse[Hotspot], error) {
 	data, total, err := s.repo.FindAll(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	return &shared.PaginatedResult[Hotspot]{
-		Data:  data,
-		Total: total,
-		Page:  params.Page,
-		Limit: params.Limit,
-	}, nil
+
+	return page.NewPageResponse(data, int64(total), params.PageRequest), nil
+
+	// return &shared.PaginatedResult[Hotspot]{
+	// 	Data:  data,
+	// 	Total: total,
+	// 	Page:  params.Page,
+	// 	Limit: params.Limit,
+	// }, nil
 }
 
 func (s *Service) GetByID(ctx context.Context, id string) (*Hotspot, error) {
@@ -37,17 +39,12 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 	return s.repo.Delete(ctx, id)
 }
 
-func (s *Service) Search(ctx context.Context, params SearchParams) (*shared.PaginatedResult[Hotspot], error) {
+func (s *Service) Search(ctx context.Context, params SearchParams) (*page.PageResponse[Hotspot], error) {
 	data, total, err := s.repo.Search(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	return &shared.PaginatedResult[Hotspot]{
-		Data:  data,
-		Total: total,
-		Page:  params.Page,
-		Limit: params.Limit,
-	}, nil
+	return page.NewPageResponse(data, int64(total), params.PageRequest), nil
 }
 
 func (s *Service) UpsertFromSearch(ctx context.Context, r SearchResult, analysis *AnalysisResult, keywordID *string) (string, bool, error) {

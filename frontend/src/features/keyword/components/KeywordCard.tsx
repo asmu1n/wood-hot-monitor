@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 import { cn } from '@/lib/ui';
-import type { Keyword } from '@wails/core/models';
+import type { Keyword } from '@wails/module/keyword';
 
 interface KeywordCardProps {
     keyword: Keyword;

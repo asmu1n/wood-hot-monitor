@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"wood-hot-monitor/internal/domain/hotspot"
+	"wood-hot-monitor/internal/module/hotspot"
 )
 
 const bilibiliSearchURL = "https://api.bilibili.com/x/web-interface/search/all/v2"
