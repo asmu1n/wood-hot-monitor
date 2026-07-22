@@ -4,7 +4,8 @@ import { ArrowUpDown, Filter, X, Clock, Flame, Target, ChevronDown, Check, Rotat
 import { cn } from '@/lib/ui';
 import type { GetAllParams } from '@wails/module/hotspot';
 import type { Keyword } from '@wails/module/keyword';
-import { SortField, SortOrder, Importance } from '@wails/module/hotspot';
+import { SortField, SortOrder } from '@wails/module/hotspot';
+import { Importance } from 'bindings/wood-hot-monitor/pkg/types';
 
 export type FilterState = Pick<GetAllParams, 'source' | 'importance' | 'keywordId' | 'timeRange' | 'isReal' | 'sortBy' | 'sortOrder'>;
 

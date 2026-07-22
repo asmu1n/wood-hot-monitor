@@ -35,11 +35,8 @@ type EmailAlert struct {
 	Summary    string
 }
 
-func SendEmailAlert(cfg *config.AppConfig, alert EmailAlert) {
-	if cfg == nil {
-		return
-	}
-	resendKey, _ := cfg.Settings["resendApiKey"].(string)
+func SendEmailAlert(cfg config.NotifyConfig, alert EmailAlert) {
+	resendKey := cfg.ResendApiKey
 	if resendKey == "" || cfg.EmailAddress == "" {
 		return
 	}

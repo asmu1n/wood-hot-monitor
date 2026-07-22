@@ -2,15 +2,26 @@ package config
 
 import "wood-hot-monitor/pkg/types"
 
-type AppConfig struct {
-	EmailAddress  string         `json:"emailAddress"`
-	LLMModel      string         `json:"llmModel"`
-	LLMAPIKey     string         `json:"llmApiKey"`
-	LLMBaseURL    string         `json:"llmBaseUrl"`
-	CheckInterval int            `json:"checkInterval"`
-	Settings      map[string]any `json:"settings"`
+type LLMConfig struct {
+	LLMModel   string `json:"llmModel"`
+	LLMAPIKey  string `json:"llmApiKey"`
+	LLMBaseURL string `json:"llmBaseUrl"`
+}
 
-	// OS 原生通知（系统通知中心 / Toast）。
+type NotifyConfig struct {
 	OSNotifyEnabled       bool             `json:"osNotifyEnabled"`
-	OSNotifyMinImportance types.Importance `json:"osNotifyMinImportance"` // low | medium | high | urgent
+	OSNotifyMinImportance types.Importance `json:"osNotifyMinImportance"`
+	EmailAddress          string           `json:"emailAddress"`
+	ResendApiKey          string           `json:"resendApiKey"`
+}
+
+type CheckConfig struct {
+	CheckInterval int    `json:"checkInterval"`
+	TwitterApiKey string `json:"twitterApiKey"`
+}
+
+type AppConfig struct {
+	LLMConfig
+	NotifyConfig
+	CheckConfig
 }

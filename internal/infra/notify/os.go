@@ -4,18 +4,12 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"wood-hot-monitor/internal/port"
 
 	"github.com/wailsapp/wails/v3/pkg/services/notifications"
 )
 
-// OSNotifier delivers native OS notifications (Notification Center / Toast).
-// It is an infra capability used only from the backend notify dispatcher.
-type OSNotifier interface {
-	Notify(id, title, body, subtitle string, data map[string]any) error
-}
-
-// WailsOSNotifier wraps Wails' notifications.NotificationService.
-type WailsOSNotifier struct {
+type wailsOSNotifier struct {
 	ns *notifications.NotificationService
 
 	authOnce sync.Once
@@ -23,12 +17,12 @@ type WailsOSNotifier struct {
 	authErr  error
 }
 
-func NewWailsOSNotifier(ns *notifications.NotificationService) *WailsOSNotifier {
-	return &WailsOSNotifier{ns: ns}
+func NewOSNotifier(ns *notifications.NotificationService) port.OSNotifier {
+	return &wailsOSNotifier{ns: ns}
 }
 
 // Notify sends a basic system notification. Requests authorization on first use (macOS).
-func (n *WailsOSNotifier) Notify(id, title, body, subtitle string, data map[string]any) error {
+func (n *wailsOSNotifier) Notify(id, title, body, subtitle string, data map[string]any) error {
 	if n == nil || n.ns == nil {
 		return fmt.Errorf("os notifier not initialized")
 	}
@@ -54,7 +48,7 @@ func (n *WailsOSNotifier) Notify(id, title, body, subtitle string, data map[stri
 	return n.ns.SendNotification(opts)
 }
 
-func (n *WailsOSNotifier) ensureAuthorized() error {
+func (n *wailsOSNotifier) ensureAuthorized() error {
 	n.authOnce.Do(func() {
 		ok, err := n.ns.CheckNotificationAuthorization()
 		if err != nil {

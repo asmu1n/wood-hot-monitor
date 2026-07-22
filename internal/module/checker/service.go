@@ -8,10 +8,9 @@ import (
 	"time"
 
 	"wood-hot-monitor/internal/config"
-	"wood-hot-monitor/internal/infra/notify"
-	"wood-hot-monitor/internal/infra/scraper"
 	"wood-hot-monitor/internal/module/hotspot"
 	"wood-hot-monitor/internal/module/keyword"
+	"wood-hot-monitor/internal/port"
 )
 
 const (
@@ -26,7 +25,7 @@ type Service struct {
 	analyzer hotspot.Analyzer
 	hotspot  *hotspot.Service
 	scraper  hotspot.Scraper
-	alerter  notify.Alerter
+	notifier port.Notifier
 }
 
 func NewService(
@@ -35,7 +34,7 @@ func NewService(
 	analyzer hotspot.Analyzer,
 	hs *hotspot.Service,
 	scraperSvc hotspot.Scraper,
-	alerter notify.Alerter,
+	notifier port.Notifier,
 ) *Service {
 	return &Service{
 		keyword:  kw,
@@ -43,14 +42,14 @@ func NewService(
 		analyzer: analyzer,
 		hotspot:  hs,
 		scraper:  scraperSvc,
-		alerter:  alerter,
+		notifier: notifier,
 	}
 }
 
 func (s *Service) Run(ctx context.Context) error {
 	// emit 搜刮热点信息事件进度
-	s.alerter.Emit(notify.EventCheckerStarted, nil)
-	defer s.alerter.Emit(notify.EventCheckerCompleted, nil)
+	s.notifier.Emit(port.EventCheckerStarted, nil)
+	defer s.notifier.Emit(port.EventCheckerCompleted, nil)
 
 	// 获取当前活跃监听的关键词
 	keywords, err := s.keyword.GetAll(ctx, true)
@@ -69,7 +68,7 @@ func (s *Service) Run(ctx context.Context) error {
 		return fmt.Errorf("get config: %w", err)
 	}
 
-	twitterAPIKey, _ := cfg.Settings["twitterApiKey"].(string)
+	twitterAPIKey := cfg.TwitterApiKey
 
 	// 初始化等待锁，准备并发任务
 	var wg sync.WaitGroup
@@ -97,13 +96,13 @@ func (s *Service) Run(ctx context.Context) error {
 				TwitterAPIKey: twitterAPIKey,
 			})
 			// 来源 URL 去重过滤
-			allResults = scraper.DeduplicateByURL(allResults)
+			allResults = deduplicateByURL(allResults)
 			// 时间新鲜度过滤
-			allResults = scraper.FilterByFreshness(allResults, freshnessWindow)
+			allResults = filterByFreshness(allResults, freshnessWindow)
 			// 信息来源权重排序
-			scraper.SortByPriority(allResults)
+			sortByPriority(allResults)
 			// 分析热点信息质量并过滤低质量信息(评判标准是作者信息和互动数据)
-			scored := scraper.FilterAndSort(allResults)
+			scored := filterAndSort(allResults)
 			// 按来源配额限制再过滤一遍
 			limited := applySourceQuota(scored, maxResultsPerSource)
 
@@ -137,7 +136,7 @@ func (s *Service) Run(ctx context.Context) error {
 				// 新热点：应用内事件 + 按 config 策略分发 OS 通知 / 邮件
 				if isNew {
 					log.Printf("checker: new hotspot: %s", targetSearchResult.Title)
-					s.alerter.OnHotspotNew(cfg, notify.HotspotAlert{
+					s.notifier.OnHotspotNew(cfg.NotifyConfig, port.HotspotAlert{
 						ID:         hotspotID,
 						Title:      targetSearchResult.Title,
 						Source:     targetSearchResult.Source,
@@ -155,9 +154,9 @@ func (s *Service) Run(ctx context.Context) error {
 	return nil
 }
 
-func applySourceQuota(results []scraper.ScoredResult, maxPerSource int) []scraper.ScoredResult {
+func applySourceQuota(results []ScoredResult, maxPerSource int) []ScoredResult {
 	counts := make(map[string]int)
-	var out []scraper.ScoredResult
+	var out []ScoredResult
 	for _, r := range results {
 		if counts[r.Source] >= maxPerSource {
 			continue

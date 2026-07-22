@@ -5,12 +5,13 @@ import { motion } from 'framer-motion';
 import { Save, Brain, Clock, Mail, Key, Loader2, Bell } from 'lucide-react';
 import { settingsApi } from '@/features/settings/api';
 import { useToast } from '@/hooks/useToast';
+import { Importance } from 'bindings/wood-hot-monitor/pkg/types';
 
 const IMPORTANCE_OPTIONS = [
-    { value: 'low', label: '低（全部新热点）' },
-    { value: 'medium', label: '中及以上' },
-    { value: 'high', label: '高及以上' },
-    { value: 'urgent', label: '仅紧急' }
+    { value: Importance.ImportanceLow, label: '低（全部新热点）' },
+    { value: Importance.ImportanceMedium, label: '中及以上' },
+    { value: Importance.ImportanceHigh, label: '高及以上' },
+    { value: Importance.ImportanceUrgent, label: '仅紧急' }
 ] as const;
 
 interface FormState {
@@ -22,7 +23,7 @@ interface FormState {
     twitterApiKey: string;
     resendApiKey: string;
     osNotifyEnabled: boolean;
-    osNotifyMinImportance: string;
+    osNotifyMinImportance: Importance;
 }
 
 const CLS_INPUT =
@@ -74,11 +75,8 @@ function SettingsForm({ config }: { config: any }) {
                 emailAddress: data.emailAddress,
                 osNotifyEnabled: data.osNotifyEnabled,
                 osNotifyMinImportance: data.osNotifyMinImportance,
-                settings: {
-                    ...(config?.settings ?? {}),
-                    twitterApiKey: data.twitterApiKey,
-                    resendApiKey: data.resendApiKey
-                }
+                twitterApiKey: data.twitterApiKey,
+                resendApiKey: data.resendApiKey
             });
         },
         onSuccess: () => {

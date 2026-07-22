@@ -72,7 +72,7 @@ func main() {
 		// Wails 通知服务（用于前端通知）
 		notify.NewWailsNotifier(app),
 		// OS 原生通知服务（用于系统通知）
-		notify.NewWailsOSNotifier(ns),
+		notify.NewOSNotifier(ns),
 	)
 
 	scraperService := scraper.NewService()

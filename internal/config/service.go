@@ -51,29 +51,6 @@ func (s *Service) Update(cfg AppConfig) error {
 	return s.save()
 }
 
-func (s *Service) GetSetting(key string) (any, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.cfg.Settings[key], nil
-}
-
-func (s *Service) UpdateSettings(settings map[string]any) error {
-	s.mu.Lock()
-	defer func() {
-		curCfg := s.cfg
-		s.mu.Unlock()
-		s.notify(&curCfg)
-	}()
-	if s.cfg.Settings == nil {
-		s.cfg.Settings = make(map[string]any)
-	}
-	for k, v := range settings {
-		s.cfg.Settings[k] = v
-	}
-
-	return s.save()
-}
-
 func (s *Service) SubscribeUpdates(cb func(AppConfig)) func() {
 	s.mu.Lock()
 	s.cbId++
@@ -124,9 +101,12 @@ func (s *Service) notify(val *AppConfig) {
 
 func defaultConfig() AppConfig {
 	return AppConfig{
-		CheckInterval:         30,
-		OSNotifyEnabled:       true,
-		OSNotifyMinImportance: "high",
-		Settings:              make(map[string]any),
+		CheckConfig: CheckConfig{
+			CheckInterval: 30,
+		},
+		NotifyConfig: NotifyConfig{
+			OSNotifyEnabled:       true,
+			OSNotifyMinImportance: "high",
+		},
 	}
 }
