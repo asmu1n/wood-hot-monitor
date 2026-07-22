@@ -2,9 +2,16 @@ import { createLazyFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Save, Brain, Clock, Mail, Key, Loader2 } from 'lucide-react';
+import { Save, Brain, Clock, Mail, Key, Loader2, Bell } from 'lucide-react';
 import { settingsApi } from '@/features/settings/api';
 import { useToast } from '@/hooks/useToast';
+
+const IMPORTANCE_OPTIONS = [
+    { value: 'low', label: '低（全部新热点）' },
+    { value: 'medium', label: '中及以上' },
+    { value: 'high', label: '高及以上' },
+    { value: 'urgent', label: '仅紧急' }
+] as const;
 
 interface FormState {
     llmModel: string;
@@ -14,6 +21,8 @@ interface FormState {
     emailAddress: string;
     twitterApiKey: string;
     resendApiKey: string;
+    osNotifyEnabled: boolean;
+    osNotifyMinImportance: string;
 }
 
 const CLS_INPUT =
@@ -43,8 +52,6 @@ function SettingsForm({ config }: { config: any }) {
     const queryClient = useQueryClient();
     const { showToast } = useToast();
 
-    // 💡 重点：利用惰性初始化 (Lazy Initialization)，直接将传入的数据设为初始状态
-    // 这样它只会在组件第一次挂载时执行一次，完美替代了原有的 useEffect 同步逻辑
     const [form, setForm] = useState<FormState>(() => ({
         llmModel: config?.llmModel || '',
         llmApiKey: config?.llmApiKey || '',
@@ -52,7 +59,9 @@ function SettingsForm({ config }: { config: any }) {
         checkInterval: config?.checkInterval || 30,
         emailAddress: config?.emailAddress || '',
         twitterApiKey: (config?.settings?.twitterApiKey as string) || '',
-        resendApiKey: (config?.settings?.resendApiKey as string) || ''
+        resendApiKey: (config?.settings?.resendApiKey as string) || '',
+        osNotifyEnabled: config?.osNotifyEnabled ?? true,
+        osNotifyMinImportance: config?.osNotifyMinImportance || 'high'
     }));
 
     const saveMutation = useMutation({
@@ -63,6 +72,8 @@ function SettingsForm({ config }: { config: any }) {
                 llmBaseUrl: data.llmBaseUrl,
                 checkInterval: data.checkInterval,
                 emailAddress: data.emailAddress,
+                osNotifyEnabled: data.osNotifyEnabled,
+                osNotifyMinImportance: data.osNotifyMinImportance,
                 settings: {
                     ...(config?.settings ?? {}),
                     twitterApiKey: data.twitterApiKey,
@@ -86,8 +97,10 @@ function SettingsForm({ config }: { config: any }) {
 
     const set =
         <K extends keyof FormState>(key: K) =>
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            setForm(prev => ({ ...prev, [key]: key === 'checkInterval' ? Number(e.target.value) || 0 : e.target.value }));
+        (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+            const value = key === 'checkInterval' ? Number(e.target.value) || 0 : e.target.value;
+
+            setForm(prev => ({ ...prev, [key]: value }));
         };
 
     return (
@@ -110,8 +123,35 @@ function SettingsForm({ config }: { config: any }) {
                 </Field>
             </Section>
 
-            <Section icon={Mail} title="通知配置">
-                <Field label="通知邮箱">
+            <Section icon={Bell} title="系统通知">
+                <Field label="启用操作系统通知" hint="发现新热点时弹出系统通知，由后台按策略发送">
+                    <label className="flex cursor-pointer items-center gap-3">
+                        <input
+                            type="checkbox"
+                            checked={form.osNotifyEnabled}
+                            onChange={e => setForm(prev => ({ ...prev, osNotifyEnabled: e.target.checked }))}
+                            className="border-border text-primary focus:ring-primary/20 h-4 w-4 rounded"
+                        />
+                        <span className="text-muted-foreground text-sm">{form.osNotifyEnabled ? '已开启' : '已关闭'}</span>
+                    </label>
+                </Field>
+                <Field label="最低重要度" hint="仅当热点重要度达到此级别时发送系统通知">
+                    <select
+                        value={form.osNotifyMinImportance}
+                        onChange={set('osNotifyMinImportance')}
+                        disabled={!form.osNotifyEnabled}
+                        className={`${CLS_INPUT} disabled:opacity-50`}>
+                        {IMPORTANCE_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                            </option>
+                        ))}
+                    </select>
+                </Field>
+            </Section>
+
+            <Section icon={Mail} title="邮件通知">
+                <Field label="通知邮箱" hint="高/紧急热点会发送邮件（需配置 Resend API Key）">
                     <input
                         type="email"
                         value={form.emailAddress}

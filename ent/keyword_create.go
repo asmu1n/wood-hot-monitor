@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	enthotspot "wood-hot-monitor/ent/hotspot"
+	"wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
 
 	"entgo.io/ent/dialect"
@@ -227,7 +227,7 @@ func (_c *KeywordCreate) createSpec() (*Keyword, *sqlgraph.CreateSpec) {
 			Columns: []string{keyword.HotspotsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(enthotspot.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

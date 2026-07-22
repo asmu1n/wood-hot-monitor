@@ -24,6 +24,7 @@ import (
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/services/notifications"
 )
 
 //go:embed all:frontend/dist
@@ -49,6 +50,9 @@ func main() {
 	hotspotService := hotspot.NewService(hotspotRepo)
 	keywordService := keyword.NewService(keywordRepo)
 
+	// OS 原生通知：注册仅为平台生命周期（Startup/Shutdown）；业务发送只走 notify.Dispatcher。
+	ns := notifications.New()
+
 	app := application.New(application.Options{
 		Name:        "Wood Hot Monitor",
 		Description: "AI-driven multi-source hotspot monitoring",
@@ -56,19 +60,24 @@ func main() {
 			application.NewService(keywordService),
 			application.NewService(hotspotService),
 			application.NewService(cfgService),
+			application.NewService(ns),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
 		},
-		Mac: application.MacOptions{
-			ApplicationShouldTerminateAfterLastWindowClosed: true,
-		},
 	})
 
+	// 消息通知调度器
+	alerter := notify.NewDispatcher(
+		// Wails 通知服务（用于前端通知）
+		notify.NewWailsNotifier(app),
+		// OS 原生通知服务（用于系统通知）
+		notify.NewWailsOSNotifier(ns),
+	)
+
 	scraperService := scraper.NewService()
-	notifier := notify.NewWailsNotifier(app)
 	llmService := llm.NewService(cfgService, db.Client)
-	checkerService := checker.NewService(keywordService, cfgService, llmService, hotspotService, scraperService, notifier)
+	checkerService := checker.NewService(keywordService, cfgService, llmService, hotspotService, scraperService, alerter)
 	app.RegisterService(application.NewService(checkerService))
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{

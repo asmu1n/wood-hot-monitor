@@ -124,7 +124,9 @@ func (s *Service) notify(val *AppConfig) {
 
 func defaultConfig() AppConfig {
 	return AppConfig{
-		CheckInterval: 30,
-		Settings:      make(map[string]any),
+		CheckInterval:         30,
+		OSNotifyEnabled:       true,
+		OSNotifyMinImportance: "high",
+		Settings:              make(map[string]any),
 	}
 }

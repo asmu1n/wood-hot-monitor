@@ -1,35 +1,38 @@
 package hotspot
 
-import "time"
+import (
+	"time"
+	"wood-hot-monitor/pkg/types"
+)
 
 type Hotspot struct {
-	ID               string          `json:"id"`
-	Title            string          `json:"title"`
-	Content          string          `json:"content"`
-	URL              string          `json:"url"`
-	Source           string          `json:"source"`
-	SourceID         *string         `json:"sourceId,omitempty"`
-	IsReal           bool            `json:"isReal"`
-	Relevance        int             `json:"relevance"`
-	RelevanceReason  *string         `json:"relevanceReason,omitempty"`
-	KeywordMentioned *bool           `json:"keywordMentioned,omitempty"`
-	Importance       Importance      `json:"importance"`
-	Summary          *string         `json:"summary,omitempty"`
-	ViewCount        *int            `json:"viewCount,omitempty"`
-	LikeCount        *int            `json:"likeCount,omitempty"`
-	RetweetCount     *int            `json:"retweetCount,omitempty"`
-	ReplyCount       *int            `json:"replyCount,omitempty"`
-	CommentCount     *int            `json:"commentCount,omitempty"`
-	QuoteCount       *int            `json:"quoteCount,omitempty"`
-	DanmakuCount     *int            `json:"danmakuCount,omitempty"`
-	Author           *Author         `json:"author,omitempty"`
-	PublishedAt      *time.Time      `json:"publishedAt,omitempty"`
-	CreatedAt        time.Time       `json:"createdAt"`
-	KeywordID        *string         `json:"keywordId,omitempty"`
-	Keyword          *HotspotKeyword `json:"keyword,omitempty"`
-	IsNotified       bool            `json:"isNotified"`
-	NotifiedAt       *time.Time      `json:"notifiedAt,omitempty"`
-	IsRead           bool            `json:"isRead"`
+	ID               string           `json:"id"`
+	Title            string           `json:"title"`
+	Content          string           `json:"content"`
+	URL              string           `json:"url"`
+	Source           string           `json:"source"`
+	SourceID         *string          `json:"sourceId,omitempty"`
+	IsReal           bool             `json:"isReal"`
+	Relevance        int              `json:"relevance"`
+	RelevanceReason  *string          `json:"relevanceReason,omitempty"`
+	KeywordMentioned *bool            `json:"keywordMentioned,omitempty"`
+	Importance       types.Importance `json:"importance"`
+	Summary          *string          `json:"summary,omitempty"`
+	ViewCount        *int             `json:"viewCount,omitempty"`
+	LikeCount        *int             `json:"likeCount,omitempty"`
+	RetweetCount     *int             `json:"retweetCount,omitempty"`
+	ReplyCount       *int             `json:"replyCount,omitempty"`
+	CommentCount     *int             `json:"commentCount,omitempty"`
+	QuoteCount       *int             `json:"quoteCount,omitempty"`
+	DanmakuCount     *int             `json:"danmakuCount,omitempty"`
+	Author           *Author          `json:"author,omitempty"`
+	PublishedAt      *time.Time       `json:"publishedAt,omitempty"`
+	CreatedAt        time.Time        `json:"createdAt"`
+	KeywordID        *string          `json:"keywordId,omitempty"`
+	Keyword          *HotspotKeyword  `json:"keyword,omitempty"`
+	IsNotified       bool             `json:"isNotified"`
+	NotifiedAt       *time.Time       `json:"notifiedAt,omitempty"`
+	IsRead           bool             `json:"isRead"`
 }
 
 type HotspotKeyword struct {
@@ -66,12 +69,12 @@ type SearchResult struct {
 }
 
 type AnalysisResult struct {
-	IsReal           bool       `json:"isReal"`
-	Relevance        int        `json:"relevance"`
-	RelevanceReason  string     `json:"relevanceReason"`
-	KeywordMentioned bool       `json:"keywordMentioned"`
-	Importance       Importance `json:"importance"`
-	Summary          string     `json:"summary"`
+	IsReal           bool             `json:"isReal"`
+	Relevance        int              `json:"relevance"`
+	RelevanceReason  string           `json:"relevanceReason"`
+	KeywordMentioned bool             `json:"keywordMentioned"`
+	Importance       types.Importance `json:"importance"`
+	Summary          string           `json:"summary"`
 }
 
 type Status struct {

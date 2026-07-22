@@ -29,7 +29,7 @@ const (
 	// HotspotsTable is the table that holds the hotspots relation/edge.
 	HotspotsTable = "hotspots"
 	// HotspotsInverseTable is the table name for the Hotspot entity.
-	// It exists in this package in order to avoid circular dependency with the "enthotspot" package.
+	// It exists in this package in order to avoid circular dependency with the "hotspot" package.
 	HotspotsInverseTable = "hotspots"
 	// HotspotsColumn is the table column denoting the hotspots relation/edge.
 	HotspotsColumn = "keyword_id"

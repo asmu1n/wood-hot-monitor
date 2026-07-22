@@ -13,6 +13,7 @@ import (
 	"wood-hot-monitor/ent/keywordexpansion"
 	"wood-hot-monitor/internal/config"
 	"wood-hot-monitor/internal/module/hotspot"
+	"wood-hot-monitor/pkg/types"
 
 	"github.com/google/uuid"
 	"github.com/sashabaranov/go-openai"
@@ -29,11 +30,11 @@ var (
 	reArray  = regexp.MustCompile(`(?s)\[.*\]`)
 	reObject = regexp.MustCompile(`(?s)\{.*\}`)
 
-	validImportances = map[hotspot.Importance]bool{
-		hotspot.ImportanceLow:    true,
-		hotspot.ImportanceMedium: true,
-		hotspot.ImportanceHigh:   true,
-		hotspot.ImportanceUrgent: true,
+	validImportances = map[types.Importance]bool{
+		types.ImportanceLow:    true,
+		types.ImportanceMedium: true,
+		types.ImportanceHigh:   true,
+		types.ImportanceUrgent: true,
 	}
 )
 
@@ -156,12 +157,12 @@ func (s *Service) AnalyzeContent(ctx context.Context, content, keyword string, e
 	}
 
 	var raw struct {
-		IsReal           bool               `json:"isReal"`
-		Relevance        int                `json:"relevance"`
-		RelevanceReason  string             `json:"relevanceReason"`
-		KeywordMentioned bool               `json:"keywordMentioned"`
-		Importance       hotspot.Importance `json:"importance"`
-		Summary          string             `json:"summary"`
+		IsReal           bool             `json:"isReal"`
+		Relevance        int              `json:"relevance"`
+		RelevanceReason  string           `json:"relevanceReason"`
+		KeywordMentioned bool             `json:"keywordMentioned"`
+		Importance       types.Importance `json:"importance"`
+		Summary          string           `json:"summary"`
 	}
 	if err := json.Unmarshal([]byte(jsonStr), &raw); err != nil {
 		return fallbackAnalysisError(match, content), nil
@@ -177,7 +178,7 @@ func (s *Service) AnalyzeContent(ctx context.Context, content, keyword string, e
 	}
 
 	if !validImportances[result.Importance] {
-		result.Importance = hotspot.ImportanceLow
+		result.Importance = types.ImportanceLow
 	}
 
 	return result, nil
@@ -324,7 +325,7 @@ func fallbackAnalysis(match PreMatchResult, content string) *hotspot.AnalysisRes
 		Relevance:        relevance,
 		RelevanceReason:  "未配置 AI 服务，使用默认分数",
 		KeywordMentioned: match.Matched,
-		Importance:       hotspot.ImportanceLow,
+		Importance:       types.ImportanceLow,
 		Summary:          truncateRunes(content, 50) + "...",
 	}
 }
@@ -339,7 +340,7 @@ func fallbackAnalysisError(match PreMatchResult, content string) *hotspot.Analys
 		Relevance:        relevance,
 		RelevanceReason:  "AI 分析失败，使用默认分数",
 		KeywordMentioned: match.Matched,
-		Importance:       hotspot.ImportanceLow,
+		Importance:       types.ImportanceLow,
 		Summary:          truncateRunes(content, 50) + "...",
 	}
 }

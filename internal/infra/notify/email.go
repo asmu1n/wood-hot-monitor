@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"wood-hot-monitor/internal/config"
-	"wood-hot-monitor/internal/module/hotspot"
+	"wood-hot-monitor/pkg/types"
 )
 
 const resendAPIURL = "https://api.resend.com/emails"
@@ -26,23 +26,35 @@ type sendRequest struct {
 	HTML    string   `json:"html"`
 }
 
-func SendEmailAlert(cfg *config.AppConfig, r hotspot.SearchResult, analysis *hotspot.AnalysisResult) {
+// EmailAlert is the email-channel payload (decoupled from domain types).
+type EmailAlert struct {
+	Title      string
+	Source     string
+	URL        string
+	Importance types.Importance
+	Summary    string
+}
+
+func SendEmailAlert(cfg *config.AppConfig, alert EmailAlert) {
+	if cfg == nil {
+		return
+	}
 	resendKey, _ := cfg.Settings["resendApiKey"].(string)
 	if resendKey == "" || cfg.EmailAddress == "" {
 		return
 	}
 
 	svc := &emailService{apiKey: resendKey, fromEmail: "noreply@woodmonitor.app"}
-	summary := analysis.Summary
+	summary := alert.Summary
 	if summary == "" {
-		summary = r.Content
+		summary = alert.Title
 	}
-	if err := svc.sendHotspotAlert(cfg.EmailAddress, r.Title, r.Source, analysis.Importance, summary, r.URL); err != nil {
+	if err := svc.sendHotspotAlert(cfg.EmailAddress, alert.Title, alert.Source, alert.Importance, summary, alert.URL); err != nil {
 		log.Printf("checker: send email failed: %v", err)
 	}
 }
 
-func (s *emailService) sendHotspotAlert(toEmail string, title string, source string, importance hotspot.Importance, summary string, url string) error {
+func (s *emailService) sendHotspotAlert(toEmail string, title string, source string, importance types.Importance, summary string, url string) error {
 	if s.apiKey == "" || toEmail == "" {
 		return nil
 	}

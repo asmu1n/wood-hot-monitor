@@ -26,7 +26,7 @@ type Service struct {
 	analyzer hotspot.Analyzer
 	hotspot  *hotspot.Service
 	scraper  hotspot.Scraper
-	notifier notify.Notifier
+	alerter  notify.Alerter
 }
 
 func NewService(
@@ -35,7 +35,7 @@ func NewService(
 	analyzer hotspot.Analyzer,
 	hs *hotspot.Service,
 	scraperSvc hotspot.Scraper,
-	notifier notify.Notifier,
+	alerter notify.Alerter,
 ) *Service {
 	return &Service{
 		keyword:  kw,
@@ -43,14 +43,14 @@ func NewService(
 		analyzer: analyzer,
 		hotspot:  hs,
 		scraper:  scraperSvc,
-		notifier: notifier,
+		alerter:  alerter,
 	}
 }
 
 func (s *Service) Run(ctx context.Context) error {
 	// emit 搜刮热点信息事件进度
-	s.notifier.Emit(notify.EventCheckerStarted, nil)
-	defer s.notifier.Emit(notify.EventCheckerCompleted, nil)
+	s.alerter.Emit(notify.EventCheckerStarted, nil)
+	defer s.alerter.Emit(notify.EventCheckerCompleted, nil)
 
 	// 获取当前活跃监听的关键词
 	keywords, err := s.keyword.GetAll(ctx, true)
@@ -134,17 +134,17 @@ func (s *Service) Run(ctx context.Context) error {
 					continue
 				}
 
-				// 如果是从未出现的新热点信息且关联度高，emit 出现高质量热点信息
+				// 新热点：应用内事件 + 按 config 策略分发 OS 通知 / 邮件
 				if isNew {
-					s.notifier.Emit(notify.EventHotspotNew, map[string]string{
-						"id":     hotspotID,
-						"title":  targetSearchResult.Title,
-						"source": targetSearchResult.Source,
-					})
 					log.Printf("checker: new hotspot: %s", targetSearchResult.Title)
-					if ar.Importance == hotspot.ImportanceHigh || ar.Importance == hotspot.ImportanceUrgent {
-						notify.SendEmailAlert(cfg, targetSearchResult, ar)
-					}
+					s.alerter.OnHotspotNew(cfg, notify.HotspotAlert{
+						ID:         hotspotID,
+						Title:      targetSearchResult.Title,
+						Source:     targetSearchResult.Source,
+						URL:        targetSearchResult.URL,
+						Importance: ar.Importance,
+						Summary:    ar.Summary,
+					})
 				}
 			}
 		}()

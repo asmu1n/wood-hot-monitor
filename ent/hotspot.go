@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	enthotspot "wood-hot-monitor/ent/hotspot"
+	"wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
-	"wood-hot-monitor/internal/module/hotspot"
+	"wood-hot-monitor/pkg/types"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -38,7 +38,7 @@ type Hotspot struct {
 	// KeywordMentioned holds the value of the "keyword_mentioned" field.
 	KeywordMentioned *bool `json:"keyword_mentioned,omitempty"`
 	// Importance holds the value of the "importance" field.
-	Importance hotspot.Importance `json:"importance,omitempty"`
+	Importance types.Importance `json:"importance,omitempty"`
 	// Summary holds the value of the "summary" field.
 	Summary *string `json:"summary,omitempty"`
 	// ViewCount holds the value of the "view_count" field.
@@ -108,13 +108,13 @@ func (*Hotspot) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case enthotspot.FieldIsReal, enthotspot.FieldKeywordMentioned, enthotspot.FieldAuthorVerified, enthotspot.FieldIsNotified, enthotspot.FieldIsRead:
+		case hotspot.FieldIsReal, hotspot.FieldKeywordMentioned, hotspot.FieldAuthorVerified, hotspot.FieldIsNotified, hotspot.FieldIsRead:
 			values[i] = new(sql.NullBool)
-		case enthotspot.FieldRelevance, enthotspot.FieldViewCount, enthotspot.FieldLikeCount, enthotspot.FieldRetweetCount, enthotspot.FieldReplyCount, enthotspot.FieldCommentCount, enthotspot.FieldQuoteCount, enthotspot.FieldDanmakuCount, enthotspot.FieldAuthorFollowers:
+		case hotspot.FieldRelevance, hotspot.FieldViewCount, hotspot.FieldLikeCount, hotspot.FieldRetweetCount, hotspot.FieldReplyCount, hotspot.FieldCommentCount, hotspot.FieldQuoteCount, hotspot.FieldDanmakuCount, hotspot.FieldAuthorFollowers:
 			values[i] = new(sql.NullInt64)
-		case enthotspot.FieldID, enthotspot.FieldTitle, enthotspot.FieldContent, enthotspot.FieldURL, enthotspot.FieldSource, enthotspot.FieldSourceID, enthotspot.FieldRelevanceReason, enthotspot.FieldImportance, enthotspot.FieldSummary, enthotspot.FieldAuthorName, enthotspot.FieldAuthorUsername, enthotspot.FieldAuthorAvatar, enthotspot.FieldKeywordID:
+		case hotspot.FieldID, hotspot.FieldTitle, hotspot.FieldContent, hotspot.FieldURL, hotspot.FieldSource, hotspot.FieldSourceID, hotspot.FieldRelevanceReason, hotspot.FieldImportance, hotspot.FieldSummary, hotspot.FieldAuthorName, hotspot.FieldAuthorUsername, hotspot.FieldAuthorAvatar, hotspot.FieldKeywordID:
 			values[i] = new(sql.NullString)
-		case enthotspot.FieldPublishedAt, enthotspot.FieldCreatedAt, enthotspot.FieldNotifiedAt:
+		case hotspot.FieldPublishedAt, hotspot.FieldCreatedAt, hotspot.FieldNotifiedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -131,200 +131,200 @@ func (_m *Hotspot) assignValues(columns []string, values []any) error {
 	}
 	for i := range columns {
 		switch columns[i] {
-		case enthotspot.FieldID:
+		case hotspot.FieldID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value.Valid {
 				_m.ID = value.String
 			}
-		case enthotspot.FieldTitle:
+		case hotspot.FieldTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field title", values[i])
 			} else if value.Valid {
 				_m.Title = value.String
 			}
-		case enthotspot.FieldContent:
+		case hotspot.FieldContent:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field content", values[i])
 			} else if value.Valid {
 				_m.Content = value.String
 			}
-		case enthotspot.FieldURL:
+		case hotspot.FieldURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field url", values[i])
 			} else if value.Valid {
 				_m.URL = value.String
 			}
-		case enthotspot.FieldSource:
+		case hotspot.FieldSource:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field source", values[i])
 			} else if value.Valid {
 				_m.Source = value.String
 			}
-		case enthotspot.FieldSourceID:
+		case hotspot.FieldSourceID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field source_id", values[i])
 			} else if value.Valid {
 				_m.SourceID = new(string)
 				*_m.SourceID = value.String
 			}
-		case enthotspot.FieldIsReal:
+		case hotspot.FieldIsReal:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_real", values[i])
 			} else if value.Valid {
 				_m.IsReal = value.Bool
 			}
-		case enthotspot.FieldRelevance:
+		case hotspot.FieldRelevance:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field relevance", values[i])
 			} else if value.Valid {
 				_m.Relevance = int(value.Int64)
 			}
-		case enthotspot.FieldRelevanceReason:
+		case hotspot.FieldRelevanceReason:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field relevance_reason", values[i])
 			} else if value.Valid {
 				_m.RelevanceReason = new(string)
 				*_m.RelevanceReason = value.String
 			}
-		case enthotspot.FieldKeywordMentioned:
+		case hotspot.FieldKeywordMentioned:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field keyword_mentioned", values[i])
 			} else if value.Valid {
 				_m.KeywordMentioned = new(bool)
 				*_m.KeywordMentioned = value.Bool
 			}
-		case enthotspot.FieldImportance:
+		case hotspot.FieldImportance:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field importance", values[i])
 			} else if value.Valid {
-				_m.Importance = hotspot.Importance(value.String)
+				_m.Importance = types.Importance(value.String)
 			}
-		case enthotspot.FieldSummary:
+		case hotspot.FieldSummary:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field summary", values[i])
 			} else if value.Valid {
 				_m.Summary = new(string)
 				*_m.Summary = value.String
 			}
-		case enthotspot.FieldViewCount:
+		case hotspot.FieldViewCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field view_count", values[i])
 			} else if value.Valid {
 				_m.ViewCount = new(int)
 				*_m.ViewCount = int(value.Int64)
 			}
-		case enthotspot.FieldLikeCount:
+		case hotspot.FieldLikeCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field like_count", values[i])
 			} else if value.Valid {
 				_m.LikeCount = new(int)
 				*_m.LikeCount = int(value.Int64)
 			}
-		case enthotspot.FieldRetweetCount:
+		case hotspot.FieldRetweetCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field retweet_count", values[i])
 			} else if value.Valid {
 				_m.RetweetCount = new(int)
 				*_m.RetweetCount = int(value.Int64)
 			}
-		case enthotspot.FieldReplyCount:
+		case hotspot.FieldReplyCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field reply_count", values[i])
 			} else if value.Valid {
 				_m.ReplyCount = new(int)
 				*_m.ReplyCount = int(value.Int64)
 			}
-		case enthotspot.FieldCommentCount:
+		case hotspot.FieldCommentCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field comment_count", values[i])
 			} else if value.Valid {
 				_m.CommentCount = new(int)
 				*_m.CommentCount = int(value.Int64)
 			}
-		case enthotspot.FieldQuoteCount:
+		case hotspot.FieldQuoteCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field quote_count", values[i])
 			} else if value.Valid {
 				_m.QuoteCount = new(int)
 				*_m.QuoteCount = int(value.Int64)
 			}
-		case enthotspot.FieldDanmakuCount:
+		case hotspot.FieldDanmakuCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field danmaku_count", values[i])
 			} else if value.Valid {
 				_m.DanmakuCount = new(int)
 				*_m.DanmakuCount = int(value.Int64)
 			}
-		case enthotspot.FieldAuthorName:
+		case hotspot.FieldAuthorName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field author_name", values[i])
 			} else if value.Valid {
 				_m.AuthorName = new(string)
 				*_m.AuthorName = value.String
 			}
-		case enthotspot.FieldAuthorUsername:
+		case hotspot.FieldAuthorUsername:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field author_username", values[i])
 			} else if value.Valid {
 				_m.AuthorUsername = new(string)
 				*_m.AuthorUsername = value.String
 			}
-		case enthotspot.FieldAuthorAvatar:
+		case hotspot.FieldAuthorAvatar:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field author_avatar", values[i])
 			} else if value.Valid {
 				_m.AuthorAvatar = new(string)
 				*_m.AuthorAvatar = value.String
 			}
-		case enthotspot.FieldAuthorFollowers:
+		case hotspot.FieldAuthorFollowers:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field author_followers", values[i])
 			} else if value.Valid {
 				_m.AuthorFollowers = new(int)
 				*_m.AuthorFollowers = int(value.Int64)
 			}
-		case enthotspot.FieldAuthorVerified:
+		case hotspot.FieldAuthorVerified:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field author_verified", values[i])
 			} else if value.Valid {
 				_m.AuthorVerified = new(bool)
 				*_m.AuthorVerified = value.Bool
 			}
-		case enthotspot.FieldPublishedAt:
+		case hotspot.FieldPublishedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field published_at", values[i])
 			} else if value.Valid {
 				_m.PublishedAt = new(time.Time)
 				*_m.PublishedAt = value.Time
 			}
-		case enthotspot.FieldCreatedAt:
+		case hotspot.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
 				_m.CreatedAt = value.Time
 			}
-		case enthotspot.FieldKeywordID:
+		case hotspot.FieldKeywordID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field keyword_id", values[i])
 			} else if value.Valid {
 				_m.KeywordID = new(string)
 				*_m.KeywordID = value.String
 			}
-		case enthotspot.FieldIsNotified:
+		case hotspot.FieldIsNotified:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_notified", values[i])
 			} else if value.Valid {
 				_m.IsNotified = value.Bool
 			}
-		case enthotspot.FieldNotifiedAt:
+		case hotspot.FieldNotifiedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field notified_at", values[i])
 			} else if value.Valid {
 				_m.NotifiedAt = new(time.Time)
 				*_m.NotifiedAt = value.Time
 			}
-		case enthotspot.FieldIsRead:
+		case hotspot.FieldIsRead:
 			if value, ok := values[i].(*sql.NullBool); !ok {
 				return fmt.Errorf("unexpected type %T for field is_read", values[i])
 			} else if value.Valid {

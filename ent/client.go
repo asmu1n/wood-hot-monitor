@@ -11,7 +11,7 @@ import (
 
 	"wood-hot-monitor/ent/migrate"
 
-	enthotspot "wood-hot-monitor/ent/hotspot"
+	"wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/keywordexpansion"
 
@@ -229,13 +229,13 @@ func NewHotspotClient(c config) *HotspotClient {
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `enthotspot.Hooks(f(g(h())))`.
+// A call to `Use(f, g, h)` equals to `hotspot.Hooks(f(g(h())))`.
 func (c *HotspotClient) Use(hooks ...Hook) {
 	c.hooks.Hotspot = append(c.hooks.Hotspot, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `enthotspot.Intercept(f(g(h())))`.
+// A call to `Intercept(f, g, h)` equals to `hotspot.Intercept(f(g(h())))`.
 func (c *HotspotClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Hotspot = append(c.inters.Hotspot, interceptors...)
 }
@@ -297,7 +297,7 @@ func (c *HotspotClient) DeleteOne(_m *Hotspot) *HotspotDeleteOne {
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *HotspotClient) DeleteOneID(id string) *HotspotDeleteOne {
-	builder := c.Delete().Where(enthotspot.ID(id))
+	builder := c.Delete().Where(hotspot.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
 	return &HotspotDeleteOne{builder}
@@ -314,7 +314,7 @@ func (c *HotspotClient) Query() *HotspotQuery {
 
 // Get returns a Hotspot entity by its id.
 func (c *HotspotClient) Get(ctx context.Context, id string) (*Hotspot, error) {
-	return c.Query().Where(enthotspot.ID(id)).Only(ctx)
+	return c.Query().Where(hotspot.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
@@ -332,9 +332,9 @@ func (c *HotspotClient) QueryKeyword(_m *Hotspot) *KeywordQuery {
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := _m.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(enthotspot.Table, enthotspot.FieldID, id),
+			sqlgraph.From(hotspot.Table, hotspot.FieldID, id),
 			sqlgraph.To(keyword.Table, keyword.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, enthotspot.KeywordTable, enthotspot.KeywordColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, hotspot.KeywordTable, hotspot.KeywordColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -482,7 +482,7 @@ func (c *KeywordClient) QueryHotspots(_m *Keyword) *HotspotQuery {
 		id := _m.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(keyword.Table, keyword.FieldID, id),
-			sqlgraph.To(enthotspot.Table, enthotspot.FieldID),
+			sqlgraph.To(hotspot.Table, hotspot.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, keyword.HotspotsTable, keyword.HotspotsColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)

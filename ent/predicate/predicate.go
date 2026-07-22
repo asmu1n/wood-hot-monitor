@@ -6,7 +6,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// Hotspot is the predicate function for enthotspot builders.
+// Hotspot is the predicate function for hotspot builders.
 type Hotspot func(*sql.Selector)
 
 // Keyword is the predicate function for keyword builders.

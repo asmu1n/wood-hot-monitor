@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
-	enthotspot "wood-hot-monitor/ent/hotspot"
+	"wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/predicate"
 
@@ -204,7 +204,7 @@ func (_u *KeywordUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{keyword.HotspotsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(enthotspot.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -217,7 +217,7 @@ func (_u *KeywordUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{keyword.HotspotsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(enthotspot.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -233,7 +233,7 @@ func (_u *KeywordUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Columns: []string{keyword.HotspotsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(enthotspot.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -466,7 +466,7 @@ func (_u *KeywordUpdateOne) sqlSave(ctx context.Context) (_node *Keyword, err er
 			Columns: []string{keyword.HotspotsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(enthotspot.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -479,7 +479,7 @@ func (_u *KeywordUpdateOne) sqlSave(ctx context.Context) (_node *Keyword, err er
 			Columns: []string{keyword.HotspotsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(enthotspot.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -495,7 +495,7 @@ func (_u *KeywordUpdateOne) sqlSave(ctx context.Context) (_node *Keyword, err er
 			Columns: []string{keyword.HotspotsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(enthotspot.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

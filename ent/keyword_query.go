@@ -7,7 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
-	enthotspot "wood-hot-monitor/ent/hotspot"
+	"wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/predicate"
 
@@ -74,7 +74,7 @@ func (_q *KeywordQuery) QueryHotspots() *HotspotQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(keyword.Table, keyword.FieldID, selector),
-			sqlgraph.To(enthotspot.Table, enthotspot.FieldID),
+			sqlgraph.To(hotspot.Table, hotspot.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, keyword.HotspotsTable, keyword.HotspotsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
@@ -414,7 +414,7 @@ func (_q *KeywordQuery) loadHotspots(ctx context.Context, query *HotspotQuery, n
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(enthotspot.FieldKeywordID)
+		query.ctx.AppendFieldOnce(hotspot.FieldKeywordID)
 	}
 	query.Where(predicate.Hotspot(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(keyword.HotspotsColumn), fks...))

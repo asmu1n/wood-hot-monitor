@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 	"math"
-	enthotspot "wood-hot-monitor/ent/hotspot"
+	"wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/keyword"
 	"wood-hot-monitor/ent/predicate"
 
@@ -20,7 +20,7 @@ import (
 type HotspotQuery struct {
 	config
 	ctx         *QueryContext
-	order       []enthotspot.OrderOption
+	order       []hotspot.OrderOption
 	inters      []Interceptor
 	predicates  []predicate.Hotspot
 	withKeyword *KeywordQuery
@@ -55,7 +55,7 @@ func (_q *HotspotQuery) Unique(unique bool) *HotspotQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (_q *HotspotQuery) Order(o ...enthotspot.OrderOption) *HotspotQuery {
+func (_q *HotspotQuery) Order(o ...hotspot.OrderOption) *HotspotQuery {
 	_q.order = append(_q.order, o...)
 	return _q
 }
@@ -72,9 +72,9 @@ func (_q *HotspotQuery) QueryKeyword() *KeywordQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(enthotspot.Table, enthotspot.FieldID, selector),
+			sqlgraph.From(hotspot.Table, hotspot.FieldID, selector),
 			sqlgraph.To(keyword.Table, keyword.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, enthotspot.KeywordTable, enthotspot.KeywordColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, hotspot.KeywordTable, hotspot.KeywordColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -90,7 +90,7 @@ func (_q *HotspotQuery) First(ctx context.Context) (*Hotspot, error) {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{enthotspot.Label}
+		return nil, &NotFoundError{hotspot.Label}
 	}
 	return nodes[0], nil
 }
@@ -112,7 +112,7 @@ func (_q *HotspotQuery) FirstID(ctx context.Context) (id string, err error) {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{enthotspot.Label}
+		err = &NotFoundError{hotspot.Label}
 		return
 	}
 	return ids[0], nil
@@ -139,9 +139,9 @@ func (_q *HotspotQuery) Only(ctx context.Context) (*Hotspot, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{enthotspot.Label}
+		return nil, &NotFoundError{hotspot.Label}
 	default:
-		return nil, &NotSingularError{enthotspot.Label}
+		return nil, &NotSingularError{hotspot.Label}
 	}
 }
 
@@ -166,9 +166,9 @@ func (_q *HotspotQuery) OnlyID(ctx context.Context) (id string, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{enthotspot.Label}
+		err = &NotFoundError{hotspot.Label}
 	default:
-		err = &NotSingularError{enthotspot.Label}
+		err = &NotSingularError{hotspot.Label}
 	}
 	return
 }
@@ -207,7 +207,7 @@ func (_q *HotspotQuery) IDs(ctx context.Context) (ids []string, err error) {
 		_q.Unique(true)
 	}
 	ctx = setContextOp(ctx, _q.ctx, ent.OpQueryIDs)
-	if err = _q.Select(enthotspot.FieldID).Scan(ctx, &ids); err != nil {
+	if err = _q.Select(hotspot.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -271,7 +271,7 @@ func (_q *HotspotQuery) Clone() *HotspotQuery {
 	return &HotspotQuery{
 		config:      _q.config,
 		ctx:         _q.ctx.Clone(),
-		order:       append([]enthotspot.OrderOption{}, _q.order...),
+		order:       append([]hotspot.OrderOption{}, _q.order...),
 		inters:      append([]Interceptor{}, _q.inters...),
 		predicates:  append([]predicate.Hotspot{}, _q.predicates...),
 		withKeyword: _q.withKeyword.Clone(),
@@ -303,14 +303,14 @@ func (_q *HotspotQuery) WithKeyword(opts ...func(*KeywordQuery)) *HotspotQuery {
 //	}
 //
 //	client.Hotspot.Query().
-//		GroupBy(enthotspot.FieldTitle).
+//		GroupBy(hotspot.FieldTitle).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *HotspotQuery) GroupBy(field string, fields ...string) *HotspotGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &HotspotGroupBy{build: _q}
 	grbuild.flds = &_q.ctx.Fields
-	grbuild.label = enthotspot.Label
+	grbuild.label = hotspot.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -325,12 +325,12 @@ func (_q *HotspotQuery) GroupBy(field string, fields ...string) *HotspotGroupBy 
 //	}
 //
 //	client.Hotspot.Query().
-//		Select(enthotspot.FieldTitle).
+//		Select(hotspot.FieldTitle).
 //		Scan(ctx, &v)
 func (_q *HotspotQuery) Select(fields ...string) *HotspotSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
 	sbuild := &HotspotSelect{HotspotQuery: _q}
-	sbuild.label = enthotspot.Label
+	sbuild.label = hotspot.Label
 	sbuild.flds, sbuild.scan = &_q.ctx.Fields, sbuild.Scan
 	return sbuild
 }
@@ -352,7 +352,7 @@ func (_q *HotspotQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range _q.ctx.Fields {
-		if !enthotspot.ValidColumn(f) {
+		if !hotspot.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -444,7 +444,7 @@ func (_q *HotspotQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (_q *HotspotQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(enthotspot.Table, enthotspot.Columns, sqlgraph.NewFieldSpec(enthotspot.FieldID, field.TypeString))
+	_spec := sqlgraph.NewQuerySpec(hotspot.Table, hotspot.Columns, sqlgraph.NewFieldSpec(hotspot.FieldID, field.TypeString))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -453,14 +453,14 @@ func (_q *HotspotQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := _q.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, enthotspot.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, hotspot.FieldID)
 		for i := range fields {
-			if fields[i] != enthotspot.FieldID {
+			if fields[i] != hotspot.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
 		if _q.withKeyword != nil {
-			_spec.Node.AddColumnOnce(enthotspot.FieldKeywordID)
+			_spec.Node.AddColumnOnce(hotspot.FieldKeywordID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {
@@ -488,10 +488,10 @@ func (_q *HotspotQuery) querySpec() *sqlgraph.QuerySpec {
 
 func (_q *HotspotQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(_q.driver.Dialect())
-	t1 := builder.Table(enthotspot.Table)
+	t1 := builder.Table(hotspot.Table)
 	columns := _q.ctx.Fields
 	if len(columns) == 0 {
-		columns = enthotspot.Columns
+		columns = hotspot.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if _q.sql != nil {
