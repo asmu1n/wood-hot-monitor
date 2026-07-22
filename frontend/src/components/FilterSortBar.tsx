@@ -5,7 +5,7 @@ import { cn } from '@/lib/ui';
 import type { GetAllParams } from '@wails/internal/module/hotspot';
 import type { Keyword } from '@wails/internal/module/keyword';
 import { SortField, SortOrder } from '@wails/internal/module/hotspot';
-import { Importance } from 'bindings/wood-hot-monitor/pkg/types';
+import { Importance } from '@wails/pkg/types';
 
 export type FilterState = Pick<GetAllParams, 'source' | 'importance' | 'keywordId' | 'timeRange' | 'isReal' | 'sortBy' | 'sortOrder'>;
 
