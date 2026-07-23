@@ -38,15 +38,15 @@ var (
 	}
 )
 
-type Service struct {
+type Analyzer struct {
 	cfg       *config.Service
 	client    *ent.Client
 	semaphore chan struct{}
 }
 
 // 通过 `semaphore` 信道 设置 `30` 的并发限制
-func NewService(cfg *config.Service, client *ent.Client) *Service {
-	return &Service{
+func New(cfg *config.Service, client *ent.Client) *Analyzer {
+	return &Analyzer{
 		cfg:       cfg,
 		client:    client,
 		semaphore: make(chan struct{}, 30),
@@ -54,7 +54,7 @@ func NewService(cfg *config.Service, client *ent.Client) *Service {
 }
 
 // 调用 LLM 服务
-func (s *Service) callLLM(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
+func (s *Analyzer) callLLM(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
 	cfg, err := s.cfg.Get()
 	if err != nil {
 		return "", fmt.Errorf("get config: %w", err)
@@ -124,7 +124,7 @@ func PreMatchKeyword(text string, expandedKeywords []string) PreMatchResult {
 	return PreMatchResult{Matched: len(matched) > 0, MatchedTerms: matched}
 }
 
-func (s *Service) AnalyzeContent(ctx context.Context, content, keyword string, expandedKeywords []string) (*hotspot.AnalysisResult, error) {
+func (s *Analyzer) AnalyzeContent(ctx context.Context, content, keyword string, expandedKeywords []string) (*hotspot.AnalysisResult, error) {
 	var pm *PreMatchResult
 	if len(expandedKeywords) > 0 {
 		m := PreMatchKeyword(content, expandedKeywords)
@@ -184,7 +184,7 @@ func (s *Service) AnalyzeContent(ctx context.Context, content, keyword string, e
 	return result, nil
 }
 
-func (s *Service) BatchAnalyze(ctx context.Context, contents []string, keyword string, expandedKeywords []string) ([]*hotspot.AnalysisResult, error) {
+func (s *Analyzer) BatchAnalyze(ctx context.Context, contents []string, keyword string, expandedKeywords []string) ([]*hotspot.AnalysisResult, error) {
 	results := make([]*hotspot.AnalysisResult, len(contents))
 	var wg sync.WaitGroup
 
@@ -201,7 +201,7 @@ func (s *Service) BatchAnalyze(ctx context.Context, contents []string, keyword s
 	return results, nil
 }
 
-func (s *Service) ExpandKeyword(ctx context.Context, keyword string) ([]string, error) {
+func (s *Analyzer) ExpandKeyword(ctx context.Context, keyword string) ([]string, error) {
 	cached, err := s.client.KeywordExpansion.Query().
 		Where(keywordexpansion.KeywordEQ(keyword)).
 		Select(keywordexpansion.FieldExpansion).

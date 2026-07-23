@@ -20,7 +20,7 @@ type WebViewNotifier interface {
 	Emit(eventName string, data any)
 }
 
-type Notifier interface {
+type Alerter interface {
 	WebViewNotifier
 	OnHotspotNew(cfg config.NotifyConfig, alert HotspotAlert)
 }

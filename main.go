@@ -67,17 +67,16 @@ func main() {
 		},
 	})
 
-	// 消息通知调度器
+	// 告警调度：应用内事件 + OS 通知 + 邮件（实现 port.Alerter）
 	alerter := notify.NewDispatcher(
-		// Wails 通知服务（用于前端通知）
 		notify.NewWailsNotifier(app),
-		// OS 原生通知服务（用于系统通知）
 		notify.NewOSNotifier(ns),
 	)
 
-	scraperService := scraper.NewService()
-	llmService := llm.NewService(cfgService, db.Client)
-	checkerService := checker.NewService(keywordService, cfgService, llmService, hotspotService, scraperService, alerter)
+	// infra 适配器：命名与领域端口一致（Scraper / Analyzer），避免与领域 Service 混淆
+	multiSourceScraper := scraper.New()
+	contentAnalyzer := llm.New(cfgService, db.Client)
+	checkerService := checker.NewService(keywordService, cfgService, contentAnalyzer, hotspotService, multiSourceScraper, alerter)
 	app.RegisterService(application.NewService(checkerService))
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{

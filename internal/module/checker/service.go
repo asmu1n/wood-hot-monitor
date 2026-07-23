@@ -22,10 +22,10 @@ const (
 type Service struct {
 	keyword  *keyword.Service
 	cfg      *config.Service
-	analyzer hotspot.Analyzer
 	hotspot  *hotspot.Service
+	analyzer hotspot.Analyzer
 	scraper  hotspot.Scraper
-	notifier port.Notifier
+	alerter  port.Alerter
 }
 
 func NewService(
@@ -33,23 +33,23 @@ func NewService(
 	cfg *config.Service,
 	analyzer hotspot.Analyzer,
 	hs *hotspot.Service,
-	scraperSvc hotspot.Scraper,
-	notifier port.Notifier,
+	src hotspot.Scraper,
+	alerter port.Alerter,
 ) *Service {
 	return &Service{
 		keyword:  kw,
 		cfg:      cfg,
 		analyzer: analyzer,
 		hotspot:  hs,
-		scraper:  scraperSvc,
-		notifier: notifier,
+		scraper:  src,
+		alerter:  alerter,
 	}
 }
 
 func (s *Service) Run(ctx context.Context) error {
 	// emit 搜刮热点信息事件进度
-	s.notifier.Emit(port.EventCheckerStarted, nil)
-	defer s.notifier.Emit(port.EventCheckerCompleted, nil)
+	s.alerter.Emit(port.EventCheckerStarted, nil)
+	defer s.alerter.Emit(port.EventCheckerCompleted, nil)
 
 	// 获取当前活跃监听的关键词
 	keywords, err := s.keyword.GetAll(ctx, true)
@@ -136,7 +136,7 @@ func (s *Service) Run(ctx context.Context) error {
 				// 新热点：应用内事件 + 按 config 策略分发 OS 通知 / 邮件
 				if isNew {
 					log.Printf("checker: new hotspot: %s", targetSearchResult.Title)
-					s.notifier.OnHotspotNew(cfg.NotifyConfig, port.HotspotAlert{
+					s.alerter.OnHotspotNew(cfg.NotifyConfig, port.HotspotAlert{
 						ID:         hotspotID,
 						Title:      targetSearchResult.Title,
 						Source:     targetSearchResult.Source,

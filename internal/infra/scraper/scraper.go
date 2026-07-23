@@ -34,13 +34,13 @@ func SetRequestHeaders(req *http.Request) {
 	req.Header.Set("Accept-Language", "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7")
 }
 
-type Service struct{}
+type Scraper struct{}
 
-func NewService() *Service {
-	return &Service{}
+func New() *Scraper {
+	return &Scraper{}
 }
 
-func (s *Service) SearchAll(ctx context.Context, query string, config hotspot.ScraperConfig) []hotspot.SearchResult {
+func (s *Scraper) SearchAll(ctx context.Context, query string, config hotspot.ScraperConfig) []hotspot.SearchResult {
 	type sourceResult struct {
 		results []hotspot.SearchResult
 		source  string

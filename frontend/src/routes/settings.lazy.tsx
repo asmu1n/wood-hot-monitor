@@ -59,10 +59,10 @@ function SettingsForm({ config }: { config: any }) {
         llmBaseUrl: config?.llmBaseUrl || '',
         checkInterval: config?.checkInterval || 30,
         emailAddress: config?.emailAddress || '',
-        twitterApiKey: (config?.settings?.twitterApiKey as string) || '',
-        resendApiKey: (config?.settings?.resendApiKey as string) || '',
+        twitterApiKey: config?.twitterApiKey || '',
+        resendApiKey: config?.resendApiKey || '',
         osNotifyEnabled: config?.osNotifyEnabled ?? true,
-        osNotifyMinImportance: config?.osNotifyMinImportance || 'high'
+        osNotifyMinImportance: config?.osNotifyMinImportance || Importance.ImportanceHigh
     }));
 
     const saveMutation = useMutation({

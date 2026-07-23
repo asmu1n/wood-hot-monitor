@@ -17,7 +17,7 @@ type dispatcher struct {
 	os port.OSNotifier
 }
 
-func NewDispatcher(wv port.WebViewNotifier, os port.OSNotifier) port.Notifier {
+func NewDispatcher(wv port.WebViewNotifier, os port.OSNotifier) port.Alerter {
 	if os == nil {
 		os = NoopOSNotifier{}
 	}
@@ -56,7 +56,7 @@ func (d *dispatcher) OnHotspotNew(cfg config.NotifyConfig, alert port.HotspotAle
 		}
 	}
 
-	if alert.Importance == "high" || alert.Importance == "urgent" {
+	if alert.Importance == types.ImportanceHigh || alert.Importance == types.ImportanceUrgent {
 		SendEmailAlert(cfg, EmailAlert{
 			Title:      alert.Title,
 			Source:     alert.Source,
