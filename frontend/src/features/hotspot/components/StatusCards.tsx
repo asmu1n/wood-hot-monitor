@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Activity, Clock, AlertTriangle, Target } from 'lucide-react';
 import { cn } from '@/lib/ui';
-import type { Status } from '@wails/module/hotspot';
+import type { Status } from '@wails/internal/module/hotspot';
 
 interface StatsCardsProps {
     stats: Status | null;

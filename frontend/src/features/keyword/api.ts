@@ -1,4 +1,4 @@
-import { GetAll, GetByID, Create, Delete, Toggle } from '@wails/module/keyword/service';
+import { GetAll, GetByID, Create, Delete, Toggle } from '@wails/internal/module/keyword/service';
 
 export const keywordApi = {
     getAll: () => GetAll(false),

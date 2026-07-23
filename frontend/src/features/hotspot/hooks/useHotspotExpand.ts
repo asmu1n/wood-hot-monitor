@@ -1,4 +1,4 @@
-import type { Hotspot } from '@wails/module/hotspot';
+import type { Hotspot } from '@wails/internal/module/hotspot';
 import { useState } from 'react';
 
 // 展开热点信息卡片逻辑

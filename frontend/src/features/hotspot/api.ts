@@ -1,5 +1,15 @@
-import type { GetAllParams, SearchParams } from '@wails/module/hotspot';
-import { Delete, GetAll, GetByID, GetNotifications, GetStatus, MarkAllRead, MarkRead, Search, UnreadCount } from '@wails/module/hotspot/service';
+import type { GetAllParams, SearchParams } from '@wails/internal/module/hotspot';
+import {
+    Delete,
+    GetAll,
+    GetByID,
+    GetNotifications,
+    GetStatus,
+    MarkAllRead,
+    MarkRead,
+    Search,
+    UnreadCount
+} from '@wails/internal/module/hotspot/service';
 
 export const hotspotApi = {
     getAll: (params: GetAllParams) =>

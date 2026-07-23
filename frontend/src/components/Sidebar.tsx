@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import type { Status } from '@wails/module/hotspot';
+import type { Status } from '@wails/internal/module/hotspot';
 import { Activity, Target, Search, Settings, Flame } from 'lucide-react';
 
 const navItems = [

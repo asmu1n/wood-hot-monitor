@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/useToast';
 import { useEffect, useState } from 'react';
 import { onCheckComplete, onCheckStart } from '../utils';
-import { Run } from '@wails/module/checker/service';
+import { Run } from '@wails/internal/module/checker/service';
 
 export function useCheckerStatus() {
     const { showToast } = useToast();
