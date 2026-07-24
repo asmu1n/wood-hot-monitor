@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"wood-hot-monitor/internal/port"
 
 	"github.com/wailsapp/wails/v3/pkg/services/notifications"
 )
@@ -17,7 +16,7 @@ type wailsOSNotifier struct {
 	authErr  error
 }
 
-func NewOSNotifier(ns *notifications.NotificationService) port.OSNotifier {
+func NewOSNotifier(ns *notifications.NotificationService) *wailsOSNotifier {
 	return &wailsOSNotifier{ns: ns}
 }
 

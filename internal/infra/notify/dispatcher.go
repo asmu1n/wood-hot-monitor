@@ -17,7 +17,7 @@ type dispatcher struct {
 	os port.OSNotifier
 }
 
-func NewDispatcher(wv port.WebViewNotifier, os port.OSNotifier) port.Alerter {
+func NewDispatcher(wv port.WebViewNotifier, os port.OSNotifier) *dispatcher {
 	if os == nil {
 		os = NoopOSNotifier{}
 	}

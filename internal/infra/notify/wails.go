@@ -1,8 +1,6 @@
 package notify
 
 import (
-	"wood-hot-monitor/internal/port"
-
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -19,6 +17,6 @@ func (w *wailsWebViewNotifier) Emit(eventName string, data any) {
 	}
 }
 
-func NewWailsNotifier(app *application.App) port.WebViewNotifier {
+func NewWailsNotifier(app *application.App) *wailsWebViewNotifier {
 	return &wailsWebViewNotifier{app: app}
 }
