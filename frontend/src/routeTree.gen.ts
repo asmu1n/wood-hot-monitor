@@ -14,6 +14,7 @@ import { Route as rootRouteImport } from './routes/__root'
 
 const SettingsLazyRouteImport = createFileRoute('/settings')()
 const SearchLazyRouteImport = createFileRoute('/search')()
+const ManageLazyRouteImport = createFileRoute('/manage')()
 const KeywordsLazyRouteImport = createFileRoute('/keywords')()
 const IndexLazyRouteImport = createFileRoute('/')()
 
@@ -27,6 +28,11 @@ const SearchLazyRoute = SearchLazyRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/search.lazy').then((d) => d.Route))
+const ManageLazyRoute = ManageLazyRouteImport.update({
+  id: '/manage',
+  path: '/manage',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/manage.lazy').then((d) => d.Route))
 const KeywordsLazyRoute = KeywordsLazyRouteImport.update({
   id: '/keywords',
   path: '/keywords',
@@ -41,12 +47,14 @@ const IndexLazyRoute = IndexLazyRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexLazyRoute
   '/keywords': typeof KeywordsLazyRoute
+  '/manage': typeof ManageLazyRoute
   '/search': typeof SearchLazyRoute
   '/settings': typeof SettingsLazyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexLazyRoute
   '/keywords': typeof KeywordsLazyRoute
+  '/manage': typeof ManageLazyRoute
   '/search': typeof SearchLazyRoute
   '/settings': typeof SettingsLazyRoute
 }
@@ -54,20 +62,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexLazyRoute
   '/keywords': typeof KeywordsLazyRoute
+  '/manage': typeof ManageLazyRoute
   '/search': typeof SearchLazyRoute
   '/settings': typeof SettingsLazyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/keywords' | '/search' | '/settings'
+  fullPaths: '/' | '/keywords' | '/manage' | '/search' | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/keywords' | '/search' | '/settings'
-  id: '__root__' | '/' | '/keywords' | '/search' | '/settings'
+  to: '/' | '/keywords' | '/manage' | '/search' | '/settings'
+  id: '__root__' | '/' | '/keywords' | '/manage' | '/search' | '/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexLazyRoute: typeof IndexLazyRoute
   KeywordsLazyRoute: typeof KeywordsLazyRoute
+  ManageLazyRoute: typeof ManageLazyRoute
   SearchLazyRoute: typeof SearchLazyRoute
   SettingsLazyRoute: typeof SettingsLazyRoute
 }
@@ -86,6 +96,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage': {
+      id: '/manage'
+      path: '/manage'
+      fullPath: '/manage'
+      preLoaderRoute: typeof ManageLazyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/keywords': {
@@ -108,6 +125,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexLazyRoute: IndexLazyRoute,
   KeywordsLazyRoute: KeywordsLazyRoute,
+  ManageLazyRoute: ManageLazyRoute,
   SearchLazyRoute: SearchLazyRoute,
   SettingsLazyRoute: SettingsLazyRoute,
 }

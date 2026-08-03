@@ -1,11 +1,12 @@
 import { Link } from '@tanstack/react-router';
 import type { Status } from '@wails/internal/module/hotspot';
-import { Activity, Target, Search, Settings, Flame } from 'lucide-react';
+import { Activity, Target, Search, Settings, Flame, Trash2 } from 'lucide-react';
 
 const navItems = [
     { to: '/', label: '热点雷达', icon: Activity },
     { to: '/keywords', label: '监控词', icon: Target },
     { to: '/search', label: '搜索', icon: Search },
+    { to: '/manage', label: '热点管理', icon: Trash2 },
     { to: '/settings', label: '设置', icon: Settings }
 ] as const;
 

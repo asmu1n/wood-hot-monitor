@@ -6,8 +6,9 @@ import type { Hotspot } from '@wails/internal/module/hotspot';
 
 const pageTitles: Record<string, string> = {
     '/': '热点雷达',
-    '/keywords': '监控词',
-    '/search': '搜索',
+    '/keywords': '监控关键词',
+    '/search': '搜索热点',
+    '/manage': '热点管理',
     '/settings': '设置'
 };
 

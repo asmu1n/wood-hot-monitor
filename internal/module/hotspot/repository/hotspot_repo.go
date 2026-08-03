@@ -2,12 +2,14 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"wood-hot-monitor/ent"
 	hsmodel "wood-hot-monitor/ent/hotspot"
 	"wood-hot-monitor/ent/predicate"
 	"wood-hot-monitor/internal/module/hotspot"
+	"wood-hot-monitor/pkg/types"
 
 	"github.com/google/uuid"
 )
@@ -212,8 +214,82 @@ func (r *HotspotRepository) Upsert(ctx context.Context, h hotspot.Hotspot) (stri
 	return row.ID, true, nil
 }
 
-func (r *HotspotRepository) Delete(ctx context.Context, id string) error {
+func (r *HotspotRepository) DeleteById(ctx context.Context, id string) error {
 	return r.client.Hotspot.DeleteOneID(id).Exec(ctx)
+}
+
+func (r *HotspotRepository) buildDeletePredicates(params hotspot.DeleteParams) ([]predicate.Hotspot, error) {
+	if !params.HasFilter() {
+		return nil, errors.New("delete requires at least one filter condition")
+	}
+
+	var preds []predicate.Hotspot
+
+	if params.KeywordID != nil {
+		preds = append(preds, hsmodel.KeywordIDEQ(*params.KeywordID))
+	}
+	if params.PublishedAt != nil {
+		preds = append(preds, hsmodel.PublishedAtLTE(*params.PublishedAt))
+	}
+	if params.CreatedAt != nil {
+		preds = append(preds, hsmodel.CreatedAtLTE(*params.CreatedAt))
+	}
+	if params.IsRead != nil {
+		preds = append(preds, hsmodel.IsReadEQ(*params.IsRead))
+	}
+	if params.MaxRelevance != nil {
+		preds = append(preds, hsmodel.RelevanceLTE(*params.MaxRelevance))
+	}
+	if params.MaxImportance != nil {
+		switch *params.MaxImportance {
+		case types.ImportanceUrgent:
+			// 不高于 urgent = 全部等级
+			preds = append(preds, hsmodel.ImportanceIn(
+				types.ImportanceUrgent,
+				types.ImportanceHigh,
+				types.ImportanceMedium,
+				types.ImportanceLow,
+			))
+		case types.ImportanceHigh:
+			preds = append(preds, hsmodel.ImportanceIn(types.ImportanceHigh, types.ImportanceMedium, types.ImportanceLow))
+		case types.ImportanceMedium:
+			preds = append(preds, hsmodel.ImportanceIn(types.ImportanceMedium, types.ImportanceLow))
+		case types.ImportanceLow:
+			preds = append(preds, hsmodel.ImportanceEQ(types.ImportanceLow))
+		default:
+			return nil, errors.New("invalid maxImportance value")
+		}
+	}
+
+	if len(preds) == 0 {
+		return nil, errors.New("delete requires at least one effective filter condition")
+	}
+
+	return preds, nil
+}
+
+func (r *HotspotRepository) CountByDeleteParams(ctx context.Context, params hotspot.DeleteParams) (int, error) {
+	preds, err := r.buildDeletePredicates(params)
+	if err != nil {
+		return 0, err
+	}
+	query := r.client.Hotspot.Query()
+	if len(preds) > 0 {
+		query = query.Where(preds...)
+	}
+	return query.Count(ctx)
+}
+
+func (r *HotspotRepository) Delete(ctx context.Context, params hotspot.DeleteParams) (int, error) {
+	preds, err := r.buildDeletePredicates(params)
+	if err != nil {
+		return 0, err
+	}
+	builder := r.client.Hotspot.Delete()
+	if len(preds) > 0 {
+		builder = builder.Where(preds...)
+	}
+	return builder.Exec(ctx)
 }
 
 func (r *HotspotRepository) GetStatus(ctx context.Context) (*hotspot.Status, error) {

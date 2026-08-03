@@ -56,15 +56,6 @@ func (d *dispatcher) OnHotspotNew(cfg config.NotifyConfig, alert port.HotspotAle
 		}
 	}
 
-	if alert.Importance == types.ImportanceHigh || alert.Importance == types.ImportanceUrgent {
-		SendEmailAlert(cfg, EmailAlert{
-			Title:      alert.Title,
-			Source:     alert.Source,
-			URL:        alert.URL,
-			Importance: alert.Importance,
-			Summary:    alert.Summary,
-		})
-	}
 }
 
 // importanceRank maps importance labels to comparable ranks.

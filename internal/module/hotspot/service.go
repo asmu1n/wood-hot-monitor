@@ -35,8 +35,18 @@ func (s *Service) GetByID(ctx context.Context, id string) (*Hotspot, error) {
 	return s.repo.FindByID(ctx, id)
 }
 
-func (s *Service) Delete(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, id)
+func (s *Service) DeleteById(ctx context.Context, id string) error {
+	return s.repo.DeleteById(ctx, id)
+}
+
+// CountByDeleteParams 预览将删除的条数（与 Delete 使用相同过滤条件）。
+func (s *Service) CountByDeleteParams(ctx context.Context, params DeleteParams) (int, error) {
+	return s.repo.CountByDeleteParams(ctx, params)
+}
+
+// Delete 按条件批量删除，返回实际删除条数。至少需要一个过滤条件。
+func (s *Service) Delete(ctx context.Context, params DeleteParams) (int, error) {
+	return s.repo.Delete(ctx, params)
 }
 
 func (s *Service) Search(ctx context.Context, params SearchParams) (*page.PageResponse[Hotspot], error) {

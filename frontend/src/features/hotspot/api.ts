@@ -1,6 +1,8 @@
-import type { GetAllParams, SearchParams } from '@wails/internal/module/hotspot';
+import type { DeleteParams, GetAllParams, SearchParams } from '@wails/internal/module/hotspot';
 import {
+    CountByDeleteParams,
     Delete,
+    DeleteById,
     GetAll,
     GetByID,
     GetNotifications,
@@ -33,7 +35,14 @@ export const hotspotApi = {
 
     search: (params: SearchParams) => Search(params),
 
-    delete: (id: string) => Delete(id),
+    /** 按条件批量删除，返回删除条数 */
+    delete: (params: DeleteParams) => Delete(params),
+
+    /** 单条删除 */
+    deleteById: (id: string) => DeleteById(id),
+
+    /** 预览将删除条数 */
+    countByDeleteParams: (params: DeleteParams) => CountByDeleteParams(params),
 
     getNotifications: (limit: number = 10) => GetNotifications(limit),
 
