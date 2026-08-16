@@ -107,78 +107,55 @@ cd frontend && bun dev        # 前端独立开发
 
 ## 版本管理
 
-职责划分：
-
-| 谁 | 负责什么 |
+| 谁 | 负责 |
 | --- | --- |
-| **你（仓库）** | 在 `build/config.yml` 的 `info.version` 写清产品版本 |
-| **GitHub Actions** | 读取该版本 → `wails3 update build-assets` 同步打包元数据 → 注入构建身份 → 打三端包 / 发 Release |
-| **本地可选** | `task assets:sync` 仅在需要把打包文件也提交进仓库时使用 |
-
-### 你要改的地方
-
-只维护这一处（Wails 官方配置）：
+| **你** | 在 `build/config.yml` → `info.version` 写产品版本；发版时打对应 `v*` tag |
+| **仓库 `build/`** | 打包元数据（plist / nsis / nfpm）。改版本后本地可选 `task assets:sync` 再提交 |
+| **CI** | 读版本、注入构建身份到二进制、三端打包；**仅 Release** 会再跑一次 `assets:sync` |
 
 ```yaml
 # build/config.yml
 info:
-  version: "0.1.0"
+  version: "0.2.0"
 ```
 
-发版时：
-
 ```bash
-# 1. 改版本描述
-#    编辑 build/config.yml -> info.version: "0.2.0"
-
-# 2. （可选）本地把打包元数据也更新并提交
-task assets:sync
-git add build/config.yml build/darwin build/windows build/linux
-git commit -m "chore: release v0.2.0"
+# 发版
+# 1) 改 info.version
+# 2) 可选：task assets:sync && git add build
+git commit -am "chore: release v0.2.0"
 git push origin main
-
-# 3. 打与 config 一致的 tag，触发 Release
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.2.0 && git push origin v0.2.0
 ```
 
-> 即使不跑 `task assets:sync`、不提交各平台元数据，CI 打包前也会用官方命令从 `config.yml` 重新生成，不影响出包正确性。
-
-### CI 会多做的事（你不用管）
-
-- **PR / push main（Package）**
-  - 读 `info.version`（如 `0.1.0`）
-  - 生成构建身份：`0.1.0-pr.12+abc1234` 或 `0.1.0+abc1234`（只进二进制与产物名，**不回写仓库**）
-  - `wails3 update build-assets` 同步安装包元数据
-  - 三平台打包，上传 Artifacts
-
-- **tag `vX.Y.Z`（Release）**
-  - 校验 tag 与 `build/config.yml` 的 `info.version` 一致
-  - 同步元数据 → 打包 → 创建 GitHub Release 并挂上安装包
-
-### 本地命令
+本地：
 
 ```bash
-task version       # 打印 config.yml 中的版本 + git commit
-task assets:sync   # 可选：wails3 update build-assets
-task package       # 当前系统打包（使用 config 版本 + ldflags）
+task version        # 查看 VERSION / ldflags
+task assets:sync    # 官方 wails3 update build-assets
+task package        # 当前系统打包
 ```
 
-运行时版本通过构建 `-ldflags` 写入 `internal/version`（开发模式为 `dev`）。
+二进制版本通过根 `Taskfile.yml` 的 `EXTRA_LDFLAGS` 注入（`-X internal/version.*`），平台 Taskfile 仅保留 Wails 默认 `ldflags` 结构并追加 `{{.EXTRA_LDFLAGS}}`。
 
 ## CI/CD
 
-| 事件 | Workflow | 产物 |
+| 事件 | Workflow | 行为 |
 | --- | --- | --- |
-| PR → `main` | `Package` | 三端预览包（Artifacts） |
-| push `main` | `Package` | 三端构建包（Artifacts） |
-| tag `vX.Y.Z` | `Release` | GitHub Release 附件 |
+| PR → `main` | `Package` | 信任仓库 `build/` 元数据；构建身份 `version-pr.N+sha` 只进二进制/文件名 |
+| push `main` | `Package` | 同上，`version+sha` |
+| tag `vX.Y.Z` | `Release` | 校验 tag≡config → `assets:sync` → 打包 → GitHub Release |
 
-| 平台 | Runner | 主要产物 |
-| --- | --- | --- |
-| macOS | `macos-latest` (arm64) | `.app.zip` |
-| Linux | `ubuntu-latest` (amd64) | `.deb` + `.tar.gz` |
-| Windows | `windows-latest` (amd64) | NSIS installer + portable `.zip` |
+共用 composite actions：
+
+- `.github/actions/setup-wails` — Go / Bun / Task / Wails / 平台依赖 / 前端
+- `.github/actions/package-app` — 当前 OS 打包并整理 `dist/`
+
+| 平台 | 产物 |
+| --- | --- |
+| macOS arm64 | `.app.zip` |
+| Linux amd64 | `.deb` + `.tar.gz` |
+| Windows amd64 | NSIS installer + portable `.zip` |
 
 
 ## 许可证

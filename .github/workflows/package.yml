@@ -1,6 +1,5 @@
-# Package macOS / Linux / Windows builds.
-# Version text is owned in-repo: build/config.yml -> info.version
-# CI only integrates: resolve identity, wails3 update build-assets, package, upload.
+# PR / main preview builds. Version text lives in build/config.yml (info.version).
+# Packaging metadata in build/ is trusted as committed; CI does not rewrite it.
 name: Package
 
 on:
@@ -26,55 +25,36 @@ jobs:
     name: Resolve version
     runs-on: ubuntu-latest
     outputs:
-      # Marketing version from repo (config.yml) — what you maintain.
       marketing_version: ${{ steps.meta.outputs.marketing_version }}
-      # Full build identity for binary ldflags / artifact names.
       version: ${{ steps.meta.outputs.version }}
       artifact_tag: ${{ steps.meta.outputs.artifact_tag }}
       git_commit: ${{ steps.meta.outputs.git_commit }}
-      build_number: ${{ steps.meta.outputs.build_number }}
     steps:
       - uses: actions/checkout@v4
-
       - id: meta
-        name: Read build/config.yml and compose build identity
         shell: bash
         run: |
           set -euo pipefail
-
-          # --- repo-owned version description ---
           MARKETING="$(sed -n 's/^  version: *"\([^"]*\)".*/\1/p' build/config.yml | head -n1)"
           if [[ -z "${MARKETING}" ]]; then
             echo "build/config.yml info.version is empty" >&2
             exit 1
           fi
-          if [[ ! "${MARKETING}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
-            echo "invalid info.version in build/config.yml: ${MARKETING}" >&2
-            exit 1
-          fi
-
           SHORT_SHA="$(echo "${GITHUB_SHA}" | cut -c1-7)"
-          BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
-
-          # --- CI-owned build identity (does not rewrite the repo) ---
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             VERSION="${MARKETING}-pr.${{ github.event.pull_request.number }}+${SHORT_SHA}"
-            ARTIFACT_TAG="v${MARKETING}-pr.${{ github.event.pull_request.number }}-${SHORT_SHA}"
+            ARTIFACT_TAG="v${MARKETING}-pr${{ github.event.pull_request.number }}-${SHORT_SHA}"
           else
             VERSION="${MARKETING}+${SHORT_SHA}"
             ARTIFACT_TAG="v${MARKETING}-${SHORT_SHA}"
           fi
-
           {
             echo "marketing_version=${MARKETING}"
             echo "version=${VERSION}"
             echo "artifact_tag=${ARTIFACT_TAG}"
             echo "git_commit=${SHORT_SHA}"
-            echo "build_number=${BUILD_NUMBER}"
           } >> "$GITHUB_OUTPUT"
-
-          echo "repo version (config.yml): ${MARKETING}"
-          echo "build identity (CI):       ${VERSION}"
+          echo "config.yml=${MARKETING}  build_id=${VERSION}"
 
   package:
     name: ${{ matrix.name }}
@@ -87,204 +67,29 @@ jobs:
           - name: macOS
             os: macos-latest
             goos: darwin
-            goarch: arm64
             artifact: wood-hot-monitor-darwin-arm64
           - name: Linux
             os: ubuntu-latest
             goos: linux
-            goarch: amd64
             artifact: wood-hot-monitor-linux-amd64
           - name: Windows
             os: windows-latest
             goos: windows
-            goarch: amd64
             artifact: wood-hot-monitor-windows-amd64
-
-    env:
-      # Packaging metadata uses the repo-declared marketing version.
-      # Binary ldflags use the full CI build identity (set in package step).
-      GIT_COMMIT: ${{ needs.resolve-version.outputs.git_commit }}
-      BUILD_NUMBER: ${{ needs.resolve-version.outputs.build_number }}
-
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
+      - uses: ./.github/actions/setup-wails
         with:
-          go-version-file: go.mod
-          cache: true
+          wails-version: ${{ env.WAILS_VERSION }}
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: ./.github/actions/package-app
         with:
-          bun-version: 1.3.11
-
-      - uses: arduino/setup-task@v2
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Wails CLI
-        shell: bash
-        env:
-          # CLI install must not require GTK/WebKit headers (Linux runners).
-          CGO_ENABLED: "0"
-        run: |
-          set -euo pipefail
-          go install "github.com/wailsapp/wails/v3/cmd/wails3@${WAILS_VERSION}"
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
-          wails3 version || true
-
-      - name: Install Linux build dependencies
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libgtk-4-dev libwebkitgtk-6.0-dev
-
-      - name: Install Windows packaging tools
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          set -euo pipefail
-          choco install nsis -y --no-progress
-          NSIS_DIR="/c/Program Files (x86)/NSIS"
-          # Same-step PATH (GITHUB_PATH only affects subsequent steps).
-          export PATH="${NSIS_DIR}:${PATH}"
-          # Later steps (package) need this too.
-          echo "${NSIS_DIR}" >> "$GITHUB_PATH"
-          # Chocolatey shim dir sometimes used instead of Program Files.
-          if [[ -x "/c/ProgramData/chocolatey/bin/makensis.exe" ]]; then
-            echo "/c/ProgramData/chocolatey/bin" >> "$GITHUB_PATH"
-            export PATH="/c/ProgramData/chocolatey/bin:${PATH}"
-          fi
-          command -v makensis
-          makensis -VERSION
-
-      - name: Cache frontend dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            frontend/node_modules
-            ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('frontend/bun.lock', 'bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
-
-      - name: Install frontend dependencies
-        shell: bash
-        working-directory: frontend
-        run: bun install --frozen-lockfile
-
-      - name: Sync packaging assets from config.yml (Wails official)
-        shell: bash
-        run: |
-          set -euo pipefail
-          MARKETING='${{ needs.resolve-version.outputs.marketing_version }}'
-
-          # Ensure config.yml matches the version we resolved (already from file).
-          # Regenerate platform packaging files from Wails templates + config.
-          wails3 update build-assets \
-            -config ./build/config.yml \
-            -dir ./build \
-            -name "${APP_NAME}" \
-            -binaryname "${APP_NAME}" \
-            -productversion "${MARKETING}" \
-            -silent
-
-          # Restore project-specific nfpm fields the stock template overwrites.
-          nfpm="build/linux/nfpm/nfpm.yaml"
-          if [[ -f "$nfpm" ]]; then
-            sed -i.bak \
-              -e 's|^homepage:.*|homepage: "https://github.com/asmu1n/wood-hot-monitor"|' \
-              -e 's|^license:.*|license: "GPL-3.0"|' \
-              -e 's|^maintainer:.*|maintainer: "asmu1n <asmu1n@users.noreply.github.com>"|' \
-              "$nfpm"
-            rm -f "${nfpm}.bak"
-          fi
-
-          # Stock Wails nfpm template references optional scripts that we do not ship.
-          if [[ -f "$nfpm" ]] && grep -q '^scripts:' "$nfpm"; then
-            # Drop the scripts: block through the next top-level comment/blank section start.
-            awk '
-              BEGIN {skip=0}
-              /^scripts:/ {skip=1; next}
-              skip && /^[^[:space:]#]/ {skip=0}
-              skip && /^# / {skip=0}
-              !skip {print}
-            ' "$nfpm" > "${nfpm}.tmp" && mv "${nfpm}.tmp" "$nfpm"
-          fi
-
-          echo "Packaging metadata synced for ${MARKETING}"
-
-      - name: Package application
-        shell: bash
-        env:
-          # Full identity into Go binary via Task VERSION_LDFLAGS.
-          APP_VERSION: ${{ needs.resolve-version.outputs.version }}
-          BUILD_TIME: ${{ github.run_id }}
-        run: |
-          set -euo pipefail
-          mkdir -p dist bin
-          export BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          ARTIFACT_BASE="${{ matrix.artifact }}-${{ needs.resolve-version.outputs.artifact_tag }}"
-
-          echo "Packaging ${APP_NAME} (${{ matrix.goos }}/${{ matrix.goarch }})"
-          echo "  repo version : ${{ needs.resolve-version.outputs.marketing_version }}"
-          echo "  build identity: ${APP_VERSION}"
-
-          case "${{ matrix.goos }}" in
-            darwin)
-              wails3 task package
-              test -d "bin/${APP_NAME}.app"
-              (cd bin && ditto -c -k --keepParent "${APP_NAME}.app" "../dist/${ARTIFACT_BASE}.app.zip")
-              ;;
-            linux)
-              wails3 task build
-              test -x "bin/${APP_NAME}"
-              wails3 task linux:generate:dotdesktop
-              wails3 task linux:generate:deb
-              tar -C bin -czf "dist/${ARTIFACT_BASE}.tar.gz" "${APP_NAME}"
-              shopt -s nullglob
-              deb_files=(bin/*.deb)
-              if ((${#deb_files[@]} == 0)); then
-                echo "expected .deb under bin/" >&2
-                ls -la bin >&2 || true
-                exit 1
-              fi
-              cp "${deb_files[0]}" "dist/${ARTIFACT_BASE}.deb"
-              ;;
-            windows)
-              wails3 task package
-              test -f "bin/${APP_NAME}.exe"
-              shopt -s nullglob
-              installer_files=(bin/*installer*.exe)
-              if ((${#installer_files[@]} == 0)); then
-                echo "expected NSIS installer under bin/" >&2
-                ls -la bin build/windows/nsis >&2 || true
-                exit 1
-              fi
-              cp "${installer_files[0]}" "dist/${ARTIFACT_BASE}-installer.exe"
-              (cd bin && zip -9 "../dist/${ARTIFACT_BASE}.zip" "${APP_NAME}.exe")
-              ;;
-            *)
-              echo "unsupported GOOS ${{ matrix.goos }}" >&2
-              exit 1
-              ;;
-          esac
-
-          # Sidecar metadata for humans downloading artifacts.
-          cat > "dist/${ARTIFACT_BASE}.txt" <<META
-          name=${APP_NAME}
-          marketing_version=${{ needs.resolve-version.outputs.marketing_version }}
-          build_version=${APP_VERSION}
-          git_commit=${GIT_COMMIT}
-          build_number=${BUILD_NUMBER}
-          goos=${{ matrix.goos }}
-          goarch=${{ matrix.goarch }}
-          META
-
-          ls -lah dist
+          app-name: ${{ env.APP_NAME }}
+          goos: ${{ matrix.goos }}
+          artifact-base: ${{ matrix.artifact }}-${{ needs.resolve-version.outputs.artifact_tag }}
+          app-version: ${{ needs.resolve-version.outputs.version }}
+          git-commit: ${{ needs.resolve-version.outputs.git_commit }}
 
       - uses: actions/upload-artifact@v4
         with:

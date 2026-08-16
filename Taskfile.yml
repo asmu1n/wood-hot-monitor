@@ -5,8 +5,8 @@ vars:
   BIN_DIR: "bin"
   PACKAGE_MANAGER: "bun"
   VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
-  # App version is declared in build/config.yml (info.version).
-  # CI may override with APP_VERSION for prerelease/build metadata in ldflags only.
+
+  # Product version: build/config.yml info.version (override with APP_VERSION=...).
   VERSION:
     sh: |
       if [ -n "${APP_VERSION:-}" ]; then printf '%s' "$APP_VERSION"; else sed -n 's/^  version: *"\([^"]*\)".*/\1/p' build/config.yml | head -n1; fi
@@ -16,6 +16,10 @@ vars:
   BUILD_TIME:
     sh: |
       if [ -n "${BUILD_TIME:-}" ]; then printf '%s' "$BUILD_TIME"; else date -u +%Y-%m-%dT%H:%M:%SZ; fi
+
+  # Injected into stock Wails -ldflags via {{.EXTRA_LDFLAGS}}.
+  # Override entirely with: task package EXTRA_LDFLAGS="..."
+  EXTRA_LDFLAGS: '-X wood-hot-monitor/internal/version.Version={{.VERSION}} -X wood-hot-monitor/internal/version.Commit={{.GIT_COMMIT}} -X wood-hot-monitor/internal/version.BuildTime={{.BUILD_TIME}}'
 
 includes:
   common: ./build/Taskfile.yml
@@ -45,19 +49,17 @@ tasks:
       - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
 
   version:
-    summary: Print the app version declared in build/config.yml
+    summary: Print version fields from config.yml / env
     cmds:
       - 'echo "VERSION={{.VERSION}}"'
       - 'echo "GIT_COMMIT={{.GIT_COMMIT}}"'
       - 'echo "BUILD_TIME={{.BUILD_TIME}}"'
+      - 'echo "EXTRA_LDFLAGS={{.EXTRA_LDFLAGS}}"'
 
-  # Local convenience only — CI runs the same wails3 command itself.
+  # Local + Release CI: regenerate packaging metadata from config.yml (Wails official).
+  # PR/main Package workflow does NOT run this — it trusts committed build/ files.
   assets:sync:
     summary: Regenerate packaging metadata from build/config.yml (wails3 official)
-    desc: |
-      Official Wails command. Reads build/config.yml info.* and updates
-      darwin/windows/linux packaging files under build/.
-      Prefer running this after you change info.version (or let CI do it).
     cmds:
       - |
         wails3 update build-assets \
@@ -66,6 +68,7 @@ tasks:
           -name {{.APP_NAME}} \
           -binaryname {{.APP_NAME}}
       - |
+        # Keep project-specific nfpm fields the stock template overwrites.
         nfpm="build/linux/nfpm/nfpm.yaml"
         if [ -f "$nfpm" ]; then
           sed -i.bak \
@@ -75,13 +78,7 @@ tasks:
             "$nfpm"
           rm -f "${nfpm}.bak"
           if grep -q '^scripts:' "$nfpm" 2>/dev/null; then
-            awk '
-              BEGIN {skip=0}
-              /^scripts:/ {skip=1; next}
-              skip && /^[^[:space:]#]/ {skip=0}
-              skip && /^# / {skip=0}
-              !skip {print}
-            ' "$nfpm" > "${nfpm}.tmp" && mv "${nfpm}.tmp" "$nfpm"
+            awk 'BEGIN{s=0} /^scripts:/{s=1;next} s && /^[^[:space:]#]/{s=0} s && /^# /{s=0} !s{print}' \
+              "$nfpm" > "${nfpm}.tmp" && mv "${nfpm}.tmp" "$nfpm"
           fi
         fi
-
