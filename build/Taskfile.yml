@@ -1,0 +1,75 @@
+version: "3"
+
+tasks:
+    go:mod:tidy:
+        internal: true
+        run: once
+        cmds:
+            - go mod tidy
+
+    install:frontend:deps:
+        summary: Install frontend dependencies
+        run: once
+        dir: frontend
+        sources:
+            - package.json
+            - bun.lock
+            - bun.lockb
+        generates:
+            - node_modules
+        preconditions:
+            - sh: bun --version
+              msg: "bun not found. Install: https://bun.sh"
+        cmds:
+            - bun install
+
+    build:frontend:
+        summary: Build the frontend
+        run: once
+        dir: frontend
+        sources:
+            - "**/*"
+            - exclude: node_modules/**/*
+        generates:
+            - dist/**/*
+        deps:
+            - task: install:frontend:deps
+            - task: generate:bindings
+        cmds:
+            - bun run build
+        env:
+            PRODUCTION: '{{if eq .DEV "true"}}false{{else}}true{{end}}'
+
+    generate:bindings:
+        summary: Generates TypeScript bindings from Go services
+        run: once
+        deps:
+            - task: go:mod:tidy
+        sources:
+            - "**/*.go"
+            - go.mod
+            - go.sum
+        generates:
+            - frontend/bindings/**/*
+        cmds:
+            - wails3 generate bindings -ts -i -clean=true
+
+    generate:icons:
+        summary: Generates platform icons from appicon.png
+        run: once
+        dir: build
+        sources:
+            - "appicon.png"
+        generates:
+            - "darwin/icons.icns"
+            - "windows/icon.ico"
+        cmds:
+            - wails3 generate icons -input appicon.png -macfilename darwin/icons.icns -windowsfilename windows/icon.ico
+
+    dev:frontend:
+        summary: Runs the frontend dev server
+        deps:
+            - task: install:frontend:deps
+        dir: frontend
+        cmds:
+            - bun run dev --port {{.VITE_PORT}} --strictPort

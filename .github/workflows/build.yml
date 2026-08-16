@@ -1,0 +1,76 @@
+# Build-level CI (official Wails pattern):
+# https://v3.wails.io/guides/build/cross-platform/#cicd-integration
+#
+# On each PR / push to main:
+#   matrix(macos|ubuntu|windows) → wails3 build → upload bin/
+#
+# This produces runnable binaries, NOT installers.
+# Installers are built on git tags via .github/workflows/release.yml (wails3 package).
+name: Build
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Pin to the same Wails line as go.mod.
+  WAILS_VERSION: v3.0.0-alpha2.110
+
+jobs:
+  build:
+    name: ${{ matrix.goos }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            goos: linux
+          - os: macos-latest
+            goos: darwin
+          - os: windows-latest
+            goos: windows
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup (Go / Bun / Task / Wails)
+        uses: ./.github/actions/setup-wails
+        with:
+          wails-version: ${{ env.WAILS_VERSION }}
+          with-nsis: "false"
+
+      # Optional build identity in the binary (reads APP_* via Taskfile EXTRA_LDFLAGS).
+      - name: Build
+        shell: bash
+        env:
+          APP_VERSION: ${{ github.ref_name }}
+          GIT_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          export GIT_COMMIT="$(echo "${GIT_COMMIT}" | cut -c1-7)"
+          export BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          # Prefer config.yml marketing version for APP_VERSION when on a branch name like main.
+          if [[ "${{ github.event_name }}" == "pull_request" || "${{ github.ref_name }}" == "main" ]]; then
+            export APP_VERSION="$(sed -n 's/^  version: *"\([^"]*\)".*/\1/p' build/config.yml | head -n1)+${GIT_COMMIT}"
+          fi
+          echo "wails3 build  (APP_VERSION=${APP_VERSION})"
+          wails3 build
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ matrix.goos }}
+          path: bin/
+          if-no-files-found: error
+          retention-days: 14

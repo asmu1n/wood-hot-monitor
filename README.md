@@ -1,118 +1,160 @@
-# 🌲 Wood Hot Monitor
+# Wood Hot Monitor
 
-<p align="center">
-  <strong>基于 AI 驱动的多源热点实时监控与分析引擎</strong>
-</p>
+## 项目简介
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Frontend-React_19-61DAFB?style=for-the-badge&logo=react" alt="React" />
-  <img src="https://img.shields.io/badge/Backend-Node.js-339933?style=for-the-badge&logo=nodedotjs" alt="Node.js" />
-  <img src="https://img.shields.io/badge/Database-SQLite-003B57?style=for-the-badge&logo=sqlite" alt="SQLite" />
-  <img src="https://img.shields.io/badge/Styles-Tailwind_CSS_4-06B6D4?style=for-the-badge&logo=tailwindcss" alt="Tailwind" />
-  <img src="https://img.shields.io/badge/Tools-Turborepo-EF4444?style=for-the-badge&logo=turborepo" alt="Turborepo" />
-</p>
+Wood Hot Monitor 是基于 Wails v3 构建的桌面热点监控应用。该程序能够自动抓取多平台的热点信息，并使用大语言模型对内容质量进行评估。
 
----
+## 技术栈
 
-## 📖 项目简介
+后端：
+- Go 1.26
+- Wails v3 (alpha2.110)
+- Ent ORM v0.14
+- SQLite (使用 modernc.org/sqlite，纯 Go 实现，无 CGO 依赖)
+- gocron v2
+- go-openai (支持 OpenAI 兼容接口)
 
-**Wood Hot Monitor** 是一款高效的实时热点监控工具。它通过爬虫和 AI 技术，从多个社交平台（如 Twitter、Bilibili 等）自动抓取、分析并过滤高价值内容，并利用 WebSocket 技术实现数据的实时推送到客户端。
+前端：
+- React 19
+- TanStack Router, TanStack Query
+- Tailwind CSS v4
+- shadcn/ui
+- Framer Motion
+- bun 包管理器
 
-本项目采用了现代化的微服务（Monorepo）架构，旨在提供极低延迟的热点感知能力，并通过自研的质量评分算法（Quality Scoring）确保信息的准确性与时效性。
+## 项目结构
 
-## ✨ 核心特性
+```
+├── main.go                        # Wails 应用入口 (组合根，依赖注入)
+├── ent/schema/                    # Ent ORM schema (keyword, hotspot, keyword_expansion)
+├── internal/
+│   ├── module/                    # 业务域模块
+│   │   ├── hotspot/               #   热点监控 (实体、接口、服务、参数)
+│   │   │   └── persist/           #     Ent 仓储实现
+│   │   └── keyword/               #   关键词管理 (实体、接口、服务)
+│   │       └── persist/           #     Ent 仓储实现
+│   ├── checker/                   # 业务编排 (定时抓取 → LLM 评估 → 入库 → 通知)
+│   ├── infra/                     # 基础设施
+│   │   ├── database/              #   SQLite 连接初始化
+│   │   ├── scraper/               #   多平台爬虫 (Bilibili, Bing, HackerNews, Twitter)
+│   │   ├── llm/                   #   LLM 调用 (OpenAI 兼容接口)
+│   │   └── notify/                #   通知 (Wails 事件推送 + 邮件告警)
+│   ├── config/                    # 本地 JSON 配置管理
+│   └── shared/                    # 跨模块共享类型 (分页)
+└── frontend/
+    ├── bindings/                  # Wails 自动生成的 Go ↔ JS 绑定
+    └── src/
+        ├── routes/                # TanStack Router 页面路由
+        ├── features/              # 按功能域组织 (hotspot, keyword, settings)
+        ├── components/            # 共享 UI 组件
+        └── hooks/                 # 业务逻辑 hook
+```
 
-- 🚀 **实时监控**：利用 Socket.IO 实现全双工通信，热点更新秒级触达。
-- 🤖 **AI 驱动分析**：集成 AI 引擎进行多维度内容过滤与分类。
-- 📊 **质量评分机制**：基于时间衰减、互动率等指标的动态评分系统。
-- 🔍 **关键词定制**：支持用户自定义监控关键词，并提供精确的 Room 级消息路由。
-- 🔔 **全方位通知**：结合全局感知系统，通过 Toast 与导航提醒确保不遗漏重要信息。
+## 架构设计
 
-## 🛠️ 技术栈
+### 模块化分层
 
-### 前端 (apps/frontend)
+项目采用按业务域划分的模块化架构：
 
-- **框架**: [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
-- **路由**: [TanStack Router](https://tanstack.com/router)
-- **状态管理**: [TanStack Query](https://tanstack.com/query)
-- **动画**: [Framer Motion](https://www.framer.com/motion/)
-- **UI 组件**: [Radix UI](https://www.radix-ui.com/) + [Lucide Icons](https://lucide.dev/)
-- **通信**: [Socket.IO Client](https://socket.io/docs/v4/client-api/)
+- **业务域** (`module/`) — 每个模块自包含实体、接口、服务和持久化实现
+- **基础设施** (`infra/`) — 为业务模块提供的技术能力 (爬虫、LLM、通知、数据库)
+- **编排层** (`checker/`) — 串联业务模块与基础设施，定时执行完整流程
 
-### 后端 (apps/backend)
+### 依赖方向
 
-- **运行时**: [Node.js](https://nodejs.org/) + [Express](https://expressjs.com/)
-- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
-- **数据库**: [Better-SQLite3](https://github.com/WiseLibs/better-sqlite3)
-- **任务调度**: [Node-cron](https://github.com/node-cron/node-cron)
-- **通信**: [Socket.IO](https://socket.io/)
+```
+main.go (组合根)
+   │
+   ├─→ module/hotspot    (业务接口 + 服务)
+   ├─→ module/keyword    (业务接口 + 服务)
+   ├─→ checker           (编排，依赖业务接口)
+   └─→ infra/*           (实现业务接口)
+        │
+        └─→ module/*     (引用实体和接口类型)
+```
 
-### 工程化
+业务模块定义接口，基础设施实现接口，main.go 完成注入。
 
-- **管理**: [Turborepo](https://turbo.build/) + [Yarn v4 (Berry)](https://yarnpkg.com/)
-- **类型**: TypeScript (Full-stack Safety)
-- **代码规范**: Prettier + ESLint
+### 关键设计决策
 
-## 📂 项目结构
+- **后端与客户端一体化**：Go 后端通过 Wails 绑定机制直接暴露给前端，不走 HTTP API。
+- **仓储跟随业务**：每个业务模块自带 `persist/` 子包存放 Ent 仓储实现，开发时在同一目录树下查看全貌。
+- **配置存储**：程序配置保存在 `~/.wood-hot-monitor/config.json`，未存入数据库。
+- **通知模型**：通知状态 (`is_read`) 直接记录在 Hotspot 表中，无独立通知表。
+- **数据库**：SQLite 纯 Go 驱动 (modernc.org/sqlite)，schema 通过 Ent 自动迁移。
+- **LLM 接口**：通用 OpenAI 兼容接口，支持用户配置自定义 BaseURL。
+
+## 开发
+
+前置条件：
+- Go 1.26 或更高版本
+- bun
+- Wails CLI v3 (安装命令：go install github.com/wailsapp/wails/v3/cmd/wails3@latest)
+- Task (安装命令：go install github.com/go-task/task/v3/cmd/task@latest)
+
+常用命令：
+
+```bash
+task dev                      # 开发模式
+task build                    # 构建
+task package                  # 打包
+
+wails3 generate bindings      # 重新生成前端绑定
+go generate ./ent             # 重新生成 Ent 代码
+
+cd frontend && bun dev        # 前端独立开发
+```
+
+## 版本与 CI/CD
+
+对齐 Wails 官方文档：[Cross-Platform Building → CI/CD](https://v3.wails.io/guides/build/cross-platform/#cicd-integration)。
+
+### 你维护的版本
+
+```yaml
+# build/config.yml
+info:
+  version: "0.2.0"
+```
+
+### 两条流水线
+
+| 触发 | Workflow | 官方命令 | 产物 |
+| --- | --- | --- | --- |
+| PR / push **main** | `Build` | `wails3 build` | 三端**编译产物**（`bin/`，Artifacts） |
+| 推送 tag **`vX.Y.Z`** | `Release` | `wails3 package` | 三端**安装包/打包结果** + GitHub Release |
 
 ```text
-.
-├── apps/
-│   ├── frontend/          # React 前端应用
-│   └── backend/           # Express 后端应用
-├── packages/
-│   ├── types/             # 跨项目共享的 TypeScript 类型定义
-│   └── ui/                # 共享 UI 组件库
-├── ARCHITECTURE_COMMUNICATION.md  # 详细架构与通信协议说明
-├── HOTSPOT_QUALITY_ALGORITHM.md   # 热点质量评分算法说明
-└── turbo.json             # Turborepo 配置文件
+日常开发 / PR
+  git push → Build workflow
+    matrix: linux | darwin | windows
+      setup → wails3 build → upload bin/
+
+正式发版
+  1. 改 build/config.yml info.version
+  2. （可选）task assets:sync && commit
+  3. git tag v0.2.0 && git push origin v0.2.0
+       → Release workflow
+         validate tag == config.yml
+         matrix: wails3 package
+         发布到 GitHub Releases
 ```
 
-## 🚀 快速开始
-
-### 前提条件
-
-- Node.js (建议 v20+)
-- Yarn v4
-
-### 安装依赖
+### 本地对应命令
 
 ```bash
-yarn install
+wails3 build              # 与 Build CI 相同
+wails3 package            # 与 Release CI 相同（当前系统）
+task assets:sync          # 发版前同步打包元数据（可选）
+task version              # 查看版本 / ldflags
 ```
 
-### 运行开发环境
+### 编译产物 vs 安装包
 
-```bash
-# 同时启动前端和后端
-yarn dev
+- **Build（`wails3 build`）**：可执行文件 / `.exe`，适合验证与内测下载。
+- **Release（`wails3 package`）**：在 build 之上做平台打包（如 Windows NSIS 安装器、macOS `.app`、Linux deb 等）。
 
-# 仅启动后端服务
-yarn serve
-```
 
-### 构建项目
+## 许可证
 
-```bash
-yarn build
-```
-
-## 📝 详细文档
-
-为了深入了解系统设计，请参阅以下专业文档：
-
-- 🔌 [通信架构解析](./ARCHITECTURE_COMMUNICATION.md) - 深入了解 HTTP 与 WebSocket 的协作模式。
-- 📈 [质量评分算法](./HOTSPOT_QUALITY_ALGORITHM.md) - 详解如何通过数学模型进行内容过滤。
-- 🧱 [模块实现细节](./LOGIC_KEYWORD.md) - 开发指南与内部逻辑说明。
-
----
-
-## 📄 开源协议
-
-本项目采用 [GPL-3.0](./LICENSE) 开源协议。
-
----
-
-<p align="center">
-  Made with ❤️ by Antigravity
-</p>
+GPL-3.0

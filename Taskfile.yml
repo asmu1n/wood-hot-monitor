@@ -1,0 +1,84 @@
+version: '3'
+
+vars:
+  APP_NAME: "wood-hot-monitor"
+  BIN_DIR: "bin"
+  PACKAGE_MANAGER: "bun"
+  VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
+
+  # Product version: build/config.yml info.version (override with APP_VERSION=...).
+  VERSION:
+    sh: |
+      if [ -n "${APP_VERSION:-}" ]; then printf '%s' "$APP_VERSION"; else sed -n 's/^  version: *"\([^"]*\)".*/\1/p' build/config.yml | head -n1; fi
+  GIT_COMMIT:
+    sh: |
+      if [ -n "${GIT_COMMIT:-}" ]; then printf '%s' "$GIT_COMMIT"; else git rev-parse --short HEAD 2>/dev/null || printf '%s' unknown; fi
+  BUILD_TIME:
+    sh: |
+      if [ -n "${BUILD_TIME:-}" ]; then printf '%s' "$BUILD_TIME"; else date -u +%Y-%m-%dT%H:%M:%SZ; fi
+
+  # Injected into stock Wails -ldflags via {{.EXTRA_LDFLAGS}}.
+  # Override entirely with: task package EXTRA_LDFLAGS="..."
+  EXTRA_LDFLAGS: '-X wood-hot-monitor/internal/version.Version={{.VERSION}} -X wood-hot-monitor/internal/version.Commit={{.GIT_COMMIT}} -X wood-hot-monitor/internal/version.BuildTime={{.BUILD_TIME}}'
+
+includes:
+  common: ./build/Taskfile.yml
+  darwin: ./build/darwin/Taskfile.yml
+  windows: ./build/windows/Taskfile.yml
+  linux: ./build/linux/Taskfile.yml
+
+tasks:
+  build:
+    summary: Builds the application for current OS
+    cmds:
+      - task: "{{OS}}:build"
+
+  package:
+    summary: Packages a production build for the current OS
+    cmds:
+      - task: "{{OS}}:package"
+
+  run:
+    summary: Runs the built application
+    cmds:
+      - task: "{{OS}}:run"
+
+  dev:
+    summary: Runs the application in development mode
+    cmds:
+      - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
+
+  version:
+    summary: Print version fields from config.yml / env
+    cmds:
+      - 'echo "VERSION={{.VERSION}}"'
+      - 'echo "GIT_COMMIT={{.GIT_COMMIT}}"'
+      - 'echo "BUILD_TIME={{.BUILD_TIME}}"'
+      - 'echo "EXTRA_LDFLAGS={{.EXTRA_LDFLAGS}}"'
+
+  # Local + Release CI: regenerate packaging metadata from config.yml (Wails official).
+  # PR/main Package workflow does NOT run this — it trusts committed build/ files.
+  assets:sync:
+    summary: Regenerate packaging metadata from build/config.yml (wails3 official)
+    cmds:
+      - |
+        wails3 update build-assets \
+          -config ./build/config.yml \
+          -dir ./build \
+          -name {{.APP_NAME}} \
+          -binaryname {{.APP_NAME}}
+      - |
+        # Keep project-specific nfpm fields the stock template overwrites.
+        nfpm="build/linux/nfpm/nfpm.yaml"
+        if [ -f "$nfpm" ]; then
+          sed -i.bak \
+            -e 's|^homepage:.*|homepage: "https://github.com/asmu1n/wood-hot-monitor"|' \
+            -e 's|^license:.*|license: "GPL-3.0"|' \
+            -e 's|^maintainer:.*|maintainer: "asmu1n <asmu1n@users.noreply.github.com>"|' \
+            "$nfpm"
+          rm -f "${nfpm}.bak"
+          if grep -q '^scripts:' "$nfpm" 2>/dev/null; then
+            awk 'BEGIN{s=0} /^scripts:/{s=1;next} s && /^[^[:space:]#]/{s=0} s && /^# /{s=0} !s{print}' \
+              "$nfpm" > "${nfpm}.tmp" && mv "${nfpm}.tmp" "$nfpm"
+          fi
+        fi

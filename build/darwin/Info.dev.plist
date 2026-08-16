@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>CFBundleDisplayName</key>
+		<string>Wood Hot Monitor (Dev)</string>
+		<key>CFBundleExecutable</key>
+		<string>wood-hot-monitor</string>
+		<key>CFBundleGetInfoString</key>
+		<string>AI-driven multi-source hotspot monitoring</string>
+		<key>CFBundleIconFile</key>
+		<string>icons</string>
+		<key>CFBundleIdentifier</key>
+		<string>com.asmu1n.woodhotmonitor</string>
+		<key>CFBundleName</key>
+		<string>Wood Hot Monitor</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		<key>CFBundleShortVersionString</key>
+		<string>0.1.0</string>
+		<key>CFBundleVersion</key>
+		<string>0.1.0</string>
+		<key>LSMinimumSystemVersion</key>
+		<string>12.0.0</string>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsLocalNetworking</key>
+			<true/>
+		</dict>
+		<key>NSHighResolutionCapable</key>
+		<string>true</string>
+		<key>NSHumanReadableCopyright</key>
+		<string>(c) 2025, asmu1n</string>
+		<key>NSSupportsAutomaticGraphicsSwitching</key>
+		<true/>
+	</dict>
+</plist>

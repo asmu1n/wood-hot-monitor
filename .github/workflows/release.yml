@@ -1,0 +1,174 @@
+# Package-level CI (installers), triggered by version tags.
+#
+# How to release:
+#   1) Set build/config.yml → info.version (e.g. 0.3.0)
+#   2) Optional locally: wails3 task assets:sync && commit build/
+#   3) git tag v0.3.0 && git push origin v0.3.0
+#
+# Flow per platform (same as local):
+#   setup → (Windows: NSIS) → wails3 package → upload bin/ → GitHub Release
+#
+# Commands are the official Wails ones; this file only schedules them on runners.
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build (e.g. v0.2.0). Empty = config.yml version.'
+        required: false
+        default: ''
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  WAILS_VERSION: v3.0.0-alpha2.110
+  APP_NAME: wood-hot-monitor
+
+jobs:
+  validate:
+    name: Validate tag ↔ config.yml
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      tag: ${{ steps.v.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        shell: bash
+        run: |
+          set -euo pipefail
+          CONFIG="$(sed -n 's/^  version: *"\([^"]*\)".*/\1/p' build/config.yml | head -n1)"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.tag }}" ]]; then
+            TAG="${{ inputs.tag }}"
+          elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            TAG="${GITHUB_REF_NAME}"
+          else
+            TAG="v${CONFIG}"
+          fi
+          VER="${TAG#v}"
+          CORE_CFG="$(echo "$CONFIG" | sed -E 's/[-+].*$//')"
+          CORE_TAG="$(echo "$VER" | sed -E 's/[-+].*$//')"
+          if [[ "$CORE_CFG" != "$CORE_TAG" ]]; then
+            echo "Tag $TAG does not match build/config.yml info.version=$CONFIG" >&2
+            echo "Update config.yml, commit, then tag." >&2
+            exit 1
+          fi
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VER" >> "$GITHUB_OUTPUT"
+          echo "OK tag=v$VER config=$CONFIG"
+
+  package:
+    name: package-${{ matrix.goos }}
+    needs: validate
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            goos: linux
+          - os: macos-latest
+            goos: darwin
+          - os: windows-latest
+            goos: windows
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup (incl. NSIS on Windows)
+        uses: ./.github/actions/setup-wails
+        with:
+          wails-version: ${{ env.WAILS_VERSION }}
+          with-nsis: "true"
+
+      # Keep packaging metadata in sync with config.yml (official Wails tool).
+      - name: Sync build assets from config.yml
+        shell: bash
+        run: wails3 task assets:sync
+
+      - name: Package (official wails3 package)
+        shell: bash
+        env:
+          APP_VERSION: ${{ needs.validate.outputs.version }}
+          GIT_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          export GIT_COMMIT="$(echo "${GIT_COMMIT}" | cut -c1-7)"
+          export BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+          # Windows: pass absolute makensis path into Task (PATH LookPath is flaky).
+          if [[ "${{ matrix.goos }}" == "windows" ]]; then
+            MAKENSIS_BIN=""
+            for c in \
+              "/c/Program Files (x86)/NSIS/makensis.exe" \
+              "/c/Program Files/NSIS/makensis.exe" \
+              "/c/ProgramData/chocolatey/bin/makensis.exe"
+            do
+              [[ -f "$c" ]] && MAKENSIS_BIN="$c" && break
+            done
+            if [[ -z "$MAKENSIS_BIN" ]]; then
+              echo "makensis.exe not found" >&2
+              exit 1
+            fi
+            if command -v cygpath >/dev/null 2>&1; then
+              MAKENSIS_WIN="$(cygpath -m "$MAKENSIS_BIN")"
+            else
+              MAKENSIS_WIN="C:/${MAKENSIS_BIN#/c/}"
+            fi
+            echo "MAKENSIS=${MAKENSIS_WIN}"
+            wails3 package "MAKENSIS=${MAKENSIS_WIN}"
+          else
+            wails3 package
+          fi
+
+          echo "=== bin/ ==="
+          ls -lah bin/ || ls -la bin/
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-${{ matrix.goos }}
+          path: bin/
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: GitHub Release
+    needs: [validate, package]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: package-*
+          path: release-assets
+          merge-multiple: false
+
+      - name: Flatten artifacts for release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          # release-assets/package-linux/*, package-darwin/*, package-windows/*
+          find release-assets -type f ! -name '*.txt' | while read -r f; do
+            base="$(basename "$f")"
+            # Prefix with platform folder name to avoid collisions.
+            plat="$(basename "$(dirname "$f")")"
+            cp "$f" "out/${plat}-${base}"
+          done
+          ls -lah out
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.validate.outputs.tag }}
+          name: Wood Hot Monitor ${{ needs.validate.outputs.tag }}
+          generate_release_notes: true
+          files: out/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
