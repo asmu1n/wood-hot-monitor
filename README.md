@@ -105,13 +105,11 @@ go generate ./ent             # 重新生成 Ent 代码
 cd frontend && bun dev        # 前端独立开发
 ```
 
-## 版本管理
+## 版本与 CI/CD
 
-| 谁 | 负责 |
-| --- | --- |
-| **你** | 在 `build/config.yml` → `info.version` 写产品版本；发版时打对应 `v*` tag |
-| **仓库 `build/`** | 打包元数据（plist / nsis / nfpm）。改版本后本地可选 `task assets:sync` 再提交 |
-| **CI** | 读版本、注入构建身份到二进制、三端打包；**仅 Release** 会再跑一次 `assets:sync` |
+对齐 Wails 官方文档：[Cross-Platform Building → CI/CD](https://v3.wails.io/guides/build/cross-platform/#cicd-integration)。
+
+### 你维护的版本
 
 ```yaml
 # build/config.yml
@@ -119,43 +117,42 @@ info:
   version: "0.2.0"
 ```
 
-```bash
-# 发版
-# 1) 改 info.version
-# 2) 可选：task assets:sync && git add build
-git commit -am "chore: release v0.2.0"
-git push origin main
-git tag v0.2.0 && git push origin v0.2.0
+### 两条流水线
+
+| 触发 | Workflow | 官方命令 | 产物 |
+| --- | --- | --- | --- |
+| PR / push **main** | `Build` | `wails3 build` | 三端**编译产物**（`bin/`，Artifacts） |
+| 推送 tag **`vX.Y.Z`** | `Release` | `wails3 package` | 三端**安装包/打包结果** + GitHub Release |
+
+```text
+日常开发 / PR
+  git push → Build workflow
+    matrix: linux | darwin | windows
+      setup → wails3 build → upload bin/
+
+正式发版
+  1. 改 build/config.yml info.version
+  2. （可选）task assets:sync && commit
+  3. git tag v0.2.0 && git push origin v0.2.0
+       → Release workflow
+         validate tag == config.yml
+         matrix: wails3 package
+         发布到 GitHub Releases
 ```
 
-本地：
+### 本地对应命令
 
 ```bash
-task version        # 查看 VERSION / ldflags
-task assets:sync    # 官方 wails3 update build-assets
-task package        # 当前系统打包
+wails3 build              # 与 Build CI 相同
+wails3 package            # 与 Release CI 相同（当前系统）
+task assets:sync          # 发版前同步打包元数据（可选）
+task version              # 查看版本 / ldflags
 ```
 
-二进制版本通过根 `Taskfile.yml` 的 `EXTRA_LDFLAGS` 注入（`-X internal/version.*`），平台 Taskfile 仅保留 Wails 默认 `ldflags` 结构并追加 `{{.EXTRA_LDFLAGS}}`。
+### 编译产物 vs 安装包
 
-## CI/CD
-
-| 事件 | Workflow | 行为 |
-| --- | --- | --- |
-| PR → `main` | `Package` | 信任仓库 `build/` 元数据；构建身份 `version-pr.N+sha` 只进二进制/文件名 |
-| push `main` | `Package` | 同上，`version+sha` |
-| tag `vX.Y.Z` | `Release` | 校验 tag≡config → `assets:sync` → 打包 → GitHub Release |
-
-共用 composite actions：
-
-- `.github/actions/setup-wails` — Go / Bun / Task / Wails / 平台依赖 / 前端
-- `.github/actions/package-app` — 当前 OS 打包并整理 `dist/`
-
-| 平台 | 产物 |
-| --- | --- |
-| macOS arm64 | `.app.zip` |
-| Linux amd64 | `.deb` + `.tar.gz` |
-| Windows amd64 | NSIS installer + portable `.zip` |
+- **Build（`wails3 build`）**：可执行文件 / `.exe`，适合验证与内测下载。
+- **Release（`wails3 package`）**：在 build 之上做平台打包（如 Windows NSIS 安装器、macOS `.app`、Linux deb 等）。
 
 
 ## 许可证

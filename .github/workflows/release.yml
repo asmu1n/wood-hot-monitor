@@ -1,4 +1,14 @@
-# Official release on v* tags. Tag core must match build/config.yml info.version.
+# Package-level CI (installers), triggered by version tags.
+#
+# How to release:
+#   1) Set build/config.yml → info.version (e.g. 0.3.0)
+#   2) Optional locally: wails3 task assets:sync && commit build/
+#   3) git tag v0.3.0 && git push origin v0.3.0
+#
+# Flow per platform (same as local):
+#   setup → (Windows: NSIS) → wails3 package → upload bin/ → GitHub Release
+#
+# Commands are the official Wails ones; this file only schedules them on runners.
 name: Release
 
 on:
@@ -7,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to release (e.g. v0.2.0). Empty = use config.yml.'
+        description: 'Tag to build (e.g. v0.2.0). Empty = config.yml version.'
         required: false
         default: ''
 
@@ -19,140 +29,146 @@ permissions:
   contents: write
 
 env:
-  APP_NAME: wood-hot-monitor
   WAILS_VERSION: v3.0.0-alpha2.110
+  APP_NAME: wood-hot-monitor
 
 jobs:
-  resolve-version:
-    name: Validate tag
+  validate:
+    name: Validate tag ↔ config.yml
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.meta.outputs.version }}
-      tag: ${{ steps.meta.outputs.tag }}
-      git_commit: ${{ steps.meta.outputs.git_commit }}
+      version: ${{ steps.v.outputs.version }}
+      tag: ${{ steps.v.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - id: meta
+      - id: v
         shell: bash
         run: |
           set -euo pipefail
-          CONFIG_VERSION="$(sed -n 's/^  version: *"\([^"]*\)".*/\1/p' build/config.yml | head -n1)"
-          SHORT_SHA="$(echo "${GITHUB_SHA}" | cut -c1-7)"
-
+          CONFIG="$(sed -n 's/^  version: *"\([^"]*\)".*/\1/p' build/config.yml | head -n1)"
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.tag }}" ]]; then
-            RAW_TAG="${{ inputs.tag }}"
+            TAG="${{ inputs.tag }}"
           elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            RAW_TAG="${GITHUB_REF_NAME}"
+            TAG="${GITHUB_REF_NAME}"
           else
-            RAW_TAG="v${CONFIG_VERSION}"
+            TAG="v${CONFIG}"
           fi
-
-          VERSION="${RAW_TAG#v}"
-          CONFIG_CORE="$(echo "${CONFIG_VERSION}" | sed -E 's/[-+].*$//')"
-          TAG_CORE="$(echo "${VERSION}" | sed -E 's/[-+].*$//')"
-          if [[ "${CONFIG_CORE}" != "${TAG_CORE}" ]]; then
-            echo "Tag v${VERSION} does not match build/config.yml info.version=${CONFIG_VERSION}" >&2
+          VER="${TAG#v}"
+          CORE_CFG="$(echo "$CONFIG" | sed -E 's/[-+].*$//')"
+          CORE_TAG="$(echo "$VER" | sed -E 's/[-+].*$//')"
+          if [[ "$CORE_CFG" != "$CORE_TAG" ]]; then
+            echo "Tag $TAG does not match build/config.yml info.version=$CONFIG" >&2
+            echo "Update config.yml, commit, then tag." >&2
             exit 1
           fi
-
-          {
-            echo "version=${VERSION}"
-            echo "tag=v${VERSION}"
-            echo "git_commit=${SHORT_SHA}"
-          } >> "$GITHUB_OUTPUT"
-          echo "release tag=v${VERSION} commit=${SHORT_SHA}"
-
-  # Single refresh of packaging metadata from config.yml (official Wails).
-  prepare-assets:
-    name: Sync build assets
-    needs: resolve-version
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-wails
-        with:
-          wails-version: ${{ env.WAILS_VERSION }}
-          install-frontend: "false"
-          install-nsis: "false"
-      - name: wails3 task assets:sync
-        shell: bash
-        run: wails3 task assets:sync
-      - uses: actions/upload-artifact@v4
-        with:
-          name: synced-build-assets
-          path: build/**
-          if-no-files-found: error
-          retention-days: 1
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VER" >> "$GITHUB_OUTPUT"
+          echo "OK tag=v$VER config=$CONFIG"
 
   package:
-    name: ${{ matrix.name }}
-    needs: [resolve-version, prepare-assets]
+    name: package-${{ matrix.goos }}
+    needs: validate
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: macOS
-            os: macos-latest
-            goos: darwin
-            artifact: wood-hot-monitor-darwin-arm64
-          - name: Linux
-            os: ubuntu-latest
+          - os: ubuntu-latest
             goos: linux
-            artifact: wood-hot-monitor-linux-amd64
-          - name: Windows
-            os: windows-latest
+          - os: macos-latest
+            goos: darwin
+          - os: windows-latest
             goos: windows
-            artifact: wood-hot-monitor-windows-amd64
     steps:
       - uses: actions/checkout@v4
 
-      - name: Restore synced packaging metadata
-        uses: actions/download-artifact@v4
-        with:
-          name: synced-build-assets
-          path: build
-
-      - uses: ./.github/actions/setup-wails
+      - name: Setup (incl. NSIS on Windows)
+        uses: ./.github/actions/setup-wails
         with:
           wails-version: ${{ env.WAILS_VERSION }}
+          with-nsis: "true"
 
-      - uses: ./.github/actions/package-app
-        with:
-          app-name: ${{ env.APP_NAME }}
-          goos: ${{ matrix.goos }}
-          artifact-base: ${{ matrix.artifact }}-${{ needs.resolve-version.outputs.tag }}
-          app-version: ${{ needs.resolve-version.outputs.version }}
-          git-commit: ${{ needs.resolve-version.outputs.git_commit }}
+      # Keep packaging metadata in sync with config.yml (official Wails tool).
+      - name: Sync build assets from config.yml
+        shell: bash
+        run: wails3 task assets:sync
 
-      - uses: actions/upload-artifact@v4
+      - name: Package (official wails3 package)
+        shell: bash
+        env:
+          APP_VERSION: ${{ needs.validate.outputs.version }}
+          GIT_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          export GIT_COMMIT="$(echo "${GIT_COMMIT}" | cut -c1-7)"
+          export BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+          # Windows: pass absolute makensis path into Task (PATH LookPath is flaky).
+          if [[ "${{ matrix.goos }}" == "windows" ]]; then
+            MAKENSIS_BIN=""
+            for c in \
+              "/c/Program Files (x86)/NSIS/makensis.exe" \
+              "/c/Program Files/NSIS/makensis.exe" \
+              "/c/ProgramData/chocolatey/bin/makensis.exe"
+            do
+              [[ -f "$c" ]] && MAKENSIS_BIN="$c" && break
+            done
+            if [[ -z "$MAKENSIS_BIN" ]]; then
+              echo "makensis.exe not found" >&2
+              exit 1
+            fi
+            if command -v cygpath >/dev/null 2>&1; then
+              MAKENSIS_WIN="$(cygpath -m "$MAKENSIS_BIN")"
+            else
+              MAKENSIS_WIN="C:/${MAKENSIS_BIN#/c/}"
+            fi
+            echo "MAKENSIS=${MAKENSIS_WIN}"
+            wails3 package "MAKENSIS=${MAKENSIS_WIN}"
+          else
+            wails3 package
+          fi
+
+          echo "=== bin/ ==="
+          ls -lah bin/ || ls -la bin/
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: release-${{ matrix.artifact }}
-          path: dist/*
+          name: package-${{ matrix.goos }}
+          path: bin/
           if-no-files-found: error
           retention-days: 30
 
   publish:
     name: GitHub Release
-    needs: [resolve-version, package]
+    needs: [validate, package]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          pattern: release-*
+          pattern: package-*
           path: release-assets
-          merge-multiple: true
-      - run: find release-assets -type f | sort
+          merge-multiple: false
+
+      - name: Flatten artifacts for release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          # release-assets/package-linux/*, package-darwin/*, package-windows/*
+          find release-assets -type f ! -name '*.txt' | while read -r f; do
+            base="$(basename "$f")"
+            # Prefix with platform folder name to avoid collisions.
+            plat="$(basename "$(dirname "$f")")"
+            cp "$f" "out/${plat}-${base}"
+          done
+          ls -lah out
+
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.resolve-version.outputs.tag }}
-          name: Wood Hot Monitor ${{ needs.resolve-version.outputs.tag }}
+          tag_name: ${{ needs.validate.outputs.tag }}
+          name: Wood Hot Monitor ${{ needs.validate.outputs.tag }}
           generate_release_notes: true
-          draft: false
-          prerelease: ${{ contains(needs.resolve-version.outputs.version, '-') }}
-          files: release-assets/*
+          files: out/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
