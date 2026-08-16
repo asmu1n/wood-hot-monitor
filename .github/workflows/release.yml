@@ -128,10 +128,14 @@ jobs:
 
       - name: Install Wails CLI
         shell: bash
+        env:
+          # CLI install must not require GTK/WebKit headers (Linux runners).
+          CGO_ENABLED: "0"
         run: |
           set -euo pipefail
           go install "github.com/wailsapp/wails/v3/cmd/wails3@${WAILS_VERSION}"
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+          wails3 version || true
 
       - name: Install Linux build dependencies
         if: runner.os == 'Linux'
@@ -147,7 +151,23 @@ jobs:
         run: |
           set -euo pipefail
           choco install nsis -y --no-progress
-          echo "C:/Program Files (x86)/NSIS" >> "$GITHUB_PATH"
+          NSIS_DIR="/c/Program Files (x86)/NSIS"
+          # Same-step PATH (GITHUB_PATH only affects subsequent steps).
+          export PATH="${NSIS_DIR}:${PATH}"
+          # Later steps (package) need this too.
+          echo "${NSIS_DIR}" >> "$GITHUB_PATH"
+          # Chocolatey shim dir sometimes used instead of Program Files.
+          if [[ -x "/c/ProgramData/chocolatey/bin/makensis.exe" ]]; then
+            echo "/c/ProgramData/chocolatey/bin" >> "$GITHUB_PATH"
+            export PATH="/c/ProgramData/chocolatey/bin:${PATH}"
+          fi
+          command -v makensis
+          makensis -VERSION
+
+      - name: Install frontend dependencies
+        shell: bash
+        working-directory: frontend
+        run: bun install --frozen-lockfile
 
       - name: Sync packaging assets from config.yml (Wails official)
         shell: bash
