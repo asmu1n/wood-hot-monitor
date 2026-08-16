@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Wood Hot Monitor
+Comment=AI-driven multi-source hotspot monitoring
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/wood-hot-monitor %u
+Terminal=false
+Type=Application
+Icon=wood-hot-monitor
+Categories=Utility;
+StartupWMClass=wood-hot-monitor
+
+ 

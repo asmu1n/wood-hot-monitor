@@ -13,6 +13,7 @@ import (
 	"wood-hot-monitor/internal/module/checker"
 	"wood-hot-monitor/internal/module/hotspot"
 	"wood-hot-monitor/internal/module/keyword"
+	"wood-hot-monitor/internal/version"
 
 	hsrepo "wood-hot-monitor/internal/module/hotspot/repository"
 	kwrepo "wood-hot-monitor/internal/module/keyword/repository"
@@ -31,6 +32,7 @@ import (
 var assets embed.FS
 
 func main() {
+	log.Printf("wood-hot-monitor %s", version.Summary())
 	dataDir := defaultDataDir()
 
 	db, err := database.New(dataDir)

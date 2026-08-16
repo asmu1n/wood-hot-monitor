@@ -5,6 +5,30 @@ vars:
   BIN_DIR: "bin"
   PACKAGE_MANAGER: "bun"
   VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
+  # App version is declared in build/config.yml (info.version).
+  # CI may override with APP_VERSION for prerelease/build metadata in ldflags only.
+  VERSION:
+    sh: |
+      if [ -n "${APP_VERSION:-}" ]; then
+        echo "$APP_VERSION"
+      else
+        # shell-only parse of build/config.yml info.version
+        sed -n 's/^  version: *"\([^"]*\)".*/\1/p' build/config.yml | head -n1
+      fi
+  GIT_COMMIT:
+    sh: 'echo "${GIT_COMMIT:-$(git rev-parse --short HEAD 2>/dev/null || echo unknown)}"'
+  BUILD_TIME:
+    sh: 'echo "${BUILD_TIME:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"'
+  VERSION_LDFLAGS:
+    sh: |
+      if [ -n "${APP_VERSION:-}" ]; then
+        ver="$APP_VERSION"
+      else
+        ver="$(sed -n 's/^  version: *"\([^"]*\)".*/\1/p' build/config.yml | head -n1)"
+      fi
+      commit="${GIT_COMMIT:-$(git rev-parse --short HEAD 2>/dev/null || echo unknown)}"
+      built="${BUILD_TIME:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+      printf -- '-X wood-hot-monitor/internal/version.Version=%s -X wood-hot-monitor/internal/version.Commit=%s -X wood-hot-monitor/internal/version.BuildTime=%s' "$ver" "$commit" "$built"
 
 includes:
   common: ./build/Taskfile.yml
@@ -19,7 +43,7 @@ tasks:
       - task: "{{OS}}:build"
 
   package:
-    summary: Packages a production build
+    summary: Packages a production build for the current OS
     cmds:
       - task: "{{OS}}:package"
 
@@ -32,3 +56,46 @@ tasks:
     summary: Runs the application in development mode
     cmds:
       - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
+
+  version:
+    summary: Print the app version declared in build/config.yml
+    cmds:
+      - 'echo "VERSION={{.VERSION}}"'
+      - 'echo "GIT_COMMIT={{.GIT_COMMIT}}"'
+      - 'echo "BUILD_TIME={{.BUILD_TIME}}"'
+
+  # Local convenience only — CI runs the same wails3 command itself.
+  # You own version text in build/config.yml; this just regenerates packaging files from it.
+  assets:sync:
+    summary: Regenerate packaging metadata from build/config.yml (wails3 official)
+    desc: |
+      Official Wails command. Reads build/config.yml info.* and updates
+      darwin/windows/linux packaging files under build/.
+      Prefer running this after you change info.version (or let CI do it).
+    cmds:
+      - |
+        wails3 update build-assets \
+          -config ./build/config.yml \
+          -dir ./build \
+          -name {{.APP_NAME}} \
+          -binaryname {{.APP_NAME}}
+      # Template defaults overwrite project-specific nfpm fields; restore them.
+      - |
+        nfpm="build/linux/nfpm/nfpm.yaml"
+        if [ -f "$nfpm" ]; then
+          sed -i.bak \
+            -e 's|^homepage:.*|homepage: "https://github.com/asmu1n/wood-hot-monitor"|' \
+            -e 's|^license:.*|license: "GPL-3.0"|' \
+            -e 's|^maintainer:.*|maintainer: "asmu1n <asmu1n@users.noreply.github.com>"|' \
+            "$nfpm"
+          rm -f "${nfpm}.bak"
+          if grep -q '^scripts:' "$nfpm" 2>/dev/null; then
+            awk '
+              BEGIN {skip=0}
+              /^scripts:/ {skip=1; next}
+              skip && /^[^[:space:]#]/ {skip=0}
+              skip && /^# / {skip=0}
+              !skip {print}
+            ' "$nfpm" > "${nfpm}.tmp" && mv "${nfpm}.tmp" "$nfpm"
+          fi
+        fi

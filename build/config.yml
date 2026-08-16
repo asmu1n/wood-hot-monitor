@@ -1,12 +1,13 @@
-version: '3'
+version: "3"
 
 info:
-  companyName: "Antigravity"
+  companyName: "asmu1n"
   productName: "Wood Hot Monitor"
-  productIdentifier: "com.antigravity.woodhotmonitor"
+  productIdentifier: "com.asmu1n.woodhotmonitor"
   description: "AI-driven multi-source hotspot monitoring"
-  copyright: "(c) 2025, Antigravity"
-  version: "0.1.0"
+  copyright: "(c) 2025, asmu1n"
+  comments: "AI-driven multi-source hotspot monitoring"
+  version: "0.2.0"
 
 dev_mode:
   root_path: .
