@@ -9,26 +9,13 @@ vars:
   # CI may override with APP_VERSION for prerelease/build metadata in ldflags only.
   VERSION:
     sh: |
-      if [ -n "${APP_VERSION:-}" ]; then
-        echo "$APP_VERSION"
-      else
-        # shell-only parse of build/config.yml info.version
-        sed -n 's/^  version: *"\([^"]*\)".*/\1/p' build/config.yml | head -n1
-      fi
+      if [ -n "${APP_VERSION:-}" ]; then printf '%s' "$APP_VERSION"; else sed -n 's/^  version: *"\([^"]*\)".*/\1/p' build/config.yml | head -n1; fi
   GIT_COMMIT:
-    sh: 'echo "${GIT_COMMIT:-$(git rev-parse --short HEAD 2>/dev/null || echo unknown)}"'
-  BUILD_TIME:
-    sh: 'echo "${BUILD_TIME:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"'
-  VERSION_LDFLAGS:
     sh: |
-      if [ -n "${APP_VERSION:-}" ]; then
-        ver="$APP_VERSION"
-      else
-        ver="$(sed -n 's/^  version: *"\([^"]*\)".*/\1/p' build/config.yml | head -n1)"
-      fi
-      commit="${GIT_COMMIT:-$(git rev-parse --short HEAD 2>/dev/null || echo unknown)}"
-      built="${BUILD_TIME:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
-      printf -- '-X wood-hot-monitor/internal/version.Version=%s -X wood-hot-monitor/internal/version.Commit=%s -X wood-hot-monitor/internal/version.BuildTime=%s' "$ver" "$commit" "$built"
+      if [ -n "${GIT_COMMIT:-}" ]; then printf '%s' "$GIT_COMMIT"; else git rev-parse --short HEAD 2>/dev/null || printf '%s' unknown; fi
+  BUILD_TIME:
+    sh: |
+      if [ -n "${BUILD_TIME:-}" ]; then printf '%s' "$BUILD_TIME"; else date -u +%Y-%m-%dT%H:%M:%SZ; fi
 
 includes:
   common: ./build/Taskfile.yml
@@ -65,7 +52,6 @@ tasks:
       - 'echo "BUILD_TIME={{.BUILD_TIME}}"'
 
   # Local convenience only — CI runs the same wails3 command itself.
-  # You own version text in build/config.yml; this just regenerates packaging files from it.
   assets:sync:
     summary: Regenerate packaging metadata from build/config.yml (wails3 official)
     desc: |
@@ -79,7 +65,6 @@ tasks:
           -dir ./build \
           -name {{.APP_NAME}} \
           -binaryname {{.APP_NAME}}
-      # Template defaults overwrite project-specific nfpm fields; restore them.
       - |
         nfpm="build/linux/nfpm/nfpm.yaml"
         if [ -f "$nfpm" ]; then
@@ -99,3 +84,4 @@ tasks:
             ' "$nfpm" > "${nfpm}.tmp" && mv "${nfpm}.tmp" "$nfpm"
           fi
         fi
+
