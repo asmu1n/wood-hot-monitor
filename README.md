@@ -8,7 +8,7 @@ Wood Hot Monitor 是基于 Wails v3 构建的桌面热点监控应用。该程�
 
 后端：
 - Go 1.26
-- Wails v3 (alpha2.110)
+- Wails v3 (alpha2.122)
 - Ent ORM v0.14
 - SQLite (使用 modernc.org/sqlite，纯 Go 实现，无 CGO 依赖)
 - gocron v2
@@ -122,7 +122,7 @@ info:
 | 触发 | Workflow | 官方命令 | 产物 |
 | --- | --- | --- | --- |
 | PR / push **main** | `Build` | `wails3 build` | 三端**编译产物**（`bin/`，Artifacts） |
-| 推送 tag **`vX.Y.Z`** | `Release` | `wails3 package` | 三端**安装包/打包结果** + GitHub Release |
+| 推送 tag **`vX.Y.Z`** | `Release` | macOS: `darwin:package:dmg`；Win/Linux: `wails3 package` | 三端安装包（macOS **DMG** / Windows NSIS / Linux deb…）+ GitHub Release |
 
 ```text
 日常开发 / PR
@@ -136,23 +136,32 @@ info:
   3. git tag v0.2.0 && git push origin v0.2.0
        → Release workflow
          validate tag == config.yml
-         matrix: wails3 package
+         matrix:
+           darwin  → wails3 task darwin:package:dmg
+           windows → wails3 package   # NSIS
+           linux   → wails3 package   # AppImage/deb/rpm/arch
          发布到 GitHub Releases
 ```
 
 ### 本地对应命令
 
 ```bash
-wails3 build              # 与 Build CI 相同
-wails3 package            # 与 Release CI 相同（当前系统）
-task assets:sync          # 发版前同步打包元数据（可选）
-task version              # 查看版本 / ldflags
+wails3 build                     # 与 Build CI 相同
+wails3 package                   # Linux/Windows 安装包；macOS 仅 .app
+wails3 task darwin:package:dmg   # macOS 官方 DMG（.app + .dmg）
+task assets:sync                 # 发版前同步打包元数据（可选）
+task version                     # 查看版本 / ldflags
 ```
 
 ### 编译产物 vs 安装包
 
 - **Build（`wails3 build`）**：可执行文件 / `.exe`，适合验证与内测下载。
-- **Release（`wails3 package`）**：在 build 之上做平台打包（如 Windows NSIS 安装器、macOS `.app`、Linux deb 等）。
+- **Release**：在 build 之上做平台打包，优先走 Wails 官方任务：
+  - **macOS**：`wails3 task darwin:package:dmg` → `bin/<app>.dmg`（官方 styled DMG，内含 `.app`）
+    - 文档：[macOS Packaging / DMG](https://v3.wails.io/guides/build/macos/#dmg-installer)
+    - 仅 `.app`：`wails3 package` / `task darwin:package`；已有 `.app` 再打 DMG：`task darwin:create:dmg`
+  - **Windows**：`wails3 package` → NSIS 安装器（`makensis` + 官方 `build/windows/nsis`）
+  - **Linux**：`wails3 package` → AppImage + deb/rpm/arch（`wails3 generate appimage` / `wails3 tool package` + nfpm）
 
 
 ## 许可证

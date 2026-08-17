@@ -8,7 +8,7 @@ require (
 	github.com/go-co-op/gocron/v2 v2.21.2
 	github.com/google/uuid v1.6.0
 	github.com/sashabaranov/go-openai v1.41.2
-	github.com/wailsapp/wails/v3 v3.0.0-alpha2.110
+	github.com/wailsapp/wails/v3 v3.0.0-alpha2.122
 	modernc.org/sqlite v1.53.0
 )
 
@@ -29,13 +29,14 @@ require (
 	github.com/hashicorp/hcl/v2 v2.18.1 // indirect
 	github.com/jchv/go-winloader v0.0.0-20250406163304-c1995be93bd1 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.21 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
-	github.com/wailsapp/wails/webview2 v1.0.27 // indirect
+	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/zclconf/go-cty v1.14.4 // indirect
 	github.com/zclconf/go-cty-yaml v1.1.0 // indirect
 	golang.org/x/mod v0.36.0 // indirect

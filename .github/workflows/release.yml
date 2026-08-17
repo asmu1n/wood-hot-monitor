@@ -6,7 +6,7 @@
 #   3) git tag v0.3.0 && git push origin v0.3.0
 #
 # Flow per platform (same as local):
-#   setup → (Windows: NSIS) → wails3 package → upload bin/ → GitHub Release
+#   setup → wails3 package (linux/windows) | darwin:package:dmg (macOS) → upload installers → GitHub Release
 #
 # Commands are the official Wails ones; this file only schedules them on runners.
 name: Release
@@ -29,7 +29,7 @@ permissions:
   contents: write
 
 env:
-  WAILS_VERSION: v3.0.0-alpha2.110
+  WAILS_VERSION: v3.0.0-alpha2.122
   APP_NAME: wood-hot-monitor
 
 jobs:
@@ -93,7 +93,7 @@ jobs:
         shell: bash
         run: wails3 task assets:sync
 
-      - name: Package (official wails3 package)
+      - name: Package (official Wails)
         shell: bash
         env:
           APP_VERSION: ${{ needs.validate.outputs.version }}
@@ -103,39 +103,109 @@ jobs:
           export GIT_COMMIT="$(echo "${GIT_COMMIT}" | cut -c1-7)"
           export BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-          # Windows: pass absolute makensis path into Task (PATH LookPath is flaky).
-          if [[ "${{ matrix.goos }}" == "windows" ]]; then
-            MAKENSIS_BIN=""
-            for c in \
-              "/c/Program Files (x86)/NSIS/makensis.exe" \
-              "/c/Program Files/NSIS/makensis.exe" \
-              "/c/ProgramData/chocolatey/bin/makensis.exe"
-            do
-              [[ -f "$c" ]] && MAKENSIS_BIN="$c" && break
-            done
-            if [[ -z "$MAKENSIS_BIN" ]]; then
-              echo "makensis.exe not found" >&2
+          case "${{ matrix.goos }}" in
+            darwin)
+              # Official macOS installer flow:
+              #   https://v3.wails.io/guides/build/macos/#dmg-installer
+              # package:dmg => .app bundle + styled DMG via `wails3 tool package --format dmg`
+              echo "wails3 task darwin:package:dmg"
+              wails3 task darwin:package:dmg
+              ;;
+            windows)
+              # Official Windows package uses NSIS (makensis on PATH from setup-wails).
+              # Ensure common install locations are on PATH for this step too.
+              for d in \
+                "/c/Program Files (x86)/NSIS" \
+                "/c/Program Files/NSIS" \
+                "/c/ProgramData/chocolatey/bin"
+              do
+                [[ -d "$d" ]] && export PATH="$d:$PATH"
+              done
+              command -v makensis
+              makensis -VERSION || true
+              echo "wails3 package"
+              wails3 package
+              ;;
+            linux)
+              # Official Linux package: AppImage + deb/rpm/arch via nfpm / wails3 tool package
+              echo "wails3 package"
+              wails3 package
+              ;;
+            *)
+              echo "unknown goos=${{ matrix.goos }}" >&2
               exit 1
-            fi
-            if command -v cygpath >/dev/null 2>&1; then
-              MAKENSIS_WIN="$(cygpath -m "$MAKENSIS_BIN")"
-            else
-              MAKENSIS_WIN="C:/${MAKENSIS_BIN#/c/}"
-            fi
-            echo "MAKENSIS=${MAKENSIS_WIN}"
-            wails3 package "MAKENSIS=${MAKENSIS_WIN}"
-          else
-            wails3 package
-          fi
+              ;;
+          esac
 
           echo "=== bin/ ==="
           ls -lah bin/ || ls -la bin/
+
+      - name: Verify macOS DMG
+        if: matrix.goos == 'darwin'
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== bin/ (darwin) ==="
+          ls -lah bin/
+          shopt -s nullglob
+          dmgs=(bin/*.dmg)
+          if [[ ${#dmgs[@]} -lt 1 ]]; then
+            echo "Expected at least one .dmg in bin/ after darwin:package:dmg" >&2
+            exit 1
+          fi
+          for d in "${dmgs[@]}"; do ls -lah "$d"; done
+
+      # Upload installers/binaries only. Do NOT upload .app trees — GitHub Releases
+      # flatten nested files and previously produced broken macOS assets.
+      - name: Prepare release-dist
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-dist
+          goos="${{ matrix.goos }}"
+          shopt -s nullglob
+          case "$goos" in
+            darwin)
+              # Official tool writes bin/<APP_NAME>.dmg; publish a versioned filename.
+              shopt -s nullglob
+              dmgs=(bin/*.dmg)
+              if [[ ${#dmgs[@]} -lt 1 ]]; then
+                echo "no .dmg produced" >&2
+                exit 1
+              fi
+              ver="${{ needs.validate.outputs.version }}"
+              for d in "${dmgs[@]}"; do
+                base="$(basename "$d" .dmg)"
+                # wood-hot-monitor.dmg -> wood-hot-monitor-0.2.0-darwin.dmg
+                out="release-dist/${base}-${ver}-darwin.dmg"
+                cp -v "$d" "$out"
+              done
+              ;;
+            linux)
+              for f in bin/*.deb bin/*.rpm bin/*.AppImage bin/*.pkg.tar.zst bin/${{ env.APP_NAME }}; do
+                [[ -f "$f" ]] && cp -v "$f" release-dist/
+              done
+              ;;
+            windows)
+              for f in bin/*.exe; do
+                [[ -f "$f" ]] && cp -v "$f" release-dist/
+              done
+              ;;
+            *)
+              echo "unknown goos=$goos" >&2
+              exit 1
+              ;;
+          esac
+          echo "=== release-dist/ ==="
+          ls -lah release-dist/
+          # Fail if empty
+          test -n "$(find release-dist -type f | head -n1)"
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4
         with:
           name: package-${{ matrix.goos }}
-          path: bin/
+          path: release-dist/
           if-no-files-found: error
           retention-days: 30
 
@@ -150,19 +220,38 @@ jobs:
           path: release-assets
           merge-multiple: false
 
-      - name: Flatten artifacts for release
+      - name: Collect release assets
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p out
           # release-assets/package-linux/*, package-darwin/*, package-windows/*
-          find release-assets -type f ! -name '*.txt' | while read -r f; do
+          # Artifacts are already filtered to installers (see Prepare release-dist).
+          find release-assets -type f ! -name '*.txt' ! -name '.DS_Store' | sort | while read -r f; do
+            # Never publish loose files from inside a .app bundle.
+            case "$f" in
+              *.app/*|*.app\\*) continue ;;
+            esac
             base="$(basename "$f")"
-            # Prefix with platform folder name to avoid collisions.
-            plat="$(basename "$(dirname "$f")")"
-            cp "$f" "out/${plat}-${base}"
+            # Installer-style names are unique enough — keep basename.
+            case "$base" in
+              *.dmg|*.deb|*.rpm|*.AppImage|*.pkg.tar.zst|*installer.exe|*setup.exe)
+                dest="out/${base}"
+                ;;
+              *)
+                plat="$(basename "$(dirname "$f")")"
+                dest="out/${plat}-${base}"
+                ;;
+            esac
+            if [[ -e "$dest" ]]; then
+              echo "collision: $dest (from $f)" >&2
+              exit 1
+            fi
+            cp "$f" "$dest"
           done
+          echo "=== out/ ==="
           ls -lah out
+          test -n "$(find out -type f | head -n1)"
 
       - uses: softprops/action-gh-release@v2
         with:
