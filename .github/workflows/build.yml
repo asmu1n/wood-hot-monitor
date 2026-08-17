@@ -24,7 +24,7 @@ permissions:
 
 env:
   # Pin to the same Wails line as go.mod.
-  WAILS_VERSION: v3.0.0-alpha2.110
+  WAILS_VERSION: v3.0.0-alpha2.122
 
 jobs:
   build:
